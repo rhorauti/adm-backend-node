@@ -1,4 +1,4 @@
-import { dataSource } from '@migrations/index';
+import { dataSource } from '@src/migrations';
 import { ICompanyDTO } from '../../core/interfaces/ICompany';
 import { Company } from '@models/company/company';
 import { injectable } from 'tsyringe';
@@ -8,8 +8,31 @@ import { Brackets } from 'typeorm';
 export class CompanyRepository {
   private companyRepository = dataSource.getRepository(Company);
 
-  async getAllCompanies(): Promise<Company[]> {
-    return await this.companyRepository.find();
+  async getCompanies(
+    page: number,
+    limit: number,
+    input: string,
+    select: string,
+  ): Promise<{ companies: Company[]; totalPages: number }> {
+    let companiesQuery = null;
+    const query = this.companyRepository.createQueryBuilder('company');
+    if (input != null || input.length > 0) {
+      query.where(`LOWER(TRIM(company.${select})) LIKE LOWER(TRIM(:value))`, {
+        value: `%${input}%`,
+      });
+    }
+    companiesQuery = await query
+      .limit(limit)
+      .offset((page - 1) * limit)
+      .getMany();
+    companiesQuery.sort((a, b) => {
+      if (a.idCompany > b.idCompany) {
+        return -1;
+      }
+    });
+    const total = await query.getCount();
+    const totalPages = Math.ceil(total / limit);
+    return { companies: companiesQuery, totalPages };
   }
 
   async findCompanyByField(field: keyof Company, value: string | number): Promise<Company> {

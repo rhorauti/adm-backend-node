@@ -13,6 +13,6 @@ export class PurchasingOrder {
   paymentCondition: string;
 
   @ManyToOne(() => Company, company => company.purchasingOrder, { nullable: true })
-  @JoinColumn({ name: 'id_Company' })
+  @JoinColumn({ name: 'idCompany' })
   company: Company;
 }

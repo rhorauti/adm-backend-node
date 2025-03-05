@@ -22,6 +22,6 @@ export class EmployeeContract {
   comment: string;
 
   @OneToOne(() => Employee, employee => employee.employeeContract)
-  @JoinColumn({ name: 'id_EmployeeContract' })
+  @JoinColumn({ name: 'idEmployeeContract' })
   employee: Employee;
 }

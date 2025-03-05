@@ -39,7 +39,7 @@ export class Employee {
   cellphone: string;
 
   @ManyToOne(() => Company, company => company.employee, { nullable: true, onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'id_Company' })
+  @JoinColumn({ name: 'idCompany' })
   company: Company;
 
   @OneToOne(() => Address, adress => adress.employee, { nullable: true })

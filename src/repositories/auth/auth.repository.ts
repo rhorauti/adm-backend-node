@@ -1,4 +1,4 @@
-import { dataSource } from '@migrations/index';
+import { dataSource } from '@src/migrations';
 import { Users } from '@models/auth/users';
 
 export class AuthRepository {

@@ -20,6 +20,6 @@ export class Invoice {
   paymentDateActual: Timestamp;
 
   @ManyToOne(() => Company, company => company.invoice, { nullable: true })
-  @JoinColumn({ name: 'id_Company' })
+  @JoinColumn({ name: 'idCompany' })
   company: Company;
 }

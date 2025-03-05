@@ -1,5 +1,5 @@
 import { IAddress } from '@core/interfaces/IAddress';
-import { dataSource } from '@migrations/index';
+import { dataSource } from '@src/migrations';
 import { Address } from '@src/models/address/address';
 import { injectable } from 'tsyringe';
 
@@ -27,13 +27,13 @@ export class AddressRepository {
         complement: addressInfo.complement,
         district: addressInfo.district,
         city: addressInfo.city,
-        company: { idCompany: addressInfo.id_Company },
+        company: { idCompany: addressInfo.idCompany },
       },
     });
   }
 
   async saveAddress(data: IAddress): Promise<Address> {
-    return await this.addressRepository.save({ ...data, company: { idCompany: data.id_Company } });
+    return await this.addressRepository.save({ ...data, company: { idCompany: data.idCompany } });
   }
 
   async deleteAddress(id: number): Promise<void> {

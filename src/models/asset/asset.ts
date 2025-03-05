@@ -19,6 +19,6 @@ export class Asset {
   comment: string;
 
   @ManyToOne(() => Company, company => company.asset, { nullable: true })
-  @JoinColumn({ name: 'id_Company' })
+  @JoinColumn({ name: 'idCompany' })
   company: Company;
 }

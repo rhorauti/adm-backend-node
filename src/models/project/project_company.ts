@@ -8,10 +8,10 @@ export class ProjectCompany {
   idProjectCompany: number;
 
   @ManyToOne(() => Company, company => company.projectCompany, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'id_Company' })
+  @JoinColumn({ name: 'idCompany' })
   company: Company;
 
   @ManyToOne(() => Project, project => project.projectCompany, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'id_Project' })
+  @JoinColumn({ name: 'idProject' })
   project: Project;
 }

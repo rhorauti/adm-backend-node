@@ -38,10 +38,10 @@ export class Address {
   state: string;
 
   @ManyToOne(() => Company, company => company.adress, { nullable: true, onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'id_Company' })
+  @JoinColumn({ name: 'idCompany' })
   company: Company;
 
   @OneToOne(() => Employee, employee => employee.adress, { nullable: true, onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'id_Employee' })
+  @JoinColumn({ name: 'idEmployee' })
   employee: Employee;
 }

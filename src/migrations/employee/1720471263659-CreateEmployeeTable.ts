@@ -55,7 +55,7 @@ export class CreateEmployeeTable1720471263659 implements MigrationInterface {
             isNullable: true,
           },
           {
-            name: 'id_Company',
+            name: 'idCompany',
             type: 'int',
             isNullable: true,
           },
@@ -66,7 +66,7 @@ export class CreateEmployeeTable1720471263659 implements MigrationInterface {
     await queryRunner.createForeignKey(
       'Employee',
       new TableForeignKey({
-        columnNames: ['id_Company'],
+        columnNames: ['idCompany'],
         referencedColumnNames: ['idCompany'],
         referencedTableName: 'Company',
         onDelete: 'CASCADE',

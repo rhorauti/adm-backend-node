@@ -1,4 +1,4 @@
-import { dataSource } from '@migrations/index';
+import { dataSource } from '@src/migrations';
 import { injectable } from 'tsyringe';
 import { Repository } from 'typeorm';
 

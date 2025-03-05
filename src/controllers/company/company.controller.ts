@@ -12,17 +12,18 @@ export class CompanyController {
     next: NextFunction,
   ): Promise<Response> {
     try {
-      const companiesList = await this.companyRepository.getAllCompanies();
-      companiesList.sort((a, b) => {
-        if (a.idCompany > b.idCompany) {
-          return -1;
-        }
-      });
+      const { page, limit, input, select } = request.query;
+      const companies = await this.companyRepository.getCompanies(
+        Number(page),
+        Number(limit),
+        input.toString(),
+        select.toString(),
+      );
       return response.status(200).json({
         date: new Date(),
         status: true,
         msg: 'Lista recebida com sucesso!',
-        data: companiesList,
+        data: companies,
       });
     } catch (error) {
       next(error);
@@ -169,7 +170,6 @@ export class CompanyController {
 
   async deleteCompany(request: Request, response: Response, next: NextFunction): Promise<Response> {
     const companies = request.body;
-    console.log('companies', companies);
     try {
       companies.forEach(async companyData => {
         await this.companyRepository.deleteCompany(companyData.idCompany);

@@ -1,5 +1,5 @@
 import { IEmployee } from '@core/interfaces/IEmployee';
-import { dataSource } from '@migrations/index';
+import { dataSource } from '@src/migrations';
 import { Employee } from '@models/employee/employee';
 import { injectable } from 'tsyringe';
 

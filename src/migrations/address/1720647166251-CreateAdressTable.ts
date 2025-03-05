@@ -67,12 +67,12 @@ export class CreateAdressTable1720647166251 implements MigrationInterface {
             isNullable: true,
           },
           {
-            name: 'id_Company',
+            name: 'idCompany',
             type: 'int',
             isNullable: true,
           },
           {
-            name: 'id_Employee',
+            name: 'idEmployee',
             type: 'int',
             isNullable: true,
           },
@@ -83,7 +83,7 @@ export class CreateAdressTable1720647166251 implements MigrationInterface {
     await queryRunner.createForeignKey(
       'Address',
       new TableForeignKey({
-        columnNames: ['id_Company'],
+        columnNames: ['idCompany'],
         referencedColumnNames: ['idCompany'],
         referencedTableName: 'Company',
         onDelete: 'CASCADE',

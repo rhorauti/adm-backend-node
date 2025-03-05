@@ -25,6 +25,6 @@ export class ProjectEvent {
   comment: string;
 
   @ManyToOne(() => Project, project => project.projectEvent, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'id_Project' })
+  @JoinColumn({ name: 'idProject' })
   project: Project;
 }

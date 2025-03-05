@@ -33,7 +33,7 @@ export class CreateProjectTable1720647957624 implements MigrationInterface {
             type: 'timestamp',
           },
           {
-            name: 'id_Company',
+            name: 'idCompany',
             type: 'int',
             isNullable: true,
           },
@@ -44,7 +44,7 @@ export class CreateProjectTable1720647957624 implements MigrationInterface {
     await queryRunner.createForeignKey(
       'Project',
       new TableForeignKey({
-        columnNames: ['id_Company'],
+        columnNames: ['idCompany'],
         referencedColumnNames: ['idCompany'],
         referencedTableName: 'Company',
         onDelete: 'CASCADE',

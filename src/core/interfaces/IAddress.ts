@@ -10,6 +10,6 @@ export interface IAddress {
   district?: string;
   city?: string;
   state?: string;
-  id_Company: number;
-  id_Employee?: number;
+  idCompany: number;
+  idEmployee?: number;
 }
