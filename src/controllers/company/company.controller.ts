@@ -1,30 +1,42 @@
 import { CompanyRepository } from '@repositories/company/company.respository';
+import {
+  ICompany,
+  ICompanyRegister,
+  IResponseCompany,
+} from '@src/core/interfaces/company.interface';
+import { Company } from '@src/models/company/company';
+import { ApiResponse } from '@src/utils/api-response';
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 
+export interface DeleteCompanyParams {
+  idCompany: string;
+}
+
 @injectable()
 export class CompanyController {
-  constructor(@inject('CompanyRepository') private companyRepository: CompanyRepository) {}
+  constructor(
+    @inject('CompanyRepository') private companyRepository: CompanyRepository,
+    @inject('ApiResponse') private apiResponse: ApiResponse,
+  ) {}
 
   async getCompanyList(
-    request: Request,
-    response: Response,
+    request: Request<ICompany>,
+    response: Response<IResponseCompany>,
     next: NextFunction,
-  ): Promise<Response> {
+  ): Promise<Response<IResponseCompany>> {
     try {
-      const { page, limit, input, select } = request.query;
-      const companies = await this.companyRepository.getCompanies(
-        Number(page),
-        Number(limit),
-        input.toString(),
-        select.toString(),
-      );
-      return response.status(200).json({
-        date: new Date(),
-        status: true,
-        msg: 'Lista recebida com sucesso!',
-        data: companies,
-      });
+      const companies = await this.companyRepository.getCompanies();
+      if (companies) {
+        return this.apiResponse.Ok<Company[]>(
+          response,
+          200,
+          'Lista recebida com sucesso!',
+          companies,
+        );
+      } else {
+        return this.apiResponse.Error(response, 500, 'Falha ao listar as empresas.');
+      }
     } catch (error) {
       next(error);
     }
@@ -121,63 +133,65 @@ export class CompanyController {
   //   }
   // }
 
-  async saveCompany(request: Request, response: Response, next: NextFunction): Promise<Response> {
+  async saveCompany(
+    request: Request<unknown, unknown, ICompanyRegister>,
+    response: Response<IResponseCompany>,
+    next: NextFunction,
+  ): Promise<Response<IResponseCompany>> {
     try {
-      const message = await this.checkExistingCompany(request, next);
-      console.log('message', message);
-      if (message && message.length > 0) {
-        return response.status(400).json({
-          status: false,
-          msg: message,
-        });
+      const existingCompany = await this.companyRepository.findCompanyByField(
+        'idCompany',
+        request.body.company.idCompany,
+      );
+      const errorMessage = this.checkExistingCompany(existingCompany);
+      if (errorMessage.length > 0) {
+        this.apiResponse.Error(response, 409, errorMessage);
       } else {
-        console.log('entrando no savedCompany...');
-        await this.companyRepository.saveCompany(request.body);
-        return response.status(200).json({
-          status: true,
-          msg: 'Empresa salva com sucesso!',
-        });
+        const company = await this.companyRepository.saveCompany(request.body, next);
+        return this.apiResponse.Ok<ICompanyRegister>(
+          response,
+          200,
+          'Empresa salva com sucesso!',
+          company,
+        );
       }
-    } catch (e) {
-      console.log(e.error.msg);
-      next(e);
-    }
-  }
-
-  async checkExistingCompany(request: Request, next: NextFunction): Promise<string> {
-    try {
-      const { nickname, name, cnpj, ie, im, idCompany } = request.body;
-      const company = await this.companyRepository.checkExistingRegister(request.body);
-      let msg = null;
-      if (company && company.idCompany != idCompany) {
-        if (company.nickname.trim().toLowerCase() == nickname.trim().toLowerCase()) {
-          msg = `Esse apelido ${nickname} já existe!`;
-        } else if (company.name.trim().toLowerCase() == name.trim().toLowerCase()) {
-          msg = `Esse nome ${name} já existe!`;
-        } else if (company.cnpj.trim() == cnpj.trim()) {
-          msg = `Esse cnpj ${cnpj} já existe!`;
-        } else if (company.ie.trim() == ie.trim()) {
-          msg = `Essa Inscrição Estadual ${ie} já existe!`;
-        } else if (company.im.trim() == im.trim()) {
-          msg = `Essa Inscrição Municipal ${im} já existe!`;
-        }
-      }
-      return msg;
     } catch (error) {
       next(error);
     }
   }
 
-  async deleteCompany(request: Request, response: Response, next: NextFunction): Promise<Response> {
-    const companies = request.body;
+  checkExistingCompany(company: Company): string {
+    let errorMessage = '';
+    if (company == null) return (errorMessage = '');
+    else {
+      const { nickname, name, cnpj, ie, im } = company;
+      if (company.nickname.trim().toLowerCase() == nickname.trim().toLowerCase()) {
+        errorMessage = `Esse apelido ${nickname} já existe!`;
+      } else if (company.name.trim().toLowerCase() == name.trim().toLowerCase()) {
+        errorMessage = `Esse nome ${name} já existe!`;
+      } else if (company.cnpj.trim() == cnpj.trim()) {
+        errorMessage = `Esse cnpj ${cnpj} já existe!`;
+      } else if (company.ie.trim() == ie.trim()) {
+        errorMessage = `Essa Inscrição Estadual ${ie} já existe!`;
+      } else if (company.im.trim() == im.trim()) {
+        errorMessage = `Essa Inscrição Municipal ${im} já existe!`;
+      }
+      return errorMessage;
+    }
+  }
+
+  async deleteCompany(
+    request: Request<DeleteCompanyParams>,
+    response: Response<IResponseCompany>,
+    next: NextFunction,
+  ): Promise<Response<IResponseCompany>> {
     try {
-      companies.forEach(async companyData => {
-        await this.companyRepository.deleteCompany(companyData.idCompany);
-      });
-      return response.status(200).json({
-        status: true,
-        msg: `${companies.length == 1 ? companies[0].name : 'Empresas'} excluida(s) com sucesso!`,
-      });
+      const company = await this.companyRepository.findCompanyByField(
+        'idCompany',
+        Number(request.params.idCompany),
+      );
+      await this.companyRepository.deleteCompany(company.idCompany);
+      return this.apiResponse.Ok(response, 200, `Empresa ${company.name} excluida com sucesso!`);
     } catch (error) {
       next(error);
     }

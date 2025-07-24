@@ -3,28 +3,27 @@ import { Router } from 'express';
 import { container } from 'tsyringe';
 
 const authRoute = Router();
-const version = 'v1';
 
 const authController = container.resolve(AuthController);
 
-authRoute.post(`/${version}/login`, (request, response) => {
-  authController.loginUser(request, response);
+authRoute.post('/login', (request, response, next) => {
+  authController.loginUser(request, response, next);
 });
 
-authRoute.post(`/${version}/signup`, (request, response) => {
-  authController.createNewUser(request, response);
+authRoute.post('/signup', (request, response, next) => {
+  authController.createNewUser(request, response, next);
 });
 
-authRoute.get(`/${version}/email-validation`, (request, response) => {
-  authController.confirmUserValidation(request, response);
+authRoute.get('/email-validation', (request, response, next) => {
+  authController.confirmUserValidation(request, response, next);
 });
 
-authRoute.post(`/${version}/reset-password`, (request, response) => {
-  authController.getNewEmailValidation(request, response);
+authRoute.post('/reset-password', (request, response, next) => {
+  authController.getNewEmailValidation(request, response, next);
 });
 
-authRoute.post(`/${version}/new-password`, (request, response) => {
-  authController.resetPassword(request, response);
+authRoute.post('/new-password', (request, response, next) => {
+  authController.resetPassword(request, response, next);
 });
 
 export { authRoute };

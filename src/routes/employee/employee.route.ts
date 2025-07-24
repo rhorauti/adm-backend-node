@@ -3,19 +3,18 @@ import Router from 'express';
 import { container } from 'tsyringe';
 
 const employeeRoute = Router();
-const version = 'v1';
 
 const employeeController = container.resolve(EmployeeController);
 
-employeeRoute.get(`/${version}/employee`, (request, response) => {
-  employeeController.getEmployeeList(request, response);
+employeeRoute.get('/employee', (request, response, next) => {
+  employeeController.getEmployeeList(request, response, next);
 });
 
-employeeRoute.post(`/${version}/employee`, (request, response, next) => {
+employeeRoute.post('/employee', (request, response, next) => {
   employeeController.saveEmployee(request, response, next);
 });
 
-employeeRoute.delete(`/${version}/employee/:idEmployee`, (request, response, next) => {
+employeeRoute.post('/employee/delete', (request, response, next) => {
   employeeController.deleteEmployee(request, response, next);
 });
 

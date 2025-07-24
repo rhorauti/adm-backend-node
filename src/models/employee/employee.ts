@@ -17,6 +17,9 @@ export class Employee {
   @PrimaryGeneratedColumn()
   idEmployee: number;
 
+  @Column({ type: 'bool' })
+  isDefault: boolean;
+
   @Column({ type: 'varchar', length: 100, unique: true })
   name: string;
 
@@ -42,8 +45,8 @@ export class Employee {
   @JoinColumn({ name: 'idCompany' })
   company: Company;
 
-  @OneToOne(() => Address, adress => adress.employee, { nullable: true })
-  adress: Address;
+  @OneToOne(() => Address, address => address.employee, { nullable: true, onDelete: 'CASCADE' })
+  address: Address;
 
   @OneToOne(() => EmployeeContract, employeeContract => employeeContract.employee, {
     nullable: true,

@@ -1,86 +1,91 @@
 import { AddressRepository } from '@repositories/address/address.repository';
-import { CompanyRepository } from '@repositories/company/company.respository';
-import { CustomError } from '@src/middlewares/error';
 import { Request, Response } from 'express';
 import { NextFunction } from 'express-serve-static-core';
 import { inject, injectable } from 'tsyringe';
 
 @injectable()
 export class AddressController {
-  constructor(
-    @inject('AddressRepository') private addressRepository: AddressRepository,
-    @inject('CompanyRepository') private companyRepository: CompanyRepository,
-  ) {}
+  constructor(@inject('AddressRepository') private addressRepository: AddressRepository) {}
 
-  async getAddressList(response: Response): Promise<Response> {
-    const addressList = await this.addressRepository.getAllAddresses();
-    if (!addressList) {
-      return response.status(400).json({
-        status: false,
-        msg: 'Nenhuma lista de endereços encontrada',
-      });
-    } else {
-      addressList.sort((a, b) => {
-        if (a.idAddress > b.idAddress) return -1;
-      });
-      return response.status(200).json({
-        status: true,
-        msg: 'Lista enviada com sucesso!',
-        data: addressList,
-      });
-    }
-  }
-
-  async checkNicknameExist(request: Request, response: Response, next: NextFunction) {
+  async getAddressList(
+    request: Request,
+    response: Response,
+    next: NextFunction,
+  ): Promise<Response> {
     try {
-      const response = await this.addressRepository.getAllAddresses();
-      if (response) {
-        response.forEach(address => {
-          if (
-            address.idAddress != request.body.idAddress &&
-            address.nickname == request.body.nickname
-          ) {
-            const error = new Error('Já existe esse apelido!') as CustomError;
-            error.statusCode = 400;
-            next(error);
-          }
-        });
-      }
+      const { page, limit, input, select, idCompany } = request.query;
+      const companies = await this.addressRepository.getAddresses(
+        Number(page),
+        Number(limit),
+        input.toString(),
+        select.toString(),
+        Number(idCompany),
+      );
+      return response.status(200).json({
+        date: new Date(),
+        status: true,
+        msg: 'Lista recebida com sucesso!',
+        data: companies,
+      });
     } catch (error) {
-      console.log(error);
+      next(error);
     }
   }
 
   async saveAddress(request: Request, response: Response, next: NextFunction): Promise<Response> {
     try {
-      this.checkNicknameExist(request, response, next);
-      const existingAddress = await this.addressRepository.checkRegisterAlreadyExist(request.body);
-      if (existingAddress) {
-        return response.status(401).json({
+      const existingRegister = await this.addressRepository.checkExistingRegister(request.body);
+      if (existingRegister) {
+        return response.status(400).json({
           status: false,
-          msg: 'Endereço já existe para esta empresa',
+          msg: 'Registro já existente!',
         });
       } else {
-        const registeredAddress = await this.addressRepository.saveAddress(request.body);
-        return response.status(200).json({
-          status: true,
-          msg: 'Endereço cadastrado com sucesso!',
-          data: registeredAddress,
-        });
+        const message = await this.checkExistingNickname(request, next);
+        if (message && message.length > 0) {
+          return response.status(400).json({
+            status: false,
+            msg: message,
+          });
+        } else {
+          await this.addressRepository.save(request.body);
+          return response.status(200).json({
+            status: true,
+            msg: 'Empresa salva com sucesso!',
+          });
+        }
       }
+    } catch (e) {
+      console.log(e.error.msg);
+      next(e);
+    }
+  }
+
+  async checkExistingNickname(request: Request, next: NextFunction): Promise<string> {
+    try {
+      const { nickname } = request.body;
+      const address = await this.addressRepository.findByField('nickname', request.body.nickname);
+      let msg = '';
+      if (address && address.idAddress != request.body.idAddress) {
+        if (address.nickname.trim().toLowerCase() == nickname.trim().toLowerCase()) {
+          msg = `Esse apelido ${nickname} já existe!`;
+        }
+      }
+      return msg;
     } catch (error) {
       next(error);
     }
   }
 
   async deleteAddress(request: Request, response: Response, next: NextFunction): Promise<Response> {
+    const addresses = request.body;
     try {
-      const idAddress = Number(request.params.idAddress);
-      const address = await this.addressRepository.findAddressById(idAddress);
-      await this.addressRepository.deleteAddress(idAddress);
+      addresses.forEach(async addressData => {
+        await this.addressRepository.delete(addressData.idAddress);
+      });
       return response.status(200).json({
         status: true,
-        msg: `Empresa ${address.nickname} excluida com sucesso!`,
+        msg: `${addresses.length == 1 ? addresses[0].nickname : 'Endereços'} excluida(s) com sucesso!`,
       });
     } catch (error) {
       next(error);

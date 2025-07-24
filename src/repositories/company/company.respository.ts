@@ -1,39 +1,51 @@
-import { dataSource } from '@src/migrations';
-import { ICompanyDTO } from '../../core/interfaces/ICompany';
 import { Company } from '@models/company/company';
 import { injectable } from 'tsyringe';
-import { Brackets } from 'typeorm';
+import { Brackets, QueryRunner } from 'typeorm';
+import { ICompany, ICompanyRegister } from '@src/core/interfaces/company.interface';
+import { emptyStringToNull } from '@src/utils/misc';
+import { dataSource } from '@src/config/data-source.config';
+import { NextFunction } from 'express';
+import { Address } from '@src/models/address/address';
+import { Employee } from '@src/models/employee/employee';
 
 @injectable()
 export class CompanyRepository {
   private companyRepository = dataSource.getRepository(Company);
+  private addressRepository = dataSource.getRepository(Address);
+  private employeeRepository = dataSource.getRepository(Employee);
 
-  async getCompanies(
-    page: number,
-    limit: number,
-    input: string,
-    select: string,
-  ): Promise<{ companies: Company[]; totalPages: number }> {
-    let companiesQuery = null;
-    const query = this.companyRepository.createQueryBuilder('company');
-    if (input != null || input.length > 0) {
-      query.where(`LOWER(TRIM(company.${select})) LIKE LOWER(TRIM(:value))`, {
-        value: `%${input}%`,
-      });
-    }
-    companiesQuery = await query
-      .limit(limit)
-      .offset((page - 1) * limit)
-      .getMany();
-    companiesQuery.sort((a, b) => {
-      if (a.idCompany > b.idCompany) {
-        return -1;
-      }
-    });
-    const total = await query.getCount();
-    const totalPages = Math.ceil(total / limit);
-    return { companies: companiesQuery, totalPages };
+  async getCompanies(): Promise<Company[]> {
+    const query = this.companyRepository
+      .createQueryBuilder('company')
+      .orderBy('company.idCompany', 'DESC');
+    return query.getMany();
   }
+
+  // async getCompanies(
+  //   page: number,
+  //   limit: number,
+  //   input: string,
+  //   select: string,
+  //   type: number,
+  // ): Promise<{ companies: Company[]; totalPages: number }> {
+  //   let companiesQuery = null;
+  //   const query = this.companyRepository
+  //     .createQueryBuilder('company')
+  //     .where('company.type = :type', { type: type })
+  //     .orderBy('company.idCompany', 'DESC');
+  //   if (input != null || input.length > 0) {
+  //     query.andWhere(`LOWER(TRIM(company.${select})) LIKE LOWER(TRIM(:value))`, {
+  //       value: `%${input}%`,
+  //     });
+  //   }
+  //   companiesQuery = await query
+  //     .limit(limit)
+  //     .offset((page - 1) * limit)
+  //     .getMany();
+  //   const total = await query.getCount();
+  //   const totalPages = Math.ceil(total / limit);
+  //   return { companies: companiesQuery, totalPages };
+  // }
 
   async findCompanyByField(field: keyof Company, value: string | number): Promise<Company> {
     return await this.companyRepository.findOne({
@@ -41,9 +53,8 @@ export class CompanyRepository {
     });
   }
 
-  async checkExistingRegister(data: ICompanyDTO): Promise<Company | null> {
-    if (data.ie == '') data.ie = null;
-    if (data.im == '') data.im = null;
+  async checkExistingRegister(data: ICompany): Promise<Company | null> {
+    emptyStringToNull(data);
     const query = this.companyRepository
       .createQueryBuilder('company')
       .where('company.type = :type', { type: data.type })
@@ -63,13 +74,28 @@ export class CompanyRepository {
     return query.getOne();
   }
 
-  /**
-   * addNewCompany
-   * Adiciona uma nova empresa no banco de dados
-   * @param companyData Objeto com os dados da empresa que será cadatrado.
-   */
-  async saveCompany(data: ICompanyDTO): Promise<Company> {
-    return await this.companyRepository.save(data);
+  async saveCompany(companyData: ICompanyRegister, next: NextFunction): Promise<ICompanyRegister> {
+    const queryRunner: QueryRunner = dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      const company = await queryRunner.manager.save(
+        this.companyRepository.create(companyData.company),
+      );
+      const address = this.addressRepository.create(companyData.address);
+      address.company = company;
+      const savedAddress = await queryRunner.manager.save(address);
+      const employee = this.employeeRepository.create(companyData.employee);
+      employee.company = company;
+      const savedEmployee = await queryRunner.manager.save(employee);
+      await queryRunner.commitTransaction();
+      return { company: company, address: savedAddress, employee: savedEmployee };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      next(error);
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   async deleteCompany(idCompany: number): Promise<void> {

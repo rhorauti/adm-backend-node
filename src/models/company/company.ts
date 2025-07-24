@@ -1,4 +1,4 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Address } from '@src/models/address/address';
 import { Employee } from '@models/employee/employee';
 import { Asset } from '@models/asset/asset';
@@ -31,11 +31,11 @@ export class Company {
   @Column({ type: 'char', length: 50, nullable: true })
   im: string;
 
-  @OneToMany(() => Address, adress => adress.company, { nullable: true })
-  adress: Address[];
+  @OneToOne(() => Address, address => address.company, { nullable: true })
+  address: Address;
 
   @OneToMany(() => Employee, employee => employee.company, { nullable: true })
-  employee: Employee;
+  employee: Employee[];
 
   @OneToMany(() => Asset, asset => asset.company, { nullable: true })
   asset: Asset;

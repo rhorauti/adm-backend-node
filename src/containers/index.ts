@@ -9,10 +9,11 @@ import { AddressRepository } from '@repositories/address/address.repository';
 import { AuthRepository } from '@repositories/auth/auth.repository';
 import { CompanyRepository } from '@repositories/company/company.respository';
 import { EmailSender } from '@services/email.service';
-import JwtHandler from '@services/jwt.service';
 import { container } from 'tsyringe';
 import { EmployeeRepository } from '@repositories/employee/employee.repository';
 import { EmployeeController } from '@controllers/employee/employee.controller';
+import { ApiResponse } from '@src/utils/api-response';
+import { JwtHandler } from '@src/services/jwt.service';
 
 export type modelsBase = Company | Address | Project | Employee;
 
@@ -26,3 +27,4 @@ container.registerSingleton('EmployeeRepository', EmployeeRepository);
 container.registerSingleton('EmployeeController', EmployeeController);
 container.registerSingleton('JwtHandler', JwtHandler);
 container.registerSingleton('EmailSender', EmailSender);
+container.registerSingleton('ApiResponse', ApiResponse);

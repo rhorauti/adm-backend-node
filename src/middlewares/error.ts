@@ -1,8 +1,12 @@
+import { ApiResponse } from '@src/utils/api-response';
 import { NextFunction, Request, Response } from 'express';
+import { container } from 'tsyringe';
 
 export interface CustomError extends Error {
   statusCode?: number;
 }
+
+const apiResponse = container.resolve<ApiResponse>('ApiResponse');
 
 export const handleErrorMiddleware = async (
   error: CustomError,
@@ -12,8 +16,5 @@ export const handleErrorMiddleware = async (
 ): Promise<Response> => {
   if (!error.statusCode) error.statusCode = 500;
   if (!error.message) error.message = 'Erro interno do servidor';
-  return response.status(error.statusCode).json({
-    status: false,
-    msg: error.message,
-  });
+  return apiResponse.Error(response, 500, error.message);
 };

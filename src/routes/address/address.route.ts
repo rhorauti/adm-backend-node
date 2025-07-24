@@ -3,19 +3,18 @@ import Router from 'express';
 import { container } from 'tsyringe';
 
 const addressRoute = Router();
-const version = 'v1';
 
 const addressController = container.resolve(AddressController);
 
-addressRoute.get(`/${version}/address`, (request, response, next) => {
-  addressController.getAddressList(response);
+addressRoute.get('/address', (request, response, next) => {
+  addressController.getAddressList(request, response, next);
 });
 
-addressRoute.post(`/${version}/address`, (request, response, next) => {
+addressRoute.post('/address', (request, response, next) => {
   addressController.saveAddress(request, response, next);
 });
 
-addressRoute.delete(`/${version}/address/:idAddress`, (request, response, next) => {
+addressRoute.post('address/delete', (request, response, next) => {
   addressController.deleteAddress(request, response, next);
 });
 

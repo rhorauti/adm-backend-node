@@ -1,57 +1,54 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { compare, hash } from 'bcryptjs';
-import JwtHandler from '@services/jwt.service';
 import { EmailSender } from '@services/email.service';
 import { AuthRepository } from '@repositories/auth/auth.repository';
 import { inject, injectable } from 'tsyringe';
+import { ApiResponse } from '@src/utils/api-response';
+import { JwtHandler } from '@src/services/jwt.service';
 
 @injectable()
 export class AuthController {
   constructor(
     @inject('AuthRepository') private authRepository: AuthRepository,
     @inject('EmailSender') private emailSender: EmailSender,
+    @inject('ApiResponse') private apiResponse: ApiResponse,
+    @inject('JwtHandler') private jwtHandler: JwtHandler,
   ) {}
 
   /**
    * loginUser
    * Verifica se o e-mail recebido é valido para realizar o login
-   * @param request dados recebidos do frontend
-   * @param response dados que serão enviados para o frontend
+   * @param { Request } request dados recebidos do frontend
+   * @param { Response } response dados que serão enviados para o frontend
    * @returns Resposta com o status, mensagem e dados do usuário e token
    */
-  async loginUser(request: Request, response: Response): Promise<Response> {
-    const user = await this.authRepository.findUserByEmail(request.body.email);
-    if (!user) {
-      return response.status(401).json({
-        status: false,
-        message: 'email inválido',
-      });
-    } else if (user && !user.emailConfirmed) {
-      this.emailSender.sendEmailConfirmationSignUp(user);
-      return response.status(401).json({
-        status: false,
-        message: 'Email não validado. Enviamos novamente um e-mail para validação.',
-      });
-    } else {
-      const passwordConfirmed = await compare(request.body.password, user.password);
-      if (!passwordConfirmed) {
-        return response.status(401).json({
-          status: false,
-          message: 'Senha inválida!',
-        });
-      } else {
-        const token = JwtHandler.signToken(
-          { id: user.id, email: user.email },
-          { expiresIn: process.env.JWT_EXPIRES_IN },
+  async loginUser(request: Request, response: Response, next: NextFunction): Promise<Response> {
+    try {
+      const user = await this.authRepository.findUserByEmail(request.body.email);
+      if (!user) {
+        return this.apiResponse.Error(response, 401, 'Email inválido.');
+      } else if (user && !user.emailConfirmed) {
+        this.emailSender.sendEmailConfirmationSignUp(user);
+        return this.apiResponse.Error(
+          response,
+          401,
+          'Email não validado. Enviamos novamente um e-mail para validação.',
         );
-        return response.status(200).json({
-          message: 'login efetuado com sucesso!',
-          data: {
-            user,
-            token,
-          },
-        });
+      } else {
+        const passwordConfirmed = await compare(request.body.password, user.password);
+        if (!passwordConfirmed) {
+          return this.apiResponse.Error(response, 401, 'Senha inválida.');
+        } else {
+          const token = this.jwtHandler.signToken(
+            { id: user.id, email: user.email },
+            { expiresIn: process.env.JWT_EXPIRES_IN },
+          );
+          const data = { user, token };
+          return this.apiResponse.Ok(response, 200, 'Login efetuado com sucesso.', data);
+        }
       }
+    } catch (error: unknown) {
+      next(error);
     }
   }
 
@@ -62,37 +59,27 @@ export class AuthController {
    * @param response dados que serão enviados para o frontend
    * @returns Resposta com o status, mensagem e dados do usuário.
    */
-  async createNewUser(request: Request, response: Response): Promise<Response> {
-    const userExists = await this.authRepository.findUserByEmail(request.body.email);
-    if (userExists) {
-      return response.status(401).json({
-        status: false,
-        message: 'email já cadastrado!',
-      });
-    } else {
-      const hashedPassword = await hash(request.body.password, 10);
-      const newUser = await this.authRepository.createNewUser(
-        request.body.name,
-        request.body.email,
-        hashedPassword,
-      );
-      console.log(newUser);
-      if (!newUser) {
-        return response.status(500).json({
-          status: false,
-          message: 'Erro interno do servidor!',
-        });
+  async createNewUser(request: Request, response: Response, next: NextFunction): Promise<Response> {
+    try {
+      const userExists = await this.authRepository.findUserByEmail(request.body.email);
+      if (userExists) {
+        return this.apiResponse.Error(response, 401, 'Email já cadastrado.');
       } else {
-        console.log('entrando no else do !newUser...');
-        this.emailSender.sendEmailConfirmationSignUp(newUser);
-        return response.status(200).json({
-          status: true,
-          message: 'Usuário cadastrado com sucesso!',
-          data: {
-            newUser,
-          },
-        });
+        const hashedPassword = await hash(request.body.password, 10);
+        const newUser = await this.authRepository.createNewUser(
+          request.body.name,
+          request.body.email,
+          hashedPassword,
+        );
+        if (!newUser) {
+          return this.apiResponse.Error(response, 500, 'Erro interno do servidor.');
+        } else {
+          this.emailSender.sendEmailConfirmationSignUp(newUser);
+          return this.apiResponse.Ok(response, 200, 'Usuário cadastrado com sucesso', newUser);
+        }
       }
+    } catch (error: unknown) {
+      next(error);
     }
   }
 
@@ -103,75 +90,79 @@ export class AuthController {
    * @param response dados que serão enviados para o frontend
    * @returns Promise com o status, mensagem e dados do usuário.
    */
-  async confirmUserValidation(request: Request, response: Response): Promise<void> {
-    const token = request.query.token as string;
-    JwtHandler.verifyToken(token, async (error: any, decodedUser: any) => {
-      if (error) {
-        return response.status(401).json({
-          status: false,
-          message: 'Token inválido ou expirado.',
-        });
-      } else {
-        const decodedEmail = decodedUser.email;
-        const user = this.authRepository.findUserByEmail(decodedEmail);
-        if ((await user).emailConfirmed) {
-          return response.status(401).json({
-            status: false,
-            message: 'Usuário já validado anteriormente.',
-          });
+  async confirmUserValidation(
+    request: Request,
+    response: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      const token = request.query.token as string;
+      this.jwtHandler.verifyToken(token, async (error: any, decodedUser: any) => {
+        if (error) {
+          return this.apiResponse.Error(response, 401, 'Token inválido ou expirado.');
         } else {
-          this.authRepository.validateEmail(decodedEmail);
-          return response.status(200).json({
-            status: true,
-            message: 'Usuário validado com sucesso.',
-          });
+          const decodedEmail = decodedUser.email;
+          const user = await this.authRepository.findUserByEmail(decodedEmail);
+          if (user.emailConfirmed) {
+            return this.apiResponse.Error(response, 401, 'Usuário já validado anteriormente.');
+          } else {
+            try {
+              await this.authRepository.validateEmail(decodedEmail);
+              return this.apiResponse.Ok(response, 200, 'Usuário validado com sucesso.');
+            } catch (error: unknown) {
+              next(error);
+            }
+          }
         }
-      }
-    });
-  }
-
-  async getNewEmailValidation(request: Request, response: Response): Promise<Response> {
-    const user = await this.authRepository.findUserByEmail(request.body.email);
-    if (!user) {
-      return response.status(401).json({
-        status: false,
-        message: 'Email não existe.',
       });
-    } else {
-      this.emailSender.sendEmailConfirmationResetPassword(user);
-      return response.status(200).json({
-        status: true,
-        message: 'E-mail enviado para validação.',
-      });
+    } catch (error: unknown) {
+      next(error);
     }
   }
 
-  async resetPassword(request: Request, response: Response): Promise<void> {
-    const token = request.query.token as string;
-    JwtHandler.verifyToken(token, async (error: any, decodedUser: any) => {
-      if (error) {
-        return response.status(401).json({
-          status: false,
-          message: 'Token inválido ou expirado.',
-        });
+  async getNewEmailValidation(
+    request: Request,
+    response: Response,
+    next: NextFunction,
+  ): Promise<Response> {
+    try {
+      const user = await this.authRepository.findUserByEmail(request.body.email);
+      if (!user) {
+        return this.apiResponse.Error(response, 401, 'Email não existe.');
       } else {
-        const decodedEmail = decodedUser.email;
-        const user = this.authRepository.findUserByEmail(decodedEmail);
-        const isSamePassword = await compare(request.body.password, (await user).password);
-        if (isSamePassword) {
-          return response.status(401).json({
-            status: false,
-            message: 'A senha digitada é igual a senha atual.',
-          });
-        } else {
-          const hashedPassword = await hash(request.body.password, 10);
-          this.authRepository.changePassword(decodedEmail, hashedPassword);
-          return response.status(200).json({
-            status: true,
-            message: 'Senha alterada com sucesso.',
-          });
-        }
+        this.emailSender.sendEmailConfirmationResetPassword(user);
+        this.apiResponse.Ok(response, 200, 'E-mail enviado para validação.');
       }
-    });
+    } catch (error: unknown) {
+      next(error);
+    }
+  }
+
+  async resetPassword(request: Request, response: Response, next: NextFunction): Promise<void> {
+    try {
+      const token = request.query.token as string;
+      this.jwtHandler.verifyToken(token, async (error: any, decodedUser: any) => {
+        if (error) {
+          return this.apiResponse.Error(response, 401, 'Token inválido ou expirado.');
+        } else {
+          const decodedEmail = decodedUser.email;
+          const user = await this.authRepository.findUserByEmail(decodedEmail);
+          const isPasswordOk = await compare(request.body.password, user.password);
+          if (isPasswordOk) {
+            return this.apiResponse.Error(
+              response,
+              401,
+              'A senha digitada deve ser diferente da senha atual.',
+            );
+          } else {
+            const hashedPassword = await hash(request.body.password, 10);
+            await this.authRepository.changePassword(decodedEmail, hashedPassword);
+            return this.apiResponse.Ok(response, 200, 'Senha alterada com sucesso.');
+          }
+        }
+      });
+    } catch (error: unknown) {
+      next(error);
+    }
   }
 }

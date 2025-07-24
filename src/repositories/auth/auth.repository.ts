@@ -1,5 +1,5 @@
-import { dataSource } from '@src/migrations';
 import { Users } from '@models/auth/users';
+import { dataSource } from '@src/config/data-source.config';
 
 export class AuthRepository {
   private userRepository = dataSource.getRepository(Users);
