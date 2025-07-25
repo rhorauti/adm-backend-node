@@ -2,7 +2,7 @@ import { CompanyRepository } from '@repositories/company/company.respository';
 import {
   ICompany,
   ICompanyRegister,
-  IResponseCompany,
+  ICompanyResponse,
 } from '@src/core/interfaces/company.interface';
 import { Company } from '@src/models/company/company';
 import { ApiResponse } from '@src/utils/api-response';
@@ -22,9 +22,9 @@ export class CompanyController {
 
   async getCompanyList(
     request: Request<ICompany>,
-    response: Response<IResponseCompany>,
+    response: Response<ICompanyResponse>,
     next: NextFunction,
-  ): Promise<Response<IResponseCompany>> {
+  ): Promise<Response<ICompanyResponse>> {
     try {
       const companies = await this.companyRepository.getCompanies();
       if (companies) {
@@ -135,26 +135,27 @@ export class CompanyController {
 
   async saveCompany(
     request: Request<unknown, unknown, ICompanyRegister>,
-    response: Response<IResponseCompany>,
+    response: Response<ICompanyResponse>,
     next: NextFunction,
-  ): Promise<Response<IResponseCompany>> {
+  ): Promise<Response<ICompanyResponse>> {
     try {
-      const existingCompany = await this.companyRepository.findCompanyByField(
-        'idCompany',
-        request.body.company.idCompany,
-      );
-      const errorMessage = this.checkExistingCompany(existingCompany);
-      if (errorMessage.length > 0) {
-        this.apiResponse.Error(response, 409, errorMessage);
-      } else {
-        const company = await this.companyRepository.saveCompany(request.body, next);
-        return this.apiResponse.Ok<ICompanyRegister>(
-          response,
-          200,
-          'Empresa salva com sucesso!',
-          company,
+      if (request.body.company.idCompany == 0) {
+        const existingCompany = await this.companyRepository.findCompanyByField(
+          'idCompany',
+          request.body.company.idCompany,
         );
+        const errorMessage = this.checkExistingCompany(existingCompany);
+        if (errorMessage.length > 0) {
+          this.apiResponse.Error(response, 409, errorMessage);
+        }
       }
+      const company = await this.companyRepository.saveCompany(request.body, next);
+      return this.apiResponse.Ok<ICompanyRegister>(
+        response,
+        200,
+        'Empresa salva com sucesso!',
+        company,
+      );
     } catch (error) {
       next(error);
     }
@@ -182,9 +183,9 @@ export class CompanyController {
 
   async deleteCompany(
     request: Request<DeleteCompanyParams>,
-    response: Response<IResponseCompany>,
+    response: Response<ICompanyResponse>,
     next: NextFunction,
-  ): Promise<Response<IResponseCompany>> {
+  ): Promise<Response<ICompanyResponse>> {
     try {
       const company = await this.companyRepository.findCompanyByField(
         'idCompany',

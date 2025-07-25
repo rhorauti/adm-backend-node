@@ -1,21 +1,23 @@
 import { EmployeeController } from '@controllers/employee/employee.controller';
-import Router from 'express';
+import { ICompanyParams } from '@src/core/interfaces/company.interface';
+import Router, { NextFunction, Request, Response } from 'express';
+import { param, ValidationChain } from 'express-validator';
 import { container } from 'tsyringe';
 
 const employeeRoute = Router();
 
 const employeeController = container.resolve(EmployeeController);
 
-employeeRoute.get('/employee', (request, response, next) => {
-  employeeController.getEmployeeList(request, response, next);
-});
+const employeeParamsMiddleware = (): ValidationChain[] => {
+  return [param('idCompany').notEmpty().withMessage('O parâmetro idCompany não pode estar vazio.')];
+};
 
-employeeRoute.post('/employee', (request, response, next) => {
-  employeeController.saveEmployee(request, response, next);
-});
-
-employeeRoute.post('/employee/delete', (request, response, next) => {
-  employeeController.deleteEmployee(request, response, next);
-});
+employeeRoute.get(
+  '/employees/:idCompany',
+  employeeParamsMiddleware(),
+  (request: Request<ICompanyParams>, response: Response, next: NextFunction) => {
+    employeeController.getEmployeeList(request, response, next);
+  },
+);
 
 export { employeeRoute };

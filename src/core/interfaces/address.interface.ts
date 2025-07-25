@@ -1,3 +1,5 @@
+import { IDefaultResponse } from './base.interface';
+
 export interface IAddress {
   idAddress: number;
   postalCode: string;
@@ -7,4 +9,8 @@ export interface IAddress {
   district?: string;
   city?: string;
   state?: string;
+}
+
+export interface IAddressResponse extends IDefaultResponse {
+  data?: IAddress;
 }

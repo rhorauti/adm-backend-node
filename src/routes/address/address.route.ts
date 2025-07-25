@@ -1,21 +1,23 @@
 import { AddressController } from '@controllers/address/address.controller';
-import Router from 'express';
+import { ICompanyParams } from '@src/core/interfaces/company.interface';
+import Router, { NextFunction, Request, Response } from 'express';
+import { param, ValidationChain } from 'express-validator';
 import { container } from 'tsyringe';
 
 const addressRoute = Router();
 
+const addressParamsMiddleware = (): ValidationChain[] => {
+  return [param('idCompany').notEmpty().withMessage('O parâmetro idCompany não pode estar vazio.')];
+};
+
 const addressController = container.resolve(AddressController);
 
-addressRoute.get('/address', (request, response, next) => {
-  addressController.getAddressList(request, response, next);
-});
-
-addressRoute.post('/address', (request, response, next) => {
-  addressController.saveAddress(request, response, next);
-});
-
-addressRoute.post('address/delete', (request, response, next) => {
-  addressController.deleteAddress(request, response, next);
-});
+addressRoute.get(
+  '/addresses/:idCompany',
+  addressParamsMiddleware(),
+  (request: Request<ICompanyParams>, response: Response, next: NextFunction) => {
+    addressController.getAddressList(request, response, next);
+  },
+);
 
 export { addressRoute };

@@ -21,32 +21,6 @@ export class CompanyRepository {
     return query.getMany();
   }
 
-  // async getCompanies(
-  //   page: number,
-  //   limit: number,
-  //   input: string,
-  //   select: string,
-  //   type: number,
-  // ): Promise<{ companies: Company[]; totalPages: number }> {
-  //   let companiesQuery = null;
-  //   const query = this.companyRepository
-  //     .createQueryBuilder('company')
-  //     .where('company.type = :type', { type: type })
-  //     .orderBy('company.idCompany', 'DESC');
-  //   if (input != null || input.length > 0) {
-  //     query.andWhere(`LOWER(TRIM(company.${select})) LIKE LOWER(TRIM(:value))`, {
-  //       value: `%${input}%`,
-  //     });
-  //   }
-  //   companiesQuery = await query
-  //     .limit(limit)
-  //     .offset((page - 1) * limit)
-  //     .getMany();
-  //   const total = await query.getCount();
-  //   const totalPages = Math.ceil(total / limit);
-  //   return { companies: companiesQuery, totalPages };
-  // }
-
   async findCompanyByField(field: keyof Company, value: string | number): Promise<Company> {
     return await this.companyRepository.findOne({
       where: { [field]: value },

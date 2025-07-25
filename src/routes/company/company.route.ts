@@ -2,7 +2,7 @@ import { CompanyController, DeleteCompanyParams } from '@controllers/company/com
 import {
   ICompany,
   ICompanyRegister,
-  IResponseCompany,
+  ICompanyResponse,
 } from '@src/core/interfaces/company.interface';
 import Router, { NextFunction, Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
@@ -12,10 +12,10 @@ const companyRoute = Router();
 
 const companyController = container.resolve(CompanyController);
 
-const createBodyChain = () => {
+const companyMiddleware = () => {
   return [
     body('company.type').notEmpty().isNumeric().withMessage('Informe um valor válido!'),
-    body('company.nickname').notEmpty().withMessage('O campo nickname não pode estar vazio!'),
+    body('company.nickname').notEmpty().withMessage('O campo razão social não pode estar vazio!'),
     body('company.name').notEmpty().withMessage('O campo nome da empresa não pode estar vazio!'),
     body('company.cnpj').notEmpty().withMessage('O campo CNPJ não pode estar vazio!'),
   ];
@@ -23,17 +23,17 @@ const createBodyChain = () => {
 
 companyRoute.get(
   '/companies',
-  (request: Request<ICompany>, response: Response<IResponseCompany>, next: NextFunction) => {
+  (request: Request<ICompany>, response: Response<ICompanyResponse>, next: NextFunction) => {
     companyController.getCompanyList(request, response, next);
   },
 );
 
 companyRoute.post(
   '/companies',
-  createBodyChain(),
+  companyMiddleware(),
   (
     request: Request<ICompanyRegister>,
-    response: Response<IResponseCompany>,
+    response: Response<ICompanyResponse>,
     next: NextFunction,
   ) => {
     const errors = validationResult(request);
@@ -47,10 +47,9 @@ companyRoute.post(
   },
   (
     request: Request<ICompanyRegister>,
-    response: Response<IResponseCompany>,
+    response: Response<ICompanyResponse>,
     next: NextFunction,
   ) => {
-    console.log('body', request.body);
     companyController.saveCompany(request, response, next);
   },
 );
@@ -59,7 +58,7 @@ companyRoute.delete(
   '/companies/:idCompany',
   (
     request: Request<DeleteCompanyParams>,
-    response: Response<IResponseCompany>,
+    response: Response<ICompanyResponse>,
     next: NextFunction,
   ) => {
     companyController.deleteCompany(request, response, next);

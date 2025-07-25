@@ -1,3 +1,5 @@
+import { IDefaultResponse } from './base.interface';
+
 export interface IEmployee {
   isDefault: boolean;
   idEmployee: number;
@@ -8,4 +10,8 @@ export interface IEmployee {
   email?: string;
   deskphone?: string;
   cellphone?: string;
+}
+
+export interface IEmployeeResponse extends IDefaultResponse {
+  data: IEmployee;
 }

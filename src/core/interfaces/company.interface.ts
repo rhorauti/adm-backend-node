@@ -1,4 +1,5 @@
 import { IAddress } from './address.interface';
+import { IDefaultResponse } from './base.interface';
 import { IEmployee } from './employee.interface';
 
 export interface ICompany {
@@ -17,13 +18,14 @@ export interface ICompanyRegister {
   employee: IEmployee;
 }
 
-export interface IResponseCompany {
-  date: string;
-  status: boolean;
-  msg: string;
+export interface ICompanyResponse extends IDefaultResponse {
   data?: {
-    company: ICompany;
-    address: IAddress;
-    employee: IEmployee;
+    company?: ICompany;
+    address?: IAddress;
+    employee?: IEmployee;
   };
+}
+
+export interface ICompanyParams {
+  idCompany: string;
 }

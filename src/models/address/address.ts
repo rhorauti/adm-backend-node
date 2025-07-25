@@ -1,6 +1,7 @@
 import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Employee } from '../employee/employee';
 import { Company } from '@models/company/company';
+import { Exclude } from 'class-transformer';
 
 @Entity('Address')
 export class Address {
@@ -28,10 +29,12 @@ export class Address {
   @Column({ type: 'varchar', length: 2, nullable: true })
   state: string;
 
+  @Exclude()
   @OneToOne(() => Company, company => company.address, { nullable: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'idCompany' })
   company: Company;
 
+  @Exclude()
   @OneToOne(() => Employee, employee => employee.address, { nullable: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'idEmployee' })
   employee: Employee;
