@@ -7,6 +7,7 @@ import {
 import { Company } from '@src/models/company/company';
 import { ApiResponse } from '@src/utils/api-response';
 import { NextFunction, Request, Response } from 'express';
+import { resolve } from 'path';
 import { inject, injectable } from 'tsyringe';
 
 export interface DeleteCompanyParams {
@@ -135,7 +136,7 @@ export class CompanyController {
 
   async saveCompany(
     request: Request<unknown, unknown, ICompanyRegister>,
-    response: Response<ICompanyResponse>,
+    response: Response,
     next: NextFunction,
   ): Promise<Response<ICompanyResponse>> {
     try {
@@ -148,14 +149,19 @@ export class CompanyController {
         if (errorMessage.length > 0) {
           this.apiResponse.Error(response, 409, errorMessage);
         }
+        const company = await this.companyRepository.addCompany(request.body);
+        return this.apiResponse.Ok<ICompanyRegister>(
+          response,
+          200,
+          'Empresa adicionada com sucesso.',
+          company,
+        );
+      } else {
+        const company = await this.companyRepository.updateCompany(request.body, response, next);
+        if (company) {
+          return this.apiResponse.Ok(response, 200, 'Empresa salva com sucesso.', company);
+        }
       }
-      const company = await this.companyRepository.saveCompany(request.body, next);
-      return this.apiResponse.Ok<ICompanyRegister>(
-        response,
-        200,
-        'Empresa salva com sucesso!',
-        company,
-      );
     } catch (error) {
       next(error);
     }

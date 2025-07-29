@@ -14,27 +14,16 @@ export class CreateAdressTable1720647166251 implements MigrationInterface {
             generationStrategy: 'increment',
           },
           {
-            name: 'nickname',
-            type: 'char',
-            length: '15',
-          },
-          {
-            name: 'isDelivery',
-            type: 'int',
-          },
-          {
-            name: 'isBilling',
-            type: 'int',
-          },
-          {
             name: 'postalCode',
             type: 'char',
             length: '50',
+            isNullable: true,
           },
           {
             name: 'address',
             type: 'char',
             length: '150',
+            isNullable: true,
           },
           {
             name: 'number',
@@ -83,6 +72,7 @@ export class CreateAdressTable1720647166251 implements MigrationInterface {
     await queryRunner.createForeignKey(
       'Address',
       new TableForeignKey({
+        name: 'FK_Address_Company',
         columnNames: ['idCompany'],
         referencedColumnNames: ['idCompany'],
         referencedTableName: 'Company',

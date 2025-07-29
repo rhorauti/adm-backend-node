@@ -1,15 +1,19 @@
 import { Company } from '@models/company/company';
-import { injectable } from 'tsyringe';
+import { inject, injectable } from 'tsyringe';
 import { Brackets, QueryRunner } from 'typeorm';
 import { ICompany, ICompanyRegister } from '@src/core/interfaces/company.interface';
 import { emptyStringToNull } from '@src/utils/misc';
 import { dataSource } from '@src/config/data-source.config';
-import { NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import { Address } from '@src/models/address/address';
 import { Employee } from '@src/models/employee/employee';
+import { ApiResponse } from '@src/utils/api-response';
+import { CustomError } from '@src/middlewares/error';
 
 @injectable()
 export class CompanyRepository {
+  constructor(@inject('ApiResponse') private apiResponse: ApiResponse) {}
+
   private companyRepository = dataSource.getRepository(Company);
   private addressRepository = dataSource.getRepository(Address);
   private employeeRepository = dataSource.getRepository(Employee);
@@ -48,22 +52,96 @@ export class CompanyRepository {
     return query.getOne();
   }
 
-  async saveCompany(companyData: ICompanyRegister, next: NextFunction): Promise<ICompanyRegister> {
+  async addCompany(companyData: ICompanyRegister): Promise<ICompanyRegister> {
     const queryRunner: QueryRunner = dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
     try {
-      const company = await queryRunner.manager.save(
-        this.companyRepository.create(companyData.company),
-      );
+      emptyStringToNull(companyData.company);
+      emptyStringToNull(companyData.address);
+      emptyStringToNull(companyData.employee);
+      const company = this.companyRepository.create(companyData.company);
+      const savedCompany = await queryRunner.manager.save(company);
       const address = this.addressRepository.create(companyData.address);
-      address.company = company;
+      address.company = savedCompany;
       const savedAddress = await queryRunner.manager.save(address);
       const employee = this.employeeRepository.create(companyData.employee);
-      employee.company = company;
+      employee.company = savedCompany;
       const savedEmployee = await queryRunner.manager.save(employee);
       await queryRunner.commitTransaction();
-      return { company: company, address: savedAddress, employee: savedEmployee };
+      return { company: savedCompany, address: savedAddress, employee: savedEmployee };
+    } catch (error) {
+      const customError = error as CustomError;
+      await queryRunner.rollbackTransaction();
+      if (error && error.code == 'ER_DUP_ENTRY') {
+        customError.statusCode = 409;
+        if (error.message.includes('UQ_company_name')) {
+          customError.message = 'O nome da empresa já existe no banco de dados.';
+        } else if (error.message.includes('UQ_company_cnpj')) {
+          customError.message = 'O cnpj da empresa já existe no banco de dados.';
+        } else if (error.message.includes('UQ_company_ie')) {
+          customError.message = 'A Inscrição Estadual da empresa já existe no banco de dados.';
+        } else if (error.message.includes('UQ_company_im')) {
+          customError.message = 'A Inscrição Municipal da empresa já existe no banco de dados.';
+        }
+      }
+      throw customError;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async updateCompany(
+    companyData: ICompanyRegister,
+    response: Response,
+    next: NextFunction,
+  ): Promise<ICompanyRegister> {
+    const queryRunner: QueryRunner = dataSource.createQueryRunner();
+    queryRunner.connect();
+    queryRunner.startTransaction();
+    try {
+      emptyStringToNull(companyData.company);
+      emptyStringToNull(companyData.address);
+      emptyStringToNull(companyData.employee);
+      const existingCompany = await queryRunner.manager.findOne(Company, {
+        where: { idCompany: companyData.company.idCompany },
+      });
+      const existingAddress = await queryRunner.manager.findOne(Address, {
+        where: { company: { idCompany: companyData.company.idCompany } },
+      });
+      const existingEmployee = await queryRunner.manager.findOne(Employee, {
+        where: { company: { idCompany: companyData.company.idCompany } },
+      });
+      if (!existingCompany) {
+        this.apiResponse.Error(response, 404, 'Empresa não encontrada.');
+      } else if (!existingAddress) {
+        this.apiResponse.Error(response, 404, 'Endereço relacionado a empresa não encontrada.');
+      } else if (!existingEmployee) {
+        this.apiResponse.Error(response, 404, 'Contato relacionado a empresa não encontrada.');
+      } else {
+        const updatedCompany = queryRunner.manager.merge(
+          Company,
+          existingCompany,
+          companyData.company,
+        );
+        const updatedAddress = queryRunner.manager.merge(
+          Address,
+          existingAddress,
+          companyData.address,
+        );
+        const updatedEmployee = queryRunner.manager.merge(
+          Employee,
+          existingEmployee,
+          companyData.employee,
+        );
+        await Promise.all([
+          queryRunner.manager.save(updatedCompany),
+          queryRunner.manager.save(updatedAddress),
+          queryRunner.manager.save(updatedEmployee),
+        ]);
+        await queryRunner.commitTransaction();
+        return { company: updatedCompany, address: updatedAddress, employee: updatedEmployee };
+      }
     } catch (error) {
       await queryRunner.rollbackTransaction();
       next(error);

@@ -1,4 +1,4 @@
-import { Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
 import { Address } from '@src/models/address/address';
 import { Employee } from '@models/employee/employee';
 import { Asset } from '@models/asset/asset';
@@ -8,6 +8,10 @@ import { Production } from '@models/production/production';
 import { Product } from '@models/product/product';
 import { PurchasingOrder } from '@models/purchasing-order/purchasingOrder';
 
+@Unique('UQ_company_name', ['name'])
+@Unique('UQ_company_cnpj', ['cnpj'])
+@Unique('UQ_company_ie', ['ie'])
+@Unique('UQ_company_im', ['im'])
 @Entity('Company')
 export class Company {
   @PrimaryGeneratedColumn()

@@ -14,11 +14,6 @@ export class CreateProjectTable1720647957624 implements MigrationInterface {
             generationStrategy: 'increment',
           },
           {
-            name: 'date',
-            type: 'timestamp',
-            default: 'CURRENT_TIMESTAMP',
-          },
-          {
             name: 'code',
             type: 'char',
             length: '15',
@@ -38,12 +33,20 @@ export class CreateProjectTable1720647957624 implements MigrationInterface {
             isNullable: true,
           },
         ],
+
+        uniques: [
+          {
+            name: 'UQ_project_code',
+            columnNames: ['code'],
+          },
+        ],
       }),
     );
 
     await queryRunner.createForeignKey(
       'Project',
       new TableForeignKey({
+        name: 'FK_Project_Company',
         columnNames: ['idCompany'],
         referencedColumnNames: ['idCompany'],
         referencedTableName: 'Company',

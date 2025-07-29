@@ -32,21 +32,37 @@ export class CreateCompanyTable1718214462553 implements MigrationInterface {
             type: 'char',
             length: '20',
             isNullable: true,
-            isUnique: true,
           },
           {
             name: 'ie',
             type: 'char',
             length: '50',
             isNullable: true,
-            isUnique: true,
           },
           {
             name: 'im',
             type: 'char',
             length: '50',
             isNullable: true,
-            isUnique: true,
+          },
+        ],
+
+        uniques: [
+          {
+            name: 'UQ_company_name',
+            columnNames: ['name'],
+          },
+          {
+            name: 'UQ_company_cnpj',
+            columnNames: ['cnpj'],
+          },
+          {
+            name: 'UQ_company_ie',
+            columnNames: ['ie'],
+          },
+          {
+            name: 'UQ_company_im',
+            columnNames: ['im'],
           },
         ],
       }),

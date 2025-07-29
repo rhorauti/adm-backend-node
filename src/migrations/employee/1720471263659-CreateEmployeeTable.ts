@@ -14,9 +14,15 @@ export class CreateEmployeeTable1720471263659 implements MigrationInterface {
             generationStrategy: 'increment',
           },
           {
+            name: 'isDefault',
+            type: 'bool',
+            default: false,
+          },
+          {
             name: 'name',
             type: 'varchar',
             length: '50',
+            isNullable: true,
           },
           {
             name: 'cpf',
@@ -60,12 +66,24 @@ export class CreateEmployeeTable1720471263659 implements MigrationInterface {
             isNullable: true,
           },
         ],
+
+        uniques: [
+          {
+            name: 'UQ_employee_name',
+            columnNames: ['name'],
+          },
+          {
+            name: 'UQ_employee_cpf',
+            columnNames: ['cpf'],
+          },
+        ],
       }),
     );
 
     await queryRunner.createForeignKey(
       'Employee',
       new TableForeignKey({
+        name: 'FK_Employee_Company',
         columnNames: ['idCompany'],
         referencedColumnNames: ['idCompany'],
         referencedTableName: 'Company',

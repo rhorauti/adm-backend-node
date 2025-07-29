@@ -35,6 +35,11 @@ export class CreateUsersTable1703816465329 implements MigrationInterface {
             default: 'CURRENT_TIMESTAMP',
           },
           {
+            name: 'photoUrl',
+            type: 'varchar',
+          },
+
+          {
             name: 'accessLevel',
             type: 'int',
             default: 1,

@@ -1,7 +1,8 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Timestamp } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Timestamp, Unique } from 'typeorm';
 import { ProjectCompany } from './project_company';
 import { ProjectEvent } from './projectEvent';
 
+@Unique('UQ_project_code', ['code'])
 @Entity('Project')
 export class Project {
   @PrimaryGeneratedColumn()
