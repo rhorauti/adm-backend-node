@@ -4,7 +4,6 @@ import { IEmployee } from './employee.interface';
 
 export interface ICompany {
   idCompany: number;
-  type: number;
   nickname: string;
   name: string;
   cnpj?: string;

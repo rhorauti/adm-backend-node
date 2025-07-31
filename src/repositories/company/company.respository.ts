@@ -25,32 +25,32 @@ export class CompanyRepository {
     return query.getMany();
   }
 
-  async findCompanyByField(field: keyof Company, value: string | number): Promise<Company> {
+  async findCompanyByField(fields: Partial<Company>): Promise<Company> {
     return await this.companyRepository.findOne({
-      where: { [field]: value },
+      where: fields,
     });
   }
 
-  async checkExistingRegister(data: ICompany): Promise<Company | null> {
-    emptyStringToNull(data);
-    const query = this.companyRepository
-      .createQueryBuilder('company')
-      .where('company.type = :type', { type: data.type })
-      .andWhere(
-        new Brackets(qb => {
-          qb.where('company.nickname = :nickname', { nickname: data.nickname })
-            .orWhere('company.name = :name', { name: data.name })
-            .orWhere('company.cnpj = :cnpj', { cnpj: data.cnpj });
-          if (data.ie && data.ie.length > 0) {
-            qb.orWhere('company.ie = :ie AND company.ie IS NOT NULL', { ie: data.ie });
-          }
-          if (data.im && data.im.length > 0) {
-            qb.orWhere('company.im = :im AND company.im IS NOT NULL', { im: data.im });
-          }
-        }),
-      );
-    return query.getOne();
-  }
+  // async checkExistingRegister(data: ICompany): Promise<Company | null> {
+  //   emptyStringToNull(data);
+  //   const query = this.companyRepository
+  //     .createQueryBuilder('company')
+  //     .where('company.type = :type', { type: data.type })
+  //     .andWhere(
+  //       new Brackets(qb => {
+  //         qb.where('company.nickname = :nickname', { nickname: data.nickname })
+  //           .orWhere('company.name = :name', { name: data.name })
+  //           .orWhere('company.cnpj = :cnpj', { cnpj: data.cnpj });
+  //         if (data.ie && data.ie.length > 0) {
+  //           qb.orWhere('company.ie = :ie AND company.ie IS NOT NULL', { ie: data.ie });
+  //         }
+  //         if (data.im && data.im.length > 0) {
+  //           qb.orWhere('company.im = :im AND company.im IS NOT NULL', { im: data.im });
+  //         }
+  //       }),
+  //     );
+  //   return query.getOne();
+  // }
 
   async addCompany(companyData: ICompanyRegister): Promise<ICompanyRegister> {
     const queryRunner: QueryRunner = dataSource.createQueryRunner();
@@ -76,13 +76,17 @@ export class CompanyRepository {
       if (error && error.code == 'ER_DUP_ENTRY') {
         customError.statusCode = 409;
         if (error.message.includes('UQ_company_name')) {
-          customError.message = 'O nome da empresa já existe no banco de dados.';
+          customError.message = 'O nome da empresa já existe e não pode estar duplicado.';
+        } else if (error.message.includes('UQ_company_nickname')) {
+          customError.message = 'O Nome Fantasia da empresa já existe e não pode estar duplicado.';
         } else if (error.message.includes('UQ_company_cnpj')) {
-          customError.message = 'O cnpj da empresa já existe no banco de dados.';
+          customError.message = 'O CNPJ/CPF da empresa já existe e não pode estar duplicado.';
         } else if (error.message.includes('UQ_company_ie')) {
-          customError.message = 'A Inscrição Estadual da empresa já existe no banco de dados.';
+          customError.message =
+            'A Inscrição Estadual da empresa já existe e não pode estar duplicado.';
         } else if (error.message.includes('UQ_company_im')) {
-          customError.message = 'A Inscrição Municipal da empresa já existe no banco de dados.';
+          customError.message =
+            'A Inscrição Municipal da empresa já existe e não pode estar duplicado.';
         }
       }
       throw customError;

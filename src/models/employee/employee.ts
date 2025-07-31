@@ -13,7 +13,6 @@ import { Address } from '@src/models/address/address';
 import { EmployeeContract } from './employeeContract';
 import { EmployeeVacation } from './employeeVacation';
 
-@Unique('UQ_employee_name', ['name'])
 @Unique('UQ_employee_cpf', ['cpf'])
 @Entity('Employee')
 export class Employee {

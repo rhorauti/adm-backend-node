@@ -14,7 +14,6 @@ const companyController = container.resolve(CompanyController);
 
 const companyMiddleware = () => {
   return [
-    body('company.type').notEmpty().isNumeric().withMessage('Informe um valor válido!'),
     body('company.nickname').notEmpty().withMessage('O campo razão social não pode estar vazio!'),
     body('company.name').notEmpty().withMessage('O campo nome da empresa não pode estar vazio!'),
     body('company.cnpj').notEmpty().withMessage('O campo CNPJ não pode estar vazio!'),

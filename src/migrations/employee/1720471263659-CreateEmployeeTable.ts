@@ -69,10 +69,6 @@ export class CreateEmployeeTable1720471263659 implements MigrationInterface {
 
         uniques: [
           {
-            name: 'UQ_employee_name',
-            columnNames: ['name'],
-          },
-          {
             name: 'UQ_employee_cpf',
             columnNames: ['cpf'],
           },

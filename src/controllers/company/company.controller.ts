@@ -7,7 +7,6 @@ import {
 import { Company } from '@src/models/company/company';
 import { ApiResponse } from '@src/utils/api-response';
 import { NextFunction, Request, Response } from 'express';
-import { resolve } from 'path';
 import { inject, injectable } from 'tsyringe';
 
 export interface DeleteCompanyParams {
@@ -141,14 +140,6 @@ export class CompanyController {
   ): Promise<Response<ICompanyResponse>> {
     try {
       if (request.body.company.idCompany == 0) {
-        const existingCompany = await this.companyRepository.findCompanyByField(
-          'idCompany',
-          request.body.company.idCompany,
-        );
-        const errorMessage = this.checkExistingCompany(existingCompany);
-        if (errorMessage.length > 0) {
-          this.apiResponse.Error(response, 409, errorMessage);
-        }
         const company = await this.companyRepository.addCompany(request.body);
         return this.apiResponse.Ok<ICompanyRegister>(
           response,
@@ -177,7 +168,7 @@ export class CompanyController {
       } else if (company.name.trim().toLowerCase() == name.trim().toLowerCase()) {
         errorMessage = `Esse nome ${name} já existe!`;
       } else if (company.cnpj.trim() == cnpj.trim()) {
-        errorMessage = `Esse cnpj ${cnpj} já existe!`;
+        errorMessage = `Esse CNPJ/CPF ${cnpj} já existe!`;
       } else if (company.ie.trim() == ie.trim()) {
         errorMessage = `Essa Inscrição Estadual ${ie} já existe!`;
       } else if (company.im.trim() == im.trim()) {
@@ -193,10 +184,9 @@ export class CompanyController {
     next: NextFunction,
   ): Promise<Response<ICompanyResponse>> {
     try {
-      const company = await this.companyRepository.findCompanyByField(
-        'idCompany',
-        Number(request.params.idCompany),
-      );
+      const company = await this.companyRepository.findCompanyByField({
+        idCompany: Number(request.params.idCompany),
+      });
       await this.companyRepository.deleteCompany(company.idCompany);
       return this.apiResponse.Ok(response, 200, `Empresa ${company.name} excluida com sucesso!`);
     } catch (error) {

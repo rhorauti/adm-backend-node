@@ -14,10 +14,6 @@ export class CreateCompanyTable1718214462553 implements MigrationInterface {
             generationStrategy: 'increment',
           },
           {
-            name: 'type',
-            type: 'int',
-          },
-          {
             name: 'nickname',
             type: 'char',
             length: '50',
@@ -48,6 +44,10 @@ export class CreateCompanyTable1718214462553 implements MigrationInterface {
         ],
 
         uniques: [
+          {
+            name: 'UQ_company_nickname',
+            columnNames: ['nickname'],
+          },
           {
             name: 'UQ_company_name',
             columnNames: ['name'],

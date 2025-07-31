@@ -8,6 +8,7 @@ import { Production } from '@models/production/production';
 import { Product } from '@models/product/product';
 import { PurchasingOrder } from '@models/purchasing-order/purchasingOrder';
 
+@Unique('UQ_company_nickname', ['nickname'])
 @Unique('UQ_company_name', ['name'])
 @Unique('UQ_company_cnpj', ['cnpj'])
 @Unique('UQ_company_ie', ['ie'])
@@ -16,9 +17,6 @@ import { PurchasingOrder } from '@models/purchasing-order/purchasingOrder';
 export class Company {
   @PrimaryGeneratedColumn()
   idCompany: number;
-
-  @Column({ type: 'int' })
-  type: number;
 
   @Column({ type: 'char', length: 50 })
   nickname: string;
