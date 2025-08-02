@@ -16,6 +16,10 @@ export class Users {
   @Exclude()
   password: string;
 
+  @Column({ type: 'varchar', length: 256 })
+  @Exclude()
+  photoUrl?: string;
+
   @CreateDateColumn({ type: 'timestamp' })
   @Exclude()
   createdAt: Timestamp;

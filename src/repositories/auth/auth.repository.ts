@@ -10,6 +10,7 @@ export class AuthRepository {
       email: email,
       password: password,
       createdAt: new Date(),
+      photoUrl: '',
       accessLevel: 1,
       isActive: true,
       emailConfirmed: false,

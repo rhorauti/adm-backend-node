@@ -23,6 +23,6 @@ export class JwtHandler {
    *                             - Se o token for inválido, err conterá informações sobre o erro. Caso contrário, err será null e decoded conterá o payload do token decodificado.
    */
   verifyToken(token: string, callback?: any): void {
-    jwt.verify(token, process.env.JWT_SECRET_KEY, callback());
+    jwt.verify(token, process.env.JWT_SECRET_KEY, callback);
   }
 }

@@ -28,10 +28,10 @@ export class Company {
   cnpj: string;
 
   @Column({ type: 'char', length: 50, nullable: true })
-  ie: string;
+  ie?: string;
 
   @Column({ type: 'char', length: 50, nullable: true })
-  im: string;
+  im?: string;
 
   @OneToOne(() => Address, address => address.company, { nullable: true })
   address: Address;
