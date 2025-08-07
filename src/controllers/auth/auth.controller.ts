@@ -3,8 +3,8 @@ import { compare, hash } from 'bcryptjs';
 import { EmailSender } from '@services/email.service';
 import { AuthRepository } from '@repositories/auth/auth.repository';
 import { inject, injectable } from 'tsyringe';
-import { ApiResponse } from '@src/utils/api-response';
-import { JwtHandler } from '@src/services/jwt.service';
+import { ApiResponse } from '@utils/api-response';
+import { JwtHandler } from '@services/jwt.service';
 
 @injectable()
 export class AuthController {

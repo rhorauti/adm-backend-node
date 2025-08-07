@@ -1,11 +1,7 @@
 import { CompanyRepository } from '@repositories/company/company.respository';
-import {
-  ICompany,
-  ICompanyRegister,
-  ICompanyResponse,
-} from '@src/core/interfaces/company.interface';
-import { Company } from '@src/models/company/company';
-import { ApiResponse } from '@src/utils/api-response';
+import { ICompany, ICompanyRegister, ICompanyResponse } from '@core/interfaces/company.interface';
+import { Company } from '@models/company/company';
+import { ApiResponse } from '@utils/api-response';
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 

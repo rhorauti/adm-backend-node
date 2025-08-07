@@ -1,7 +1,7 @@
-import { AuthController } from '@src/controllers/auth/auth.controller';
+import { AuthController } from '@controllers/auth/auth.controller';
 import { AddressController } from '@controllers/address/address.controller';
 import { CompanyController } from '@controllers/company/company.controller';
-import { Address } from '@src/models/address/address';
+import { Address } from '@models/address/address';
 import { Company } from '@models/company/company';
 import { Employee } from '@models/employee/employee';
 import { Project } from '@models/project/project';
@@ -12,8 +12,8 @@ import { EmailSender } from '@services/email.service';
 import { container } from 'tsyringe';
 import { EmployeeRepository } from '@repositories/employee/employee.repository';
 import { EmployeeController } from '@controllers/employee/employee.controller';
-import { ApiResponse } from '@src/utils/api-response';
-import { JwtHandler } from '@src/services/jwt.service';
+import { ApiResponse } from '@utils/api-response';
+import { JwtHandler } from '@services/jwt.service';
 
 export type modelsBase = Company | Address | Project | Employee;
 

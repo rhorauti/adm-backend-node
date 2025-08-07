@@ -1,6 +1,6 @@
-import { dataSource } from '@src/config/data-source.config';
-import { Address } from '@src/models/address/address';
-import { Company } from '@src/models/company/company';
+import { dataSource } from '@config/data-source.config';
+import { Address } from '@models/address/address';
+import { Company } from '@models/company/company';
 import { injectable } from 'tsyringe';
 
 @injectable()

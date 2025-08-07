@@ -1,5 +1,5 @@
 import { EmployeeController } from '@controllers/employee/employee.controller';
-import { ICompanyParams } from '@src/core/interfaces/company.interface';
+import { ICompanyParams } from '@core/interfaces/company.interface';
 import Router, { NextFunction, Request, Response } from 'express';
 import { param, ValidationChain } from 'express-validator';
 import { container } from 'tsyringe';

@@ -1,9 +1,5 @@
 import { CompanyController, DeleteCompanyParams } from '@controllers/company/company.controller';
-import {
-  ICompany,
-  ICompanyRegister,
-  ICompanyResponse,
-} from '@src/core/interfaces/company.interface';
+import { ICompany, ICompanyRegister, ICompanyResponse } from '@core/interfaces/company.interface';
 import Router, { NextFunction, Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
 import { container } from 'tsyringe';

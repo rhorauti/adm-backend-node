@@ -1,8 +1,8 @@
 import { EmployeeRepository } from '@repositories/employee/employee.repository';
-import { ICompanyParams } from '@src/core/interfaces/company.interface';
+import { ICompanyParams } from '@core/interfaces/company.interface';
 import { IEmployeeResponse } from '@src/core/interfaces/employee.interface';
-import { CustomError } from '@src/middlewares/error';
-import { ApiResponse } from '@src/utils/api-response';
+import { CustomError } from '@middlewares/error';
+import { ApiResponse } from '@utils/api-response';
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 

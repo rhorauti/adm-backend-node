@@ -1,14 +1,14 @@
 import { Company } from '@models/company/company';
 import { inject, injectable } from 'tsyringe';
 import { QueryRunner } from 'typeorm';
-import { ICompany, ICompanyRegister } from '@src/core/interfaces/company.interface';
-import { emptyStringToNull } from '@src/utils/misc';
-import { dataSource } from '@src/config/data-source.config';
+import { ICompany, ICompanyRegister } from '@core/interfaces/company.interface';
+import { emptyStringToNull } from '@utils/misc';
+import { dataSource } from '@config/data-source.config';
 import { Response, NextFunction } from 'express';
-import { Address } from '@src/models/address/address';
-import { Employee } from '@src/models/employee/employee';
-import { ApiResponse } from '@src/utils/api-response';
-import { CustomError } from '@src/middlewares/error';
+import { Address } from '@models/address/address';
+import { Employee } from '@models/employee/employee';
+import { ApiResponse } from '@utils/api-response';
+import { CustomError } from '@middlewares/error';
 
 @injectable()
 export class CompanyRepository {

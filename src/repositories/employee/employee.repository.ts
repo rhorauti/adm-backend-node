@@ -1,8 +1,8 @@
-import { IEmployeeResponse } from '@src/core/interfaces/employee.interface';
+import { IEmployeeResponse } from '@core/interfaces/employee.interface';
 import { Employee } from '@models/employee/employee';
 import { injectable } from 'tsyringe';
-import { dataSource } from '@src/config/data-source.config';
-import { Company } from '@src/models/company/company';
+import { dataSource } from '@config/data-source.config';
+import { Company } from '@models/company/company';
 
 @injectable()
 export class EmployeeRepository {

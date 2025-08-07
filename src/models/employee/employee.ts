@@ -9,7 +9,7 @@ import {
   Unique,
 } from 'typeorm';
 import { Company } from '../company/company';
-import { Address } from '@src/models/address/address';
+import { Address } from '@models/address/address';
 import { EmployeeContract } from './employeeContract';
 import { EmployeeVacation } from './employeeVacation';
 

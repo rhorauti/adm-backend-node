@@ -1,5 +1,5 @@
 import { Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
-import { Address } from '@src/models/address/address';
+import { Address } from '@models/address/address';
 import { Employee } from '@models/employee/employee';
 import { Asset } from '@models/asset/asset';
 import { ProjectCompany } from '@models/project/project_company';
