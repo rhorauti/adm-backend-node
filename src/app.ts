@@ -2,7 +2,9 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import 'reflect-metadata';
-import 'module-alias/register';
+if (process.env.NODE_ENV === 'production') {
+  require('module-alias/register');
+}
 import './containers';
 import { router } from './routes';
 import swaggerUi from 'swagger-ui-express';
