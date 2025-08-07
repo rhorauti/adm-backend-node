@@ -36,7 +36,7 @@
     "typescript": "^5.8.3"
   },
   "scripts": {
-    "build": "rimraf dist && npx tsc",
+    "build": "rimraf dist && tsc -p tsconfig.json",
     "dev": "ts-node-dev -r tsconfig-paths/register --inspect --transpile-only --ignore-watch node_modules src/app.ts",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
