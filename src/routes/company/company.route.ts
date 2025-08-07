@@ -64,4 +64,18 @@ companyRoute.delete(
   },
 );
 
+companyRoute.post(
+  '/companies/test/add',
+  (request: Request, response: Response, next: NextFunction) => {
+    companyController.addRandomRegisters(request, response, next);
+  },
+);
+
+companyRoute.delete(
+  '/companies/test/delete',
+  (request: Request, response: Response, next: NextFunction) => {
+    companyController.deleteAllRandomRegisters(request, response, next);
+  },
+);
+
 export { companyRoute };

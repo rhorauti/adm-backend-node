@@ -19,7 +19,7 @@ app.use(handleErrorMiddleware);
 dataSource
   .initialize()
   .then(() => {
-    app.listen(process.env.PORT, () => {
+    app.listen(Number(process.env.PORT), '0.0.0.0', () => {
       console.log(`Application is listening on port ${process.env.PORT}`);
     });
   })

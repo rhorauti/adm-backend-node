@@ -23,7 +23,7 @@ export class EmailSender {
   async sendEmailConfirmationSignUp(user: Users): Promise<void> {
     const token: string = jwt.sign({ email: user.email }, process.env.JWT_SECRET_KEY, {
       algorithm: 'HS256',
-      expiresIn: process.env.JWT_EXPIRES_IN,
+      expiresIn: Number(process.env.JWT_EXPIRES_IN),
     });
     try {
       await this.transporter.sendMail({
@@ -46,7 +46,7 @@ export class EmailSender {
 
   async sendEmailConfirmationResetPassword(user: Users): Promise<void> {
     const token: string = jwt.sign({ email: user.email }, process.env.JWT_SECRET_KEY, {
-      expiresIn: process.env.JWT_EXPIRES_IN,
+      expiresIn: Number(process.env.JWT_EXPIRES_IN),
     });
     try {
       await this.transporter.sendMail({

@@ -193,4 +193,136 @@ export class CompanyController {
       next(error);
     }
   }
+
+  prefixes = [
+    'Blue',
+    'Green',
+    'Red',
+    'Silver',
+    'Golden',
+    'Bright',
+    'Quantum',
+    'Neo',
+    'Next',
+    'Future',
+    'Nova',
+    'Apex',
+    'Zenith',
+    'Hyper',
+    'Meta',
+    'Omni',
+    'Eco',
+    'Cyber',
+    'Fusion',
+    'Vertex',
+    'Alpha',
+    'Beta',
+    'Lunar',
+    'Solar',
+    'Urban',
+    'Velocity',
+    'Cloud',
+    'Net',
+    'Digital',
+    'Smart',
+    'Infinity',
+    'Dynamic',
+    'Synergy',
+  ];
+
+  suffixes = [
+    'Solutions',
+    'Systems',
+    'Technologies',
+    'Enterprises',
+    'Group',
+    'Corp',
+    'LLC',
+    'Inc',
+    'Studios',
+    'Labs',
+    'Works',
+    'Networks',
+    'Industries',
+    'Holdings',
+    'Partners',
+    'Consulting',
+    'Software',
+    'Media',
+    'Logistics',
+    'Innovations',
+    'Ventures',
+    'Designs',
+    'Development',
+    'Analytics',
+    'Services',
+    'Dynamics',
+  ];
+
+  getRandomNameAndNickName(): string {
+    const prefix = this.prefixes[Math.floor(Math.random() * this.prefixes.length)];
+    const suffix = this.suffixes[Math.floor(Math.random() * this.suffixes.length)];
+    const id = Math.floor(Math.random());
+    return `${prefix} ${suffix} ${id}`;
+  }
+
+  getRandomCnpjOrIeOrIm(length = 14): string {
+    let cnpj = '';
+    for (let i = 0; i < length; i++) {
+      cnpj += Math.floor(Math.random() * 10);
+    }
+    return cnpj;
+  }
+
+  async addRandomRegisters(
+    request: Request,
+    response: Response,
+    next: NextFunction,
+  ): Promise<Response> {
+    try {
+      const registersNumber = 30;
+      const baseTimestamp = Date.now();
+      const randomCompany = {
+        idCompany: 0,
+        name: '',
+        nickname: '',
+        cnpj: '',
+        ie: '',
+        im: '',
+      } as ICompany;
+      for (let i = 0; i < registersNumber; i++) {
+        const uniqueId = `${baseTimestamp}${i}`;
+        randomCompany.idCompany = 0;
+        randomCompany.name = this.getRandomNameAndNickName() + uniqueId;
+        randomCompany.nickname = this.getRandomNameAndNickName() + uniqueId;
+        randomCompany.cnpj = this.getRandomCnpjOrIeOrIm();
+        randomCompany.ie = this.getRandomCnpjOrIeOrIm(8);
+        randomCompany.im = this.getRandomCnpjOrIeOrIm(10);
+        await this.companyRepository.saveCompany(randomCompany);
+      }
+      return response.json({
+        message: `${registersNumber} registros de teste inseridos com sucesso!`,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async deleteAllRandomRegisters(
+    request: Request,
+    response: Response,
+    next: NextFunction,
+  ): Promise<Response> {
+    try {
+      const companies = await this.companyRepository.getCompanies();
+      companies.forEach(async company => {
+        await this.companyRepository.deleteCompany(company.idCompany);
+      });
+      return response.json({
+        message: `Todas as ${companies.length} empresas excluidas com sucesso.`,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

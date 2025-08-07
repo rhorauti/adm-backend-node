@@ -1,6 +1,6 @@
 import { Company } from '@models/company/company';
 import { inject, injectable } from 'tsyringe';
-import { Brackets, QueryRunner } from 'typeorm';
+import { QueryRunner } from 'typeorm';
 import { ICompany, ICompanyRegister } from '@src/core/interfaces/company.interface';
 import { emptyStringToNull } from '@src/utils/misc';
 import { dataSource } from '@src/config/data-source.config';
@@ -152,6 +152,10 @@ export class CompanyRepository {
     } finally {
       await queryRunner.release();
     }
+  }
+
+  async saveCompany(company: ICompany): Promise<ICompany> {
+    return await this.companyRepository.save(company);
   }
 
   async deleteCompany(idCompany: number): Promise<void> {
