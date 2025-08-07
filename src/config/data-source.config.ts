@@ -10,14 +10,14 @@ import { Production } from '@models/production/production';
 import { Project } from '@models/project/project';
 import { ProjectEvent } from '@models/project/projectEvent';
 import { PurchasingOrder } from '@models/purchasing-order/purchasingOrder';
-import { Address } from '@src/models/address/address';
+import { Address } from '@models/address/address';
 import { Asset } from '@models/asset/asset';
 import { ProjectCompany } from '@models/project/project_company';
-import { CreateUsersTable1703816465329 } from '@src/migrations/auth/1703816465329-CreateUsersTable';
-import { CreateCompanyTable1718214462553 } from '@src/migrations/company/1718214462553-CreateCompanyTable';
-import { CreateEmployeeTable1720471263659 } from '@src/migrations/employee/1720471263659-CreateEmployeeTable';
-import { CreateAdressTable1720647166251 } from '@src/migrations/address/1720647166251-CreateAdressTable';
-import { CreateProjectTable1720647957624 } from '@src/migrations/project/1720647957624-CreateProjectTable';
+import { CreateUsersTable1703816465329 } from '@migrations/auth/1703816465329-CreateUsersTable';
+import { CreateCompanyTable1718214462553 } from '@migrations/company/1718214462553-CreateCompanyTable';
+import { CreateEmployeeTable1720471263659 } from '@migrations/employee/1720471263659-CreateEmployeeTable';
+import { CreateAdressTable1720647166251 } from '@migrations/address/1720647166251-CreateAdressTable';
+import { CreateProjectTable1720647957624 } from '@migrations/project/1720647957624-CreateProjectTable';
 
 export const dataSource = new DataSource({
   type: 'mysql',

@@ -1,8 +1,8 @@
 import { AddressRepository } from '@repositories/address/address.repository';
-import { IAddressResponse } from '@src/core/interfaces/address.interface';
-import { ICompanyParams } from '@src/core/interfaces/company.interface';
-import { CustomError } from '@src/middlewares/error';
-import { ApiResponse } from '@src/utils/api-response';
+import { IAddressResponse } from '@core/interfaces/address.interface';
+import { ICompanyParams } from '@core/interfaces/company.interface';
+import { CustomError } from '@middlewares/error';
+import { ApiResponse } from '@utils/api-response';
 import { Request, Response } from 'express';
 import { NextFunction } from 'express-serve-static-core';
 import { inject, injectable } from 'tsyringe';
