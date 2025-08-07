@@ -20,12 +20,14 @@ import { CreateAdressTable1720647166251 } from '@migrations/address/172064716625
 import { CreateProjectTable1720647957624 } from '@migrations/project/1720647957624-CreateProjectTable';
 
 export const dataSource = new DataSource({
-  type: 'mysql',
-  host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT),
-  username: process.env.DB_USERNAME,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
+  // type: 'mysql',
+  type: 'postgres',
+  url: process.env.DATABASE_URL,
+  // host: process.env.DB_HOST,
+  // port: Number(process.env.DB_PORT),
+  // username: process.env.DB_USERNAME,
+  // password: process.env.DB_PASSWORD,
+  // database: process.env.DB_NAME,
   synchronize: false,
   logging: true,
   entities: [
