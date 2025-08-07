@@ -1,4 +1,4 @@
-import { AuthController } from '@controllers/auth/auth.controller';
+import { AuthController } from '@src/controllers/auth/auth.controller';
 import { AddressController } from '@controllers/address/address.controller';
 import { CompanyController } from '@controllers/company/company.controller';
 import { Address } from '@src/models/address/address';
