@@ -13,7 +13,12 @@ import { handleErrorMiddleware } from './middlewares/error';
 import { dataSource } from './config/data-source.config';
 
 export const app = express();
-app.use(cors());
+
+const corsOptions = {
+  origin: 'https://adm-frontend-angular.onrender.com',
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerTemplate));
 app.use('/v1', router);
