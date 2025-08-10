@@ -57,6 +57,9 @@ export const dataSourceProd = new DataSource({
   type: 'postgres',
   url: process.env.DATABASE_URL,
   synchronize: false,
+  ssl: {
+    rejectUnauthorized: false,
+  },
   logging: true,
   entities: [
     Company,
