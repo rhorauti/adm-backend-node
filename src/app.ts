@@ -1,3 +1,6 @@
+if (process.env.NODE_ENV === 'production') {
+  require('module-alias/register');
+}
 import dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
@@ -23,9 +26,6 @@ dataSource
       useValue: dataSource,
     });
 
-    if (process.env.NODE_ENV === 'production') {
-      require('module-alias/register');
-    }
     require('./containers');
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { router } = require('./routes');
