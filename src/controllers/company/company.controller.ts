@@ -279,22 +279,45 @@ export class CompanyController {
       const registersNumber = 30;
       const baseTimestamp = Date.now();
       const randomCompany = {
-        idCompany: 0,
-        name: '',
-        nickname: '',
-        cnpj: '',
-        ie: '',
-        im: '',
-      } as ICompany;
+        company: {
+          idCompany: 0,
+          name: '',
+          nickname: '',
+          cnpj: '',
+          ie: '',
+          im: '',
+        },
+        address: {
+          idAddress: 0,
+          postalCode: '',
+          address: '',
+          complement: '',
+          number: '',
+          district: '',
+          city: '',
+          state: '',
+        },
+        employee: {
+          idEmployee: 0,
+          isDefault: false,
+          name: '',
+          cellphone: '',
+          cpf: '',
+          department: '',
+          deskphone: '',
+          email: '',
+          position: '',
+        },
+      } as ICompanyRegister;
       for (let i = 0; i < registersNumber; i++) {
         const uniqueId = `${baseTimestamp}${i}`;
-        randomCompany.idCompany = 0;
-        randomCompany.name = this.getRandomNameAndNickName() + uniqueId;
-        randomCompany.nickname = this.getRandomNameAndNickName() + uniqueId;
-        randomCompany.cnpj = this.getRandomCnpjOrIeOrIm();
-        randomCompany.ie = this.getRandomCnpjOrIeOrIm(8);
-        randomCompany.im = this.getRandomCnpjOrIeOrIm(10);
-        await this.companyRepository.saveCompany(randomCompany);
+        randomCompany.company.idCompany = 0;
+        randomCompany.company.name = this.getRandomNameAndNickName() + uniqueId;
+        randomCompany.company.nickname = this.getRandomNameAndNickName() + uniqueId;
+        randomCompany.company.cnpj = this.getRandomCnpjOrIeOrIm();
+        randomCompany.company.ie = this.getRandomCnpjOrIeOrIm(8);
+        randomCompany.company.im = this.getRandomCnpjOrIeOrIm(10);
+        await this.companyRepository.addCompany(randomCompany);
       }
       return response.json({
         message: `${registersNumber} registros de teste inseridos com sucesso!`,

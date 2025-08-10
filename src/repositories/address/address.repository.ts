@@ -1,11 +1,15 @@
-import { dataSource } from '@config/data-source.config';
 import { Address } from '@models/address/address';
 import { Company } from '@models/company/company';
-import { injectable } from 'tsyringe';
+import { inject, injectable } from 'tsyringe';
+import { DataSource, Repository } from 'typeorm';
 
 @injectable()
 export class AddressRepository {
-  private addressRepository = dataSource.getRepository(Address);
+  private addressRepository: Repository<Address>;
+
+  constructor(@inject('DataSource') private dataSource: DataSource) {
+    this.addressRepository = this.dataSource.getRepository(Address);
+  }
 
   async getAddress(idCompany: number): Promise<Address> {
     return this.addressRepository

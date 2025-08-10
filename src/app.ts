@@ -1,36 +1,52 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
 import 'reflect-metadata';
-if (process.env.NODE_ENV === 'production') {
-  require('module-alias/register');
-}
-import './containers';
-import { router } from './routes';
-import swaggerUi from 'swagger-ui-express';
-import { swaggerTemplate } from './swagger';
-import { handleErrorMiddleware } from './middlewares/error';
-import { dataSource } from './config/data-source.config';
+import { container } from 'tsyringe';
+import { DataSource } from 'typeorm';
 
-export const app = express();
+const envFile = `.env.${process.env.NODE_ENV || 'development'}`;
+dotenv.config({ path: envFile });
 
-const corsOptions = {
-  origin: 'https://adm-frontend-angular.onrender.com',
-};
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { dataSourceDev, dataSourceProd } = require('@config/data-source.config');
 
-app.use(cors(corsOptions));
-app.use(express.json());
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerTemplate));
-app.use('/v1', router);
-app.use(handleErrorMiddleware);
+const dataSource: DataSource =
+  process.env.NODE_ENV === 'development' ? dataSourceDev : dataSourceProd;
 
 dataSource
   .initialize()
   .then(() => {
-    app.listen(Number(process.env.PORT), '0.0.0.0', () => {
-      console.log(`Application is listening on port ${process.env.PORT}`);
+    console.log('✅ Data Source has been initialized!');
+
+    container.register('DataSource', {
+      useValue: dataSource,
+    });
+
+    if (process.env.NODE_ENV === 'production') {
+      require('module-alias/register');
+    }
+    require('./containers');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { router } = require('./routes');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { handleErrorMiddleware } = require('./middlewares/error');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const swaggerUi = require('swagger-ui-express');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { swaggerTemplate } = require('./swagger');
+
+    const app = express();
+    app.use(cors());
+    app.use(express.json());
+    app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerTemplate));
+    app.use('/v1', router);
+    app.use(handleErrorMiddleware);
+
+    app.listen(Number(process.env.PORT), () => {
+      console.log(`🚀 Application is listening on port ${process.env.PORT}`);
     });
   })
   .catch((e: unknown) => {
-    console.log(e as Error);
+    console.error('❌ Error during Data Source initialization:', e);
   });

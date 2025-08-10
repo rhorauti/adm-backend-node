@@ -1,9 +1,8 @@
 import { Company } from '@models/company/company';
 import { inject, injectable } from 'tsyringe';
-import { QueryRunner } from 'typeorm';
+import { DataSource, QueryRunner, Repository } from 'typeorm';
 import { ICompany, ICompanyRegister } from '@core/interfaces/company.interface';
 import { emptyStringToNull } from '@utils/misc';
-import { dataSource } from '@config/data-source.config';
 import { Response, NextFunction } from 'express';
 import { Address } from '@models/address/address';
 import { Employee } from '@models/employee/employee';
@@ -12,11 +11,18 @@ import { CustomError } from '@middlewares/error';
 
 @injectable()
 export class CompanyRepository {
-  constructor(@inject('ApiResponse') private apiResponse: ApiResponse) {}
+  private companyRepository: Repository<Company>;
+  private addressRepository: Repository<Address>;
+  private employeeRepository: Repository<Employee>;
 
-  private companyRepository = dataSource.getRepository(Company);
-  private addressRepository = dataSource.getRepository(Address);
-  private employeeRepository = dataSource.getRepository(Employee);
+  constructor(
+    @inject('DataSource') private dataSource: DataSource,
+    @inject('ApiResponse') private apiResponse: ApiResponse,
+  ) {
+    this.companyRepository = this.dataSource.getRepository(Company);
+    this.addressRepository = this.dataSource.getRepository(Address);
+    this.employeeRepository = this.dataSource.getRepository(Employee);
+  }
 
   async getCompanies(): Promise<Company[]> {
     const query = this.companyRepository
@@ -53,7 +59,7 @@ export class CompanyRepository {
   // }
 
   async addCompany(companyData: ICompanyRegister): Promise<ICompanyRegister> {
-    const queryRunner: QueryRunner = dataSource.createQueryRunner();
+    const queryRunner: QueryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
     try {
@@ -100,7 +106,7 @@ export class CompanyRepository {
     response: Response,
     next: NextFunction,
   ): Promise<ICompanyRegister> {
-    const queryRunner: QueryRunner = dataSource.createQueryRunner();
+    const queryRunner: QueryRunner = this.dataSource.createQueryRunner();
     queryRunner.connect();
     queryRunner.startTransaction();
     try {

@@ -1,8 +1,14 @@
 import { Users } from '@models/auth/users';
-import { dataSource } from '@config/data-source.config';
+import { DataSource, Repository } from 'typeorm';
+import { inject, injectable } from 'tsyringe';
 
+@injectable()
 export class AuthRepository {
-  private userRepository = dataSource.getRepository(Users);
+  private userRepository: Repository<Users>;
+
+  constructor(@inject('DataSource') private dataSource: DataSource) {
+    this.userRepository = this.dataSource.getRepository(Users);
+  }
 
   async createNewUser(name: string, email: string, password: string): Promise<Users> {
     const newUser = this.userRepository.create({

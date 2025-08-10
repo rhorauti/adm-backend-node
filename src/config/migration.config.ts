@@ -19,7 +19,9 @@ import { CreateEmployeeTable1720471263659 } from '@migrations/employee/172047126
 import { CreateAdressTable1720647166251 } from '@migrations/address/1720647166251-CreateAdressTable';
 import { CreateProjectTable1720647957624 } from '@migrations/project/1720647957624-CreateProjectTable';
 
-export const dataSourceDev = new DataSource({
+// File used to do migrations only
+// npx ts-node -r dotenv/config -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:run -d src/config/migration.config.ts
+const AppDataSource = new DataSource({
   type: 'postgres',
   host: process.env.DB_HOST,
   port: Number(process.env.DB_PORT),
@@ -53,32 +55,4 @@ export const dataSourceDev = new DataSource({
   ],
 });
 
-export const dataSourceProd = new DataSource({
-  type: 'postgres',
-  url: process.env.DATABASE_URL,
-  synchronize: false,
-  logging: true,
-  entities: [
-    Company,
-    Users,
-    Address,
-    Asset,
-    Employee,
-    EmployeeContract,
-    EmployeeVacation,
-    Invoice,
-    Product,
-    Production,
-    Project,
-    ProjectEvent,
-    ProjectCompany,
-    PurchasingOrder,
-  ],
-  migrations: [
-    CreateUsersTable1703816465329,
-    CreateCompanyTable1718214462553,
-    CreateEmployeeTable1720471263659,
-    CreateAdressTable1720647166251,
-    CreateProjectTable1720647957624,
-  ],
-});
+export default AppDataSource;
