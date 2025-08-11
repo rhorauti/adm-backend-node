@@ -1,6 +1,6 @@
-if (process.env.NODE_ENV === 'production') {
-  require('module-alias/register');
-}
+// if (process.env.NODE_ENV === 'production') {
+//   require('module-alias/register');
+// }
 import dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
