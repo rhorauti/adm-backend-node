@@ -23,7 +23,7 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env.production' });
 
 // File used to do migrations only
-// npx ts-node -r dotenv/config -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:run -d src/config/migration.config.ts
+// npx ts-node -r dotenv/config -r ./node_modules/typeorm/cli.js migration:run -d src/config/migration.config.ts
 const AppDataSource = new DataSource({
   type: 'postgres',
   url: process.env.DATABASE_URL,
