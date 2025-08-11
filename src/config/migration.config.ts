@@ -18,17 +18,19 @@ import { CreateCompanyTable1718214462553 } from '@migrations/company/17182144625
 import { CreateEmployeeTable1720471263659 } from '@migrations/employee/1720471263659-CreateEmployeeTable';
 import { CreateAdressTable1720647166251 } from '@migrations/address/1720647166251-CreateAdressTable';
 import { CreateProjectTable1720647957624 } from '@migrations/project/1720647957624-CreateProjectTable';
+import * as dotenv from 'dotenv';
+
+dotenv.config({ path: '.env.production' });
 
 // File used to do migrations only
 // npx ts-node -r dotenv/config -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:run -d src/config/migration.config.ts
 const AppDataSource = new DataSource({
   type: 'postgres',
-  host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT),
-  username: process.env.DB_USERNAME,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
+  url: process.env.DATABASE_URL,
   synchronize: false,
+  ssl: {
+    rejectUnauthorized: false,
+  },
   logging: true,
   entities: [
     Company,
