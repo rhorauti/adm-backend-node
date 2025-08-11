@@ -1,6 +1,7 @@
 // if (process.env.NODE_ENV === 'production') {
 //   require('module-alias/register');
 // }
+import './module-alias-setup';
 import dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
@@ -11,8 +12,7 @@ import { DataSource } from 'typeorm';
 const envFile = `.env.${process.env.NODE_ENV || 'development'}`;
 dotenv.config({ path: envFile });
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { dataSourceDev, dataSourceProd } = require('@config/data-source.config');
+import { dataSourceDev, dataSourceProd } from '@config/data-source.config';
 
 const dataSource: DataSource =
   process.env.NODE_ENV === 'development' ? dataSourceDev : dataSourceProd;

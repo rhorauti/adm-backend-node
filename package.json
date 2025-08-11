@@ -9,11 +9,11 @@
     "express": "^4.19.2",
     "express-validator": "^7.2.0",
     "jsonwebtoken": "^9.0.2",
+    "module-alias": "^2.2.3",
     "nodemailer": "^6.9.13",
     "pg": "^8.16.3",
     "rimraf": "^5.0.7",
     "swagger-ui-express": "^5.0.1",
-    "tsconfig-paths": "^4.2.0",
     "tsyringe": "^4.8.0",
     "typeorm": "^0.3.20"
   },
@@ -21,6 +21,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/cors": "^2.8.17",
     "@types/jsonwebtoken": "^9.0.6",
+    "@types/module-alias": "^2.0.4",
     "@types/node": "^20.14.5",
     "@types/nodemailer": "^6.4.15",
     "@typescript-eslint/eslint-plugin": "^7.13.1",
@@ -38,11 +39,11 @@
   },
   "scripts": {
     "build": "rimraf dist && tsc -p tsconfig.json",
-    "dev": "cross-env NODE_ENV=development ts-node-dev -r tsconfig-paths/register --inspect --transpile-only --ignore-watch node_modules src/app.ts",
+    "dev": "cross-env NODE_ENV=development ts-node-dev -r --inspect --transpile-only --ignore-watch node_modules src/app.ts",
     "start": "node dist/app.js",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
-    "typeorm": "ts-node-dev -r dotenv/config -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
+    "typeorm": "ts-node-dev -r dotenv/config -r ./node_modules/typeorm/cli.js",
     "docs": "typedoc"
   }
 }
