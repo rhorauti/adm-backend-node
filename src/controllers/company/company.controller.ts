@@ -4,10 +4,7 @@ import { Company } from '@models/company/company';
 import { ApiResponse } from '@utils/api-response';
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
-
-export interface DeleteCompanyParams {
-  idCompany: string;
-}
+import { CustomError } from '@middlewares/error';
 
 @injectable()
 export class CompanyController {
@@ -38,97 +35,6 @@ export class CompanyController {
     }
   }
 
-  // async addNewCompany(
-  //   request: Request,
-  //   response: Response,
-  //   next: NextFunction,
-  // ): Promise<Response | void> {
-  //   const queryRunner: QueryRunner = dataSource.createQueryRunner();
-  //   await queryRunner.connect();
-  //   await queryRunner.startTransaction();
-  //   try {
-  //     const { nickname, name, cnpj, ie, im, type } = request.body;
-
-  //     const existingCompany = await queryRunner.manager
-  //       .createQueryBuilder(Company, 'company')
-  //       .where(
-  //         new Brackets(qb => {
-  //           qb.where('company.nickname = :nickname', {
-  //             nickname: nickname,
-  //           }).andWhere('company.type = :type', { type: type });
-  //         }),
-  //       )
-  //       .orWhere(
-  //         new Brackets(qb => {
-  //           qb.where('company.name = :name', { name: name }).andWhere('company.type = :type', {
-  //             type: type,
-  //           });
-  //         }),
-  //       )
-  //       .orWhere(
-  //         new Brackets(qb => {
-  //           qb.where('company.cnpj = :cnpj', { cnpj: cnpj }).andWhere('company.type = :type', {
-  //             type: type,
-  //           });
-  //         }),
-  //       )
-  //       .orWhere(
-  //         new Brackets(qb => {
-  //           qb.where('company.ie = :ie', { ie: ie })
-  //             .andWhere('company.type = :type', {
-  //               type: type,
-  //             })
-  //             .andWhere('company.ie <> ""');
-  //         }),
-  //       )
-  //       .orWhere(
-  //         new Brackets(qb => {
-  //           qb.where('company.im = :im', { im: im })
-  //             .andWhere('company.type = :type', {
-  //               type: type,
-  //             })
-  //             .andWhere('company.ie <> ""');
-  //         }),
-  //       )
-  //       .getOne();
-  //     if (existingCompany) {
-  //       await queryRunner.rollbackTransaction();
-  //       let msg = 'A empresa já existe com o mesmo ';
-  //       if (existingCompany.nickname.trim().toLowerCase() == nickname.trim().toLowerCase())
-  //         msg += `nickname: ${existingCompany.nickname}`;
-  //       else if (existingCompany.name.trim().toLowerCase() == name.trim().toLowerCase())
-  //         msg += `nome: ${existingCompany.name}`;
-  //       else if (existingCompany.cnpj.trim().toLowerCase() == cnpj.trim().toLowerCase())
-  //         msg += `CNPJ: ${existingCompany.cnpj}`;
-  //       else if (existingCompany.ie.trim().toLowerCase() == ie.trim().trim().toLowerCase())
-  //         msg += `Inscrição Estadual: ${existingCompany.ie}`;
-  //       else if (existingCompany.im.trim().toLowerCase() == im.trim().toLowerCase())
-  //         msg += `Inscrição Municipal: ${existingCompany.im}`;
-  //       const error = new Error(msg) as CustomError;
-  //       error.statusCode = 400;
-  //       return next(error);
-  //     }
-  //     if (ie == '') request.body.ie = null;
-  //     if (im == '') request.body.im = null;
-
-  //     const company = queryRunner.manager.create(Company, request.body);
-  //     const savedCompany = await queryRunner.manager.save(company);
-
-  //     await queryRunner.commitTransaction();
-
-  //     return response.status(200).json({
-  //       status: true,
-  //       msg: `Empresa ${savedCompany.name} registrada com sucesso!`,
-  //       data: savedCompany,
-  //     });
-  //   } catch (error) {
-  //     await queryRunner.rollbackTransaction();
-  //     return next(error);
-  //   } finally {
-  //     await queryRunner.release();
-  //   }
-  // }
-
   async saveCompany(
     request: Request<unknown, unknown, ICompanyRegister>,
     response: Response,
@@ -150,33 +56,32 @@ export class CompanyController {
         }
       }
     } catch (error) {
-      next(error);
-    }
-  }
-
-  checkExistingCompany(company: Company): string {
-    let errorMessage = '';
-    if (company == null) return (errorMessage = '');
-    else {
-      const { nickname, name, cnpj, ie, im } = company;
-      if (company.nickname.trim().toLowerCase() == nickname.trim().toLowerCase()) {
-        errorMessage = `Esse apelido ${nickname} já existe!`;
-      } else if (company.name.trim().toLowerCase() == name.trim().toLowerCase()) {
-        errorMessage = `Esse nome ${name} já existe!`;
-      } else if (company.cnpj.trim() == cnpj.trim()) {
-        errorMessage = `Esse CNPJ/CPF ${cnpj} já existe!`;
-      } else if (company.ie.trim() == ie.trim()) {
-        errorMessage = `Essa Inscrição Estadual ${ie} já existe!`;
-      } else if (company.im.trim() == im.trim()) {
-        errorMessage = `Essa Inscrição Municipal ${im} já existe!`;
+      const customError = error as CustomError;
+      if (error && error.code == 'ER_DUP_ENTRY') {
+        customError.statusCode = 409;
+        if (error.message.includes('UQ_company_name')) {
+          customError.message = 'O nome da empresa já existe e não pode estar duplicado.';
+        } else if (error.message.includes('UQ_company_nickname')) {
+          customError.message = 'O Nome Fantasia da empresa já existe e não pode estar duplicado.';
+        } else if (error.message.includes('UQ_company_cnpj')) {
+          customError.message = 'O CNPJ/CPF da empresa já existe e não pode estar duplicado.';
+        } else if (error.message.includes('UQ_company_ie')) {
+          customError.message =
+            'A Inscrição Estadual da empresa já existe e não pode estar duplicado.';
+        } else if (error.message.includes('UQ_company_im')) {
+          customError.message =
+            'A Inscrição Municipal da empresa já existe e não pode estar duplicado.';
+        }
+        return this.apiResponse.Error(response, customError.statusCode, customError.message);
+      } else {
+        next(customError);
       }
-      return errorMessage;
     }
   }
 
   async deleteCompany(
-    request: Request<DeleteCompanyParams>,
-    response: Response<ICompanyResponse>,
+    request: Request,
+    response: Response,
     next: NextFunction,
   ): Promise<Response<ICompanyResponse>> {
     try {
@@ -255,14 +160,14 @@ export class CompanyController {
     'Dynamics',
   ];
 
-  getRandomNameAndNickName(): string {
+  setRandomNameAndNickName(): string {
     const prefix = this.prefixes[Math.floor(Math.random() * this.prefixes.length)];
     const suffix = this.suffixes[Math.floor(Math.random() * this.suffixes.length)];
     const id = Math.floor(Math.random());
     return `${prefix} ${suffix} ${id}`;
   }
 
-  getRandomCnpjOrIeOrIm(length = 14): string {
+  setRandomCnpjOrIeOrIm(length = 14): string {
     let cnpj = '';
     for (let i = 0; i < length; i++) {
       cnpj += Math.floor(Math.random() * 10);
@@ -312,11 +217,11 @@ export class CompanyController {
       for (let i = 0; i < registersNumber; i++) {
         const uniqueId = `${baseTimestamp}${i}`;
         randomCompany.company.idCompany = 0;
-        randomCompany.company.name = this.getRandomNameAndNickName() + uniqueId;
-        randomCompany.company.nickname = this.getRandomNameAndNickName() + uniqueId;
-        randomCompany.company.cnpj = this.getRandomCnpjOrIeOrIm();
-        randomCompany.company.ie = this.getRandomCnpjOrIeOrIm(8);
-        randomCompany.company.im = this.getRandomCnpjOrIeOrIm(10);
+        randomCompany.company.name = this.setRandomNameAndNickName() + uniqueId;
+        randomCompany.company.nickname = this.setRandomNameAndNickName() + uniqueId;
+        randomCompany.company.cnpj = this.setRandomCnpjOrIeOrIm();
+        randomCompany.company.ie = this.setRandomCnpjOrIeOrIm(8);
+        randomCompany.company.im = this.setRandomCnpjOrIeOrIm(10);
         await this.companyRepository.addCompany(randomCompany);
       }
       return response.json({

@@ -14,6 +14,8 @@ import { EmployeeRepository } from '@repositories/employee/employee.repository';
 import { EmployeeController } from '@controllers/employee/employee.controller';
 import { ApiResponse } from '@utils/api-response';
 import { JwtHandler } from '@services/jwt.service';
+import { DepartmentController } from '@controllers/department/department.controller';
+import { DepartmentRepository } from '@repositories/department/department.repository';
 
 export type modelsBase = Company | Address | Project | Employee;
 
@@ -25,6 +27,9 @@ container.registerSingleton('AddressRepository', AddressRepository);
 container.registerSingleton('AddressController', AddressController);
 container.registerSingleton('EmployeeRepository', EmployeeRepository);
 container.registerSingleton('EmployeeController', EmployeeController);
+container.registerSingleton('EmployeeController', EmployeeController);
+container.registerSingleton('DepartmentController', DepartmentController);
+container.registerSingleton('DepartmentRepository', DepartmentRepository);
 container.registerSingleton('JwtHandler', JwtHandler);
 container.registerSingleton('EmailSender', EmailSender);
 container.registerSingleton('ApiResponse', ApiResponse);

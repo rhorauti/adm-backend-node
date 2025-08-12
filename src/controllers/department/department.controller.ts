@@ -1,24 +1,24 @@
-import { EmployeeRepository } from '@repositories/employee/employee.repository';
-import { IEmployeeResponse } from '@core/interfaces/employee.interface';
+import { IDepartmentResponse } from '@core/interfaces/department.interface';
 import { CustomError } from '@middlewares/error';
+import { DepartmentRepository } from '@repositories/department/department.repository';
 import { ApiResponse } from '@utils/api-response';
-import { NextFunction, Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { inject, injectable } from 'tsyringe';
 
 @injectable()
-export class EmployeeController {
+export class DepartmentController {
   constructor(
-    @inject('EmployeeRepository') private employeeRepository: EmployeeRepository,
+    @inject('EmployeeRepository') private departmentRepository: DepartmentRepository,
     @inject('ApiResponse') private apiResponse: ApiResponse,
   ) {}
 
-  async getEmployee(
+  async getDepartmentList(
     request: Request,
     response: Response,
     next: NextFunction,
-  ): Promise<Response<IEmployeeResponse>> {
+  ): Promise<Response<IDepartmentResponse>> {
     try {
-      const employee = await this.employeeRepository.getEmployee(Number(request.params.idCompany));
+      const employee = await this.departmentRepository.getDepartmentList();
       return this.apiResponse.Ok(
         response,
         200,
@@ -33,26 +33,26 @@ export class EmployeeController {
     }
   }
 
-  async saveEmployeePosition(
+  async saveDepartment(
     request: Request,
     response: Response,
     next: NextFunction,
   ): Promise<Response> {
     try {
-      const employeePosition = await this.employeeRepository.saveEmployeePosition(request.body);
-      return this.apiResponse.Ok(response, 200, 'Cargo salvo com sucesso.', employeePosition);
+      const department = await this.departmentRepository.saveDepartment(request.body);
+      return this.apiResponse.Ok(response, 200, 'Departamento salvo com sucesso.', department);
     } catch (error) {
       const customError = error as CustomError;
       if (error && error.code == 'ER_DUP_ENTRY') {
         customError.statusCode = 409;
-        if (error.message.includes('UQ_employee_position_name')) {
+        if (error.message.includes('UQ_department_name')) {
           customError.message = 'O cargo já existe e não pode estar duplicado.';
         } else {
           customError.message = 'registro duplicado.';
         }
       } else {
         customError.message =
-          'Erro de conexão com o banco de dados ao consultar a tabela de Cargo de funcionários.';
+          'Erro de conexão com o banco de dados ao consultar a tabela de departamentos.';
         this.apiResponse.Error(response, 500, customError.message);
       }
     }

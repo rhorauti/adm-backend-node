@@ -2,10 +2,7 @@ import { Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn, Unique } f
 import { Address } from '@models/address/address';
 import { Employee } from '@models/employee/employee';
 import { Asset } from '@models/asset/asset';
-import { ProjectCompany } from '@models/project/project_company';
 import { Invoice } from '@models/invoice/invoice';
-import { Production } from '@models/production/production';
-import { Product } from '@models/product/product';
 import { PurchasingOrder } from '@models/purchasing-order/purchasingOrder';
 
 @Unique('UQ_company_nickname', ['nickname'])
@@ -36,23 +33,14 @@ export class Company {
   @OneToOne(() => Address, address => address.company, { nullable: true })
   address: Address;
 
-  @OneToMany(() => Employee, employee => employee.company, { nullable: true })
+  @OneToMany(() => Employee, employee => employee.company, { nullable: true, onDelete: 'CASCADE' })
   employee: Employee[];
 
-  @OneToMany(() => Asset, asset => asset.company, { nullable: true })
+  @OneToMany(() => Asset, asset => asset.company, { nullable: true, onDelete: 'CASCADE' })
   asset: Asset;
 
-  @OneToMany(() => ProjectCompany, projectCompany => projectCompany.company, { nullable: true })
-  projectCompany: ProjectCompany;
-
-  @OneToMany(() => Invoice, invoice => invoice.company, { nullable: true })
+  @OneToMany(() => Invoice, invoice => invoice.company, { nullable: true, onDelete: 'CASCADE' })
   invoice: Invoice;
-
-  @OneToMany(() => Production, production => production.company, { nullable: true })
-  production: Production;
-
-  @OneToMany(() => Product, product => product.company, { nullable: true })
-  product: Product;
 
   @OneToMany(() => PurchasingOrder, purchasingOrder => purchasingOrder.company, { nullable: true })
   purchasingOrder: PurchasingOrder;

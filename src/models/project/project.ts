@@ -1,15 +1,12 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Timestamp, Unique } from 'typeorm';
-import { ProjectCompany } from './project_company';
 import { ProjectEvent } from './projectEvent';
+import { Asset } from '@models/asset/asset';
 
 @Unique('UQ_project_code', ['code'])
 @Entity('Project')
 export class Project {
   @PrimaryGeneratedColumn()
   idProject: number;
-
-  @Column({ type: 'timestamp' })
-  date: Timestamp;
 
   @Column({ type: 'char', length: 15 })
   code: string;
@@ -20,11 +17,15 @@ export class Project {
   @Column({ type: 'timestamp' })
   startOfProduction: Timestamp;
 
-  @OneToMany(() => ProjectCompany, projectCompany => projectCompany.project, {
+  @OneToMany(() => Asset, asset => asset.project, {
     onDelete: 'CASCADE',
+    nullable: true,
   })
-  projectCompany: ProjectCompany;
+  asset?: Asset[];
 
-  @OneToMany(() => ProjectEvent, projectEvent => projectEvent.project)
-  projectEvent: ProjectEvent;
+  @OneToMany(() => ProjectEvent, projectEvent => projectEvent.project, {
+    onDelete: 'CASCADE',
+    nullable: true,
+  })
+  projectEvent?: ProjectEvent[];
 }

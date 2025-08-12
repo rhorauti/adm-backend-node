@@ -16,8 +16,13 @@ employeeRoute.get(
   '/employees/:idCompany',
   employeeParamsMiddleware(),
   (request: Request<ICompanyParams>, response: Response, next: NextFunction) => {
-    employeeController.getEmployeeList(request, response, next);
+    employeeController.getEmployee(request, response, next);
   },
+);
+
+employeeRoute.post(
+  'employees/position',
+  (request: Request, response: Response, next: NextFunction) => {},
 );
 
 export { employeeRoute };

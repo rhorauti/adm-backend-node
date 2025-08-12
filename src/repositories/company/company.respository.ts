@@ -8,12 +8,16 @@ import { Address } from '@models/address/address';
 import { Employee } from '@models/employee/employee';
 import { ApiResponse } from '@utils/api-response';
 import { CustomError } from '@middlewares/error';
+import { Department } from '@models/department/department';
+import { EmployeePosition } from '@models/employee/employee-position';
 
 @injectable()
 export class CompanyRepository {
   private companyRepository: Repository<Company>;
   private addressRepository: Repository<Address>;
   private employeeRepository: Repository<Employee>;
+  private employeePositionRepository: Repository<EmployeePosition>;
+  private departmentRepository: Repository<Department>;
 
   constructor(
     @inject('DataSource') private dataSource: DataSource,
@@ -22,6 +26,8 @@ export class CompanyRepository {
     this.companyRepository = this.dataSource.getRepository(Company);
     this.addressRepository = this.dataSource.getRepository(Address);
     this.employeeRepository = this.dataSource.getRepository(Employee);
+    this.employeePositionRepository = this.dataSource.getRepository(EmployeePosition);
+    this.departmentRepository = this.dataSource.getRepository(Department);
   }
 
   async getCompanies(): Promise<Company[]> {
@@ -36,27 +42,6 @@ export class CompanyRepository {
       where: fields,
     });
   }
-
-  // async checkExistingRegister(data: ICompany): Promise<Company | null> {
-  //   emptyStringToNull(data);
-  //   const query = this.companyRepository
-  //     .createQueryBuilder('company')
-  //     .where('company.type = :type', { type: data.type })
-  //     .andWhere(
-  //       new Brackets(qb => {
-  //         qb.where('company.nickname = :nickname', { nickname: data.nickname })
-  //           .orWhere('company.name = :name', { name: data.name })
-  //           .orWhere('company.cnpj = :cnpj', { cnpj: data.cnpj });
-  //         if (data.ie && data.ie.length > 0) {
-  //           qb.orWhere('company.ie = :ie AND company.ie IS NOT NULL', { ie: data.ie });
-  //         }
-  //         if (data.im && data.im.length > 0) {
-  //           qb.orWhere('company.im = :im AND company.im IS NOT NULL', { im: data.im });
-  //         }
-  //       }),
-  //     );
-  //   return query.getOne();
-  // }
 
   async addCompany(companyData: ICompanyRegister): Promise<ICompanyRegister> {
     const queryRunner: QueryRunner = this.dataSource.createQueryRunner();
@@ -77,25 +62,8 @@ export class CompanyRepository {
       await queryRunner.commitTransaction();
       return { company: savedCompany, address: savedAddress, employee: savedEmployee };
     } catch (error) {
-      const customError = error as CustomError;
       await queryRunner.rollbackTransaction();
-      if (error && error.code == 'ER_DUP_ENTRY') {
-        customError.statusCode = 409;
-        if (error.message.includes('UQ_company_name')) {
-          customError.message = 'O nome da empresa já existe e não pode estar duplicado.';
-        } else if (error.message.includes('UQ_company_nickname')) {
-          customError.message = 'O Nome Fantasia da empresa já existe e não pode estar duplicado.';
-        } else if (error.message.includes('UQ_company_cnpj')) {
-          customError.message = 'O CNPJ/CPF da empresa já existe e não pode estar duplicado.';
-        } else if (error.message.includes('UQ_company_ie')) {
-          customError.message =
-            'A Inscrição Estadual da empresa já existe e não pode estar duplicado.';
-        } else if (error.message.includes('UQ_company_im')) {
-          customError.message =
-            'A Inscrição Municipal da empresa já existe e não pode estar duplicado.';
-        }
-      }
-      throw customError;
+      throw error;
     } finally {
       await queryRunner.release();
     }
