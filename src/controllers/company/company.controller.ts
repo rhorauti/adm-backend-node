@@ -41,7 +41,11 @@ export class CompanyController {
     next: NextFunction,
   ): Promise<Response<ICompanyResponse>> {
     try {
-      if (request.body.company.idCompany == 0) {
+      if (
+        request.body.company.idCompany == 0 ||
+        request.body.company.idCompany == undefined ||
+        request.body.company.idCompany == null
+      ) {
         const company = await this.companyRepository.addCompany(request.body);
         return this.apiResponse.Ok<ICompanyRegister>(
           response,
@@ -50,14 +54,14 @@ export class CompanyController {
           company,
         );
       } else {
-        const company = await this.companyRepository.updateCompany(request.body, response, next);
+        const company = await this.companyRepository.updateCompany(request.body);
         if (company) {
           return this.apiResponse.Ok(response, 200, 'Empresa salva com sucesso.', company);
         }
       }
     } catch (error) {
       const customError = error as CustomError;
-      if (error && error.code == 'ER_DUP_ENTRY') {
+      if ((error && error.code == 'ER_DUP_ENTRY') || error?.code === '23505') {
         customError.statusCode = 409;
         if (error.message.includes('UQ_company_name')) {
           customError.message = 'O nome da empresa já existe e não pode estar duplicado.';
@@ -74,8 +78,45 @@ export class CompanyController {
         }
         return this.apiResponse.Error(response, customError.statusCode, customError.message);
       } else {
-        next(customError);
+        const step = typeof customError.step == 'string' ? customError.step : '';
+        switch (step) {
+          case 'saving-company':
+            customError.message =
+              'Erro interno ao salvar os dados da empresa. Tente novamente mais tarde.';
+            break;
+          case 'finding-company':
+            customError.message =
+              'Erro interno ao procurar os dados existentes da empresa. Tente novamente mais tarde.';
+            break;
+          case 'saving-address':
+            customError.message =
+              'Erro interno ao salvar os dados do endereço da empresa. Tente novamente mais tarde.';
+            break;
+          case 'finding-address':
+            customError.message =
+              'Erro interno ao procurar os dados existentes de endereço. Tente novamente mais tarde.';
+            break;
+          case 'saving-employee':
+            customError.message =
+              'Erro interno ao salvar os dados do funcionário. Tente novamente mais tarde.';
+            break;
+          case 'finding-employee':
+            customError.message =
+              'Erro interno ao procurar os dados existentes do funcionário. Tente novamente mais tarde.';
+            break;
+          case 'finding-department':
+            customError.message =
+              'Erro interno ao procurar os dados existentes do departamento do funcionário. Tente novamente mais tarde.';
+            break;
+          case 'finding-employee-position':
+            customError.message =
+              'Erro interno ao procurar os dados existentes do cargo do funcionário. Tente novamente mais tarde.';
+            break;
+          default:
+            customError.message = 'Erro interno inesperado. Tente novamente mais tarde.';
+        }
       }
+      next(customError);
     }
   }
 

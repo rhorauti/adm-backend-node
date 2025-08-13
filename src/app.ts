@@ -1,6 +1,6 @@
-// if (process.env.NODE_ENV === 'production') {
-//   require('module-alias/register');
-// }
+if (process.env.NODE_ENV === 'production') {
+  import('module-alias/register');
+}
 import './module-alias-setup';
 import dotenv from 'dotenv';
 import express from 'express';
@@ -19,22 +19,18 @@ const dataSource: DataSource =
 
 dataSource
   .initialize()
-  .then(() => {
+  .then(async () => {
     console.log('✅ Data Source has been initialized!');
 
     container.register('DataSource', {
       useValue: dataSource,
     });
 
-    require('./containers');
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { router } = require('./routes');
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { handleErrorMiddleware } = require('./middlewares/error');
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const swaggerUi = require('swagger-ui-express');
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { swaggerTemplate } = require('./swagger');
+    await import('./containers');
+    const { router } = await import('./routes');
+    const { handleErrorMiddleware } = await import('./middlewares/error');
+    const swaggerUi = await import('swagger-ui-express');
+    const { swaggerTemplate } = await import('./swagger');
 
     const app = express();
     app.use(cors());

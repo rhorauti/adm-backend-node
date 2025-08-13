@@ -12,11 +12,7 @@ export class EmployeeController {
     @inject('ApiResponse') private apiResponse: ApiResponse,
   ) {}
 
-  async getEmployee(
-    request: Request,
-    response: Response,
-    next: NextFunction,
-  ): Promise<Response<IEmployeeResponse>> {
+  async getEmployee(request: Request, response: Response): Promise<Response<IEmployeeResponse>> {
     try {
       const employee = await this.employeeRepository.getEmployee(Number(request.params.idCompany));
       return this.apiResponse.Ok(

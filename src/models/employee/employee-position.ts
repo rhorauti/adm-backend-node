@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
 import { Employee } from './employee';
 
 @Unique('UQ_employee_position_name', ['name'])
@@ -10,7 +10,7 @@ export class EmployeePosition {
   @Column({ type: 'varchar', unique: true })
   name: string;
 
-  @ManyToOne(() => Employee, employee => employee.employeePosition, { nullable: true })
+  @OneToOne(() => Employee, employee => employee.employeePosition, { nullable: true })
   @JoinColumn({ name: 'idEmployee' })
   employee: Employee;
 }

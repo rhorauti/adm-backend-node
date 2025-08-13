@@ -3,6 +3,7 @@ import { inject, injectable } from 'tsyringe';
 import { Company } from '@models/company/company';
 import { DataSource, Repository } from 'typeorm';
 import { EmployeePosition } from '@models/employee/employee-position';
+import { Department } from '@models/department/department';
 
 @injectable()
 export class EmployeeRepository {
@@ -17,6 +18,8 @@ export class EmployeeRepository {
     return await this.employeeRepository
       .createQueryBuilder()
       .relation(Company, 'employee')
+      .relation(Department, 'employee')
+      .relation(EmployeePosition, 'employee')
       .of(idCompany)
       .loadOne();
   }

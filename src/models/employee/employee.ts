@@ -29,47 +29,46 @@ export class Employee {
   name: string;
 
   @Column({ type: 'char', length: 14, unique: true, nullable: true })
-  cpf: string;
+  cpf?: string;
 
   @Column({ type: 'varchar', nullable: true })
-  email: string;
+  email?: string;
 
   @Column({ type: 'char', length: 20, nullable: true })
-  deskphone: string;
+  deskphone?: string;
 
   @Column({ type: 'varchar', nullable: true })
-  photoUrl: string;
+  photoUrl?: string;
 
   @Column({ type: 'char', length: 20, nullable: true })
-  cellphone: string;
+  cellphone?: string;
 
   @ManyToOne(() => Company, company => company.employee, { nullable: true })
   @JoinColumn({ name: 'idCompany' })
-  company: Company;
+  company?: Company;
 
   @ManyToOne(() => Department, department => department.employee, { nullable: true })
   @JoinColumn({ name: 'idDepartment' })
-  department: Department;
+  department?: Department;
 
   @OneToOne(() => Address, address => address.employee, { nullable: true, onDelete: 'CASCADE' })
-  address: Address;
+  address?: Address;
 
   @OneToOne(() => EmployeePosition, employeePosition => employeePosition.employee, {
     nullable: true,
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'idEmployeePosition' })
-  employeePosition: EmployeePosition;
+  employeePosition?: EmployeePosition;
 
   @OneToOne(() => EmployeeContract, employeeContract => employeeContract.employee, {
     nullable: true,
     onDelete: 'CASCADE',
   })
-  employeeContract: EmployeeContract;
+  employeeContract?: EmployeeContract;
 
   @OneToMany(() => EmployeeVacation, employeeVacation => employeeVacation.employee, {
     nullable: true,
     onDelete: 'CASCADE',
   })
-  employeeVacation: EmployeeVacation[];
+  employeeVacation?: EmployeeVacation[];
 }

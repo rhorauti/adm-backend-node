@@ -33,17 +33,39 @@
     "nodemon": "^3.1.3",
     "prettier": "^3.3.2",
     "swagger-jsdoc": "^6.2.8",
+    "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
+    "tsconfig-paths": "^4.2.0",
     "typedoc": "^0.28.7",
     "typescript": "^5.8.3"
   },
+  "_moduleAliases": {
+    "@models": "dist/models",
+    "@migrations": "dist/migrations",
+    "@config": "dist/config",
+    "@controllers": "dist/controllers",
+    "@services": "dist/services",
+    "@repositories": "dist/repositories",
+    "@routes": "dist/routes",
+    "@middlewares": "dist/middlewares",
+    "@utils": "dist/utils",
+    "@core": "dist/core",
+    "@containers": "dist/containers"
+  },
   "scripts": {
     "build": "rimraf dist && tsc -p tsconfig.json",
-    "dev": "cross-env NODE_ENV=development ts-node-dev --inspect --transpile-only --ignore-watch node_modules src/app.ts",
-    "start": "node dist/app.js",
+    "dev": "ts-node-dev --inspect --transpile-only --ignore-watch node_modules -r tsconfig-paths/register src/app.ts",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
-    "typeorm": "ts-node-dev dotenv/config ./node_modules/typeorm/cli.js",
-    "docs": "typedoc"
+    "typeorm:dev": "node -r ts-node/register -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
+    "schema:log": "npm run typeorm:dev -- schema:log --dataSource=src/config/dev.migration.config.ts",
+    "migration:gen": "npm run typeorm:dev -- migration:generate src/migrations/InitMigration --dataSource=src/config/dev.migration.config.ts",
+    "migration:run": "npm run typeorm:dev -- migration:run --dataSource=src/config/dev.migration.config.ts",
+    "docs": "typedoc",
+    "start": "node -r module-alias/register dist/app.js",
+    "typeorm:prod": "node -r module-alias/register ./node_modules/typeorm/cli.js",
+    "migration:run:prod": "npm run typeorm:prod -- migration:run --dataSource=dist/config/prod.migration.config.js",
+    "migration:show:prod": "npm run typeorm:prod -- migration:show --dataSource=dist/config/prod.migration.config.js",
+    "migration:revert:prod": "npm run typeorm:prod -- migration:revert --dataSource=dist/config/prod.migration.config.js"
   }
 }

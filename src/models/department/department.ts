@@ -15,11 +15,11 @@ export class Department {
     onDelete: 'CASCADE',
     nullable: true,
   })
-  employee: Employee[];
+  employee?: Employee[];
 
   @OneToMany(() => Kpi, kpi => kpi.department, {
     onDelete: 'CASCADE',
     nullable: true,
   })
-  kpi: Kpi[];
+  kpi?: Kpi[];
 }

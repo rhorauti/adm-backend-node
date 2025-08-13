@@ -1,5 +1,6 @@
-import { CompanyController, DeleteCompanyParams } from '@controllers/company/company.controller';
+import { CompanyController } from '@controllers/company/company.controller';
 import { ICompany, ICompanyRegister, ICompanyResponse } from '@core/interfaces/company.interface';
+import { ApiResponse } from '@utils/api-response';
 import Router, { NextFunction, Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
 import { container } from 'tsyringe';
@@ -7,6 +8,7 @@ import { container } from 'tsyringe';
 const companyRoute = Router();
 
 const companyController = container.resolve(CompanyController);
+const apiResponse = container.resolve(ApiResponse);
 
 const companyMiddleware = () => {
   return [
@@ -34,9 +36,7 @@ companyRoute.post(
     const errors = validationResult(request);
     if (!errors.isEmpty()) {
       const firstErrorMessage = errors.array()[0].msg;
-      return response
-        .status(400)
-        .json({ date: new Date().toString(), status: false, msg: firstErrorMessage });
+      return apiResponse.Error(response, 401, firstErrorMessage);
     }
     next();
   },
@@ -51,11 +51,7 @@ companyRoute.post(
 
 companyRoute.delete(
   '/companies/:idCompany',
-  (
-    request: Request<DeleteCompanyParams>,
-    response: Response<ICompanyResponse>,
-    next: NextFunction,
-  ) => {
+  (request: Request, response: Response<ICompanyResponse>, next: NextFunction) => {
     companyController.deleteCompany(request, response, next);
   },
 );

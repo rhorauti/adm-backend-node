@@ -1,6 +1,5 @@
 import { EmployeeController } from '@controllers/employee/employee.controller';
-import { ICompanyParams } from '@core/interfaces/company.interface';
-import Router, { NextFunction, Request, Response } from 'express';
+import Router, { Request, Response } from 'express';
 import { param, ValidationChain } from 'express-validator';
 import { container } from 'tsyringe';
 
@@ -15,14 +14,11 @@ const employeeParamsMiddleware = (): ValidationChain[] => {
 employeeRoute.get(
   '/employees/:idCompany',
   employeeParamsMiddleware(),
-  (request: Request<ICompanyParams>, response: Response, next: NextFunction) => {
-    employeeController.getEmployee(request, response, next);
+  (request: Request, response: Response) => {
+    employeeController.getEmployee(request, response);
   },
 );
 
-employeeRoute.post(
-  'employees/position',
-  (request: Request, response: Response, next: NextFunction) => {},
-);
+employeeRoute.post('employees/position', (request: Request, response: Response) => {});
 
 export { employeeRoute };

@@ -12,12 +12,15 @@ import { ProjectEvent } from '@models/project/projectEvent';
 import { PurchasingOrder } from '@models/purchasing-order/purchasingOrder';
 import { Address } from '@models/address/address';
 import { Asset } from '@models/asset/asset';
-import { ProjectCompany } from '@models/project/project_company';
-import { CreateUsersTable1703816465329 } from '@migrations/auth/1703816465329-CreateUsersTable';
-import { CreateCompanyTable1718214462553 } from '@migrations/company/1718214462553-CreateCompanyTable';
-import { CreateEmployeeTable1720471263659 } from '@migrations/employee/1720471263659-CreateEmployeeTable';
-import { CreateAdressTable1720647166251 } from '@migrations/address/1720647166251-CreateAdressTable';
-import { CreateProjectTable1720647957624 } from '@migrations/project/1720647957624-CreateProjectTable';
+import { CreateUsersTable1703816465329 } from 'migration_old/auth/1703816465329-CreateUsersTable';
+import { CreateCompanyTable1718214462553 } from 'migration_old/company/1718214462553-CreateCompanyTable';
+import { CreateEmployeeTable1720471263659 } from 'migration_old/employee/1720471263659-CreateEmployeeTable';
+import { CreateAdressTable1720647166251 } from 'migration_old/address/1720647166251-CreateAdressTable';
+import { CreateProjectTable1720647957624 } from 'migration_old/project/1720647957624-CreateProjectTable';
+import { EmployeePosition } from '@models/employee/employee-position';
+import { Department } from '@models/department/department';
+import { Kpi } from '@models/kpi/kpi';
+import { ProductionLine } from '@models/production-line/production-line';
 
 export const dataSourceDev = new DataSource({
   type: 'postgres',
@@ -35,14 +38,17 @@ export const dataSourceDev = new DataSource({
     Asset,
     Employee,
     EmployeeContract,
+    EmployeePosition,
+    Department,
     EmployeeVacation,
+    Kpi,
     Invoice,
     Product,
     Production,
     Project,
     ProjectEvent,
-    ProjectCompany,
     PurchasingOrder,
+    ProductionLine,
   ],
   migrations: [
     CreateUsersTable1703816465329,
@@ -69,13 +75,16 @@ export const dataSourceProd = new DataSource({
     Employee,
     EmployeeContract,
     EmployeeVacation,
+    EmployeePosition,
+    Department,
+    Kpi,
     Invoice,
     Product,
     Production,
     Project,
     ProjectEvent,
-    ProjectCompany,
     PurchasingOrder,
+    ProductionLine,
   ],
   migrations: [
     CreateUsersTable1703816465329,

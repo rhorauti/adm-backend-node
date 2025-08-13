@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import { Users } from '@models/auth/users';
 import { Company } from '@models/company/company';
@@ -12,25 +13,22 @@ import { ProjectEvent } from '@models/project/projectEvent';
 import { PurchasingOrder } from '@models/purchasing-order/purchasingOrder';
 import { Address } from '@models/address/address';
 import { Asset } from '@models/asset/asset';
-import { ProjectCompany } from '@models/project/project_company';
-import { CreateUsersTable1703816465329 } from '@migrations/auth/1703816465329-CreateUsersTable';
-import { CreateCompanyTable1718214462553 } from '@migrations/company/1718214462553-CreateCompanyTable';
-import { CreateEmployeeTable1720471263659 } from '@migrations/employee/1720471263659-CreateEmployeeTable';
-import { CreateAdressTable1720647166251 } from '@migrations/address/1720647166251-CreateAdressTable';
-import { CreateProjectTable1720647957624 } from '@migrations/project/1720647957624-CreateProjectTable';
 import * as dotenv from 'dotenv';
+import { EmployeePosition } from '@models/employee/employee-position';
+import { Department } from '@models/department/department';
+import { Kpi } from '@models/kpi/kpi';
+import { ProductionLine } from '@models/production-line/production-line';
 
-dotenv.config({ path: '.env.production' });
+dotenv.config({ path: '.env.development' });
 
-// File used to do migrations only
-// npx ts-node -r dotenv/config -r ./node_modules/typeorm/cli.js migration:run -d src/config/migration.config.ts
 const AppDataSource = new DataSource({
   type: 'postgres',
-  url: process.env.DATABASE_URL,
+  host: process.env.DB_HOST,
+  port: Number(process.env.DB_PORT),
+  username: process.env.DB_USERNAME,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
   synchronize: false,
-  ssl: {
-    rejectUnauthorized: false,
-  },
   logging: true,
   entities: [
     Company,
@@ -39,22 +37,19 @@ const AppDataSource = new DataSource({
     Asset,
     Employee,
     EmployeeContract,
+    EmployeePosition,
+    Department,
     EmployeeVacation,
+    Kpi,
     Invoice,
     Product,
     Production,
     Project,
     ProjectEvent,
-    ProjectCompany,
     PurchasingOrder,
+    ProductionLine,
   ],
-  migrations: [
-    CreateUsersTable1703816465329,
-    CreateCompanyTable1718214462553,
-    CreateEmployeeTable1720471263659,
-    CreateAdressTable1720647166251,
-    CreateProjectTable1720647957624,
-  ],
+  migrations: ['src/migrations/**/*.ts'],
 });
 
 export default AppDataSource;

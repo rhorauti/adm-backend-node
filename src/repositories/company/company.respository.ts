@@ -1,33 +1,23 @@
 import { Company } from '@models/company/company';
 import { inject, injectable } from 'tsyringe';
 import { DataSource, QueryRunner, Repository } from 'typeorm';
-import { ICompany, ICompanyRegister } from '@core/interfaces/company.interface';
-import { emptyStringToNull } from '@utils/misc';
-import { Response, NextFunction } from 'express';
+import { ICompanyRegister } from '@core/interfaces/company.interface';
 import { Address } from '@models/address/address';
 import { Employee } from '@models/employee/employee';
 import { ApiResponse } from '@utils/api-response';
-import { CustomError } from '@middlewares/error';
 import { Department } from '@models/department/department';
+import { CustomError } from '@middlewares/error';
 import { EmployeePosition } from '@models/employee/employee-position';
 
 @injectable()
 export class CompanyRepository {
   private companyRepository: Repository<Company>;
-  private addressRepository: Repository<Address>;
-  private employeeRepository: Repository<Employee>;
-  private employeePositionRepository: Repository<EmployeePosition>;
-  private departmentRepository: Repository<Department>;
 
   constructor(
     @inject('DataSource') private dataSource: DataSource,
     @inject('ApiResponse') private apiResponse: ApiResponse,
   ) {
     this.companyRepository = this.dataSource.getRepository(Company);
-    this.addressRepository = this.dataSource.getRepository(Address);
-    this.employeeRepository = this.dataSource.getRepository(Employee);
-    this.employeePositionRepository = this.dataSource.getRepository(EmployeePosition);
-    this.departmentRepository = this.dataSource.getRepository(Department);
   }
 
   async getCompanies(): Promise<Company[]> {
@@ -47,89 +37,163 @@ export class CompanyRepository {
     const queryRunner: QueryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
+    let currentStep = 'initial';
+
     try {
-      emptyStringToNull(companyData.company);
-      emptyStringToNull(companyData.address);
-      emptyStringToNull(companyData.employee);
-      const company = this.companyRepository.create(companyData.company);
+      const companyRepository = queryRunner.manager.getRepository(Company);
+      const addressRepository = queryRunner.manager.getRepository(Address);
+      const departamentRepository = queryRunner.manager.getRepository(Department);
+      const employeePositionRepository = queryRunner.manager.getRepository(EmployeePosition);
+
+      currentStep = 'saving-company';
+      companyData.company.idCompany = null;
+      const company = companyRepository.create({
+        ...companyData.company,
+      });
       const savedCompany = await queryRunner.manager.save(company);
-      const address = this.addressRepository.create(companyData.address);
-      address.company = savedCompany;
+
+      currentStep = 'saving-address';
+      companyData.address.idAddress = null;
+      const address = addressRepository.create({
+        ...companyData.address,
+        company: savedCompany,
+      });
       const savedAddress = await queryRunner.manager.save(address);
-      const employee = this.employeeRepository.create(companyData.employee);
-      employee.company = savedCompany;
-      const savedEmployee = await queryRunner.manager.save(employee);
+
+      currentStep = 'finding-department';
+      const departmentData = await departamentRepository.findOne({
+        where: { name: companyData.employee.department },
+      });
+
+      currentStep = 'finding-employee-position';
+      const employeePositionData = await employeePositionRepository.findOne({
+        where: {
+          name: companyData.employee.position,
+        },
+      });
+
+      const employeeDataToSave: Employee = {
+        idEmployee: null,
+        isDefault: false,
+        name: companyData.employee.name,
+        cpf: companyData.employee.cpf,
+        email: companyData.employee.email,
+        deskphone: companyData.employee.deskphone,
+        photoUrl: companyData.employee.photoUrl,
+        cellphone: companyData.employee.cellphone,
+        department: departmentData,
+        employeePosition: employeePositionData,
+        company: savedCompany,
+      };
+
+      currentStep = 'saving-employee';
+      const savedEmployee = await queryRunner.manager.save(employeeDataToSave);
+
       await queryRunner.commitTransaction();
-      return { company: savedCompany, address: savedAddress, employee: savedEmployee };
+
+      return {
+        company: savedCompany,
+        address: savedAddress,
+        employee: {
+          idEmployee: savedEmployee.idEmployee,
+          isDefault: savedEmployee.isDefault,
+          name: savedEmployee.name,
+          cpf: savedEmployee.cpf,
+          email: savedEmployee.email,
+          deskphone: savedEmployee.deskphone,
+          photoUrl: savedEmployee.photoUrl,
+          cellphone: savedEmployee.cellphone,
+          department: savedEmployee.department.name ?? null,
+          position: savedEmployee.employeePosition.name ?? null,
+        },
+      };
     } catch (error) {
+      const customError = error as CustomError;
+      customError.step = currentStep;
       await queryRunner.rollbackTransaction();
-      throw error;
+      throw customError;
     } finally {
       await queryRunner.release();
     }
   }
 
-  async updateCompany(
-    companyData: ICompanyRegister,
-    response: Response,
-    next: NextFunction,
-  ): Promise<ICompanyRegister> {
+  async updateCompany(companyData: ICompanyRegister): Promise<ICompanyRegister> {
     const queryRunner: QueryRunner = this.dataSource.createQueryRunner();
     queryRunner.connect();
     queryRunner.startTransaction();
+    let currentStep = 'initial';
     try {
-      emptyStringToNull(companyData.company);
-      emptyStringToNull(companyData.address);
-      emptyStringToNull(companyData.employee);
-      const existingCompany = await queryRunner.manager.findOne(Company, {
-        where: { idCompany: companyData.company.idCompany },
+      const companyRepository = queryRunner.manager.getRepository(Company);
+      const addressRepository = queryRunner.manager.getRepository(Address);
+      const employeeRepository = queryRunner.manager.getRepository(Employee);
+      const departmentRepository = queryRunner.manager.getRepository(Department);
+      const employeePositionRepository = queryRunner.manager.getRepository(EmployeePosition);
+
+      const idCompany = Number(companyData.company.idCompany);
+
+      currentStep = 'finding-company';
+
+      await companyRepository.findOne({ where: { idCompany: idCompany } });
+
+      currentStep = 'finding-address';
+
+      await addressRepository.findOne({ where: { company: { idCompany: idCompany } } });
+
+      currentStep = 'finding-employee';
+
+      await employeeRepository.findOne({ where: { company: { idCompany: idCompany } } });
+
+      currentStep = 'saving-company';
+
+      const updatedCompany = await queryRunner.manager.save({
+        ...companyData.company,
       });
-      const existingAddress = await queryRunner.manager.findOne(Address, {
-        where: { company: { idCompany: companyData.company.idCompany } },
+
+      currentStep = 'saving-address';
+
+      const updatedAddress = await queryRunner.manager.save({
+        ...companyData.address,
+        company: updatedCompany,
       });
-      const existingEmployee = await queryRunner.manager.findOne(Employee, {
-        where: { company: { idCompany: companyData.company.idCompany } },
+
+      currentStep = 'finding-department';
+
+      const updatedDepartment = await departmentRepository.findOne({
+        where: { name: companyData.employee.department.trim() },
       });
-      if (!existingCompany) {
-        this.apiResponse.Error(response, 404, 'Empresa não encontrada.');
-      } else if (!existingAddress) {
-        this.apiResponse.Error(response, 404, 'Endereço relacionado a empresa não encontrada.');
-      } else if (!existingEmployee) {
-        this.apiResponse.Error(response, 404, 'Contato relacionado a empresa não encontrada.');
-      } else {
-        const updatedCompany = queryRunner.manager.merge(
-          Company,
-          existingCompany,
-          companyData.company,
-        );
-        const updatedAddress = queryRunner.manager.merge(
-          Address,
-          existingAddress,
-          companyData.address,
-        );
-        const updatedEmployee = queryRunner.manager.merge(
-          Employee,
-          existingEmployee,
-          companyData.employee,
-        );
-        await Promise.all([
-          queryRunner.manager.save(updatedCompany),
-          queryRunner.manager.save(updatedAddress),
-          queryRunner.manager.save(updatedEmployee),
-        ]);
-        await queryRunner.commitTransaction();
-        return { company: updatedCompany, address: updatedAddress, employee: updatedEmployee };
-      }
+
+      currentStep = 'finding-employee-position';
+
+      const updatedEmployeePosition = await employeePositionRepository.findOne({
+        where: { name: companyData.employee.position.trim() },
+      });
+
+      currentStep = 'saving-employee';
+
+      const updatedEmployee = await queryRunner.manager.save({
+        ...companyData.employee,
+        department: updatedDepartment,
+        employeePosition: updatedEmployeePosition,
+      });
+
+      await queryRunner.commitTransaction();
+      return {
+        company: updatedCompany,
+        address: updatedAddress,
+        employee: {
+          ...updatedEmployee,
+          position: updatedEmployee.employeePosition.name,
+          department: updatedEmployee.department.name,
+        },
+      };
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      next(error);
+      const customError = error as CustomError;
+      customError.step = currentStep;
+      throw customError;
     } finally {
       await queryRunner.release();
     }
-  }
-
-  async saveCompany(company: ICompany): Promise<ICompany> {
-    return await this.companyRepository.save(company);
   }
 
   async deleteCompany(idCompany: number): Promise<void> {

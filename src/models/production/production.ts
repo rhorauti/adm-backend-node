@@ -1,5 +1,4 @@
-import { Company } from '@models/company/company';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('Production')
 export class Production {
@@ -17,7 +16,4 @@ export class Production {
 
   @Column({ type: 'float' })
   productQtyActual: number;
-
-  @ManyToOne(() => Company, company => company.production, { nullable: true })
-  company: Company;
 }

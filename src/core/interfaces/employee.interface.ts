@@ -10,7 +10,7 @@ export interface IEmployee {
   email?: string;
   deskphone?: string;
   cellphone?: string;
-  phtoUrl?: string;
+  photoUrl?: string;
 }
 
 export interface IEmployeeResponse extends IDefaultResponse {

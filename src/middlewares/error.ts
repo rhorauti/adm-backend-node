@@ -4,6 +4,7 @@ import { container } from 'tsyringe';
 
 export interface CustomError extends Error {
   statusCode?: number;
+  step?: string;
 }
 
 const apiResponse = container.resolve<ApiResponse>('ApiResponse');
