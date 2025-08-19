@@ -11,6 +11,5 @@ export class EmployeePosition {
   name: string;
 
   @OneToOne(() => Employee, employee => employee.employeePosition, { nullable: true })
-  @JoinColumn({ name: 'idEmployee' })
   employee: Employee;
 }

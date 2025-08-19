@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class InitMigration1755124955141 implements MigrationInterface {
-  name = 'InitMigration1755124955141';
+export class InitMigration1755630354363 implements MigrationInterface {
+  name = 'InitMigration1755630354363';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
@@ -20,10 +20,10 @@ export class InitMigration1755124955141 implements MigrationInterface {
       `CREATE TABLE "Department" ("idDepartment" SERIAL NOT NULL, "name" character varying NOT NULL, CONSTRAINT "UQ_department_name" UNIQUE ("name"), CONSTRAINT "PK_a3c465d04134d13be6e4552e357" PRIMARY KEY ("idDepartment"))`,
     );
     await queryRunner.query(
-      `CREATE TABLE "EmployeePosition" ("idEmployeePosition" SERIAL NOT NULL, "name" character varying NOT NULL, "idEmployee" integer, CONSTRAINT "UQ_f4ee38cc0a8e8d769c15e7dd14d" UNIQUE ("name"), CONSTRAINT "UQ_employee_position_name" UNIQUE ("name"), CONSTRAINT "REL_bfcb5f84d614ed4c18c649fd87" UNIQUE ("idEmployee"), CONSTRAINT "PK_2b01624b2ac4bbb7678af178d40" PRIMARY KEY ("idEmployeePosition"))`,
+      `CREATE TABLE "EmployeePosition" ("idEmployeePosition" SERIAL NOT NULL, "name" character varying NOT NULL, CONSTRAINT "UQ_f4ee38cc0a8e8d769c15e7dd14d" UNIQUE ("name"), CONSTRAINT "UQ_employee_position_name" UNIQUE ("name"), CONSTRAINT "PK_2b01624b2ac4bbb7678af178d40" PRIMARY KEY ("idEmployeePosition"))`,
     );
     await queryRunner.query(
-      `CREATE TABLE "Employee" ("idEmployee" SERIAL NOT NULL, "isDefault" boolean NOT NULL, "name" character varying NOT NULL, "cpf" character(14), "email" character varying, "deskphone" character(20), "photoUrl" character varying, "cellphone" character(20), "idCompany" integer, "idDepartment" integer, CONSTRAINT "UQ_cb4053113e440ee10f313f4c420" UNIQUE ("name"), CONSTRAINT "UQ_9a1574f8f0464919b58090bc08a" UNIQUE ("cpf"), CONSTRAINT "UQ_employee_name" UNIQUE ("name"), CONSTRAINT "UQ_employee_cpf" UNIQUE ("cpf"), CONSTRAINT "PK_7c9127534290be8baec6bad0c17" PRIMARY KEY ("idEmployee"))`,
+      `CREATE TABLE "Employee" ("idEmployee" SERIAL NOT NULL, "isDefault" boolean NOT NULL, "name" character varying NOT NULL, "cpf" character(14), "email" character varying, "deskphone" character(20), "photoUrl" character varying, "cellphone" character(20), "idCompany" integer, "idDepartment" integer, "idEmployeePosition" integer, CONSTRAINT "UQ_cb4053113e440ee10f313f4c420" UNIQUE ("name"), CONSTRAINT "UQ_9a1574f8f0464919b58090bc08a" UNIQUE ("cpf"), CONSTRAINT "UQ_employee_name" UNIQUE ("name"), CONSTRAINT "UQ_employee_cpf" UNIQUE ("cpf"), CONSTRAINT "REL_4f630298fc5cc22d7df9411e75" UNIQUE ("idEmployeePosition"), CONSTRAINT "PK_7c9127534290be8baec6bad0c17" PRIMARY KEY ("idEmployee"))`,
     );
     await queryRunner.query(
       `CREATE TABLE "Address" ("idAddress" SERIAL NOT NULL, "postalCode" character(15) NOT NULL, "address" character varying(150) NOT NULL, "number" character varying(150), "complement" character(50), "district" character(50), "city" character(50), "state" character varying(2), "idCompany" integer, "idEmployee" integer, CONSTRAINT "REL_d62fc401adef8abd1726b14097" UNIQUE ("idCompany"), CONSTRAINT "REL_5253219cb3b8acb8ccd8c64b8c" UNIQUE ("idEmployee"), CONSTRAINT "PK_e86a2de9e6cad0d4ddbad134c9d" PRIMARY KEY ("idAddress"))`,
@@ -65,13 +65,13 @@ export class InitMigration1755124955141 implements MigrationInterface {
       `ALTER TABLE "Kpi" ADD CONSTRAINT "FK_c80808997e7aeac5ddbe1c244fb" FOREIGN KEY ("idDepartment") REFERENCES "Department"("idDepartment") ON DELETE NO ACTION ON UPDATE NO ACTION`,
     );
     await queryRunner.query(
-      `ALTER TABLE "EmployeePosition" ADD CONSTRAINT "FK_bfcb5f84d614ed4c18c649fd874" FOREIGN KEY ("idEmployee") REFERENCES "Employee"("idEmployee") ON DELETE NO ACTION ON UPDATE NO ACTION`,
-    );
-    await queryRunner.query(
       `ALTER TABLE "Employee" ADD CONSTRAINT "FK_66f6caa27ec8a40e71343bf3ad3" FOREIGN KEY ("idCompany") REFERENCES "Company"("idCompany") ON DELETE NO ACTION ON UPDATE NO ACTION`,
     );
     await queryRunner.query(
       `ALTER TABLE "Employee" ADD CONSTRAINT "FK_37717af96a4acd609eb7014dafd" FOREIGN KEY ("idDepartment") REFERENCES "Department"("idDepartment") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "Employee" ADD CONSTRAINT "FK_4f630298fc5cc22d7df9411e754" FOREIGN KEY ("idEmployeePosition") REFERENCES "EmployeePosition"("idEmployeePosition") ON DELETE CASCADE ON UPDATE NO ACTION`,
     );
     await queryRunner.query(
       `ALTER TABLE "Address" ADD CONSTRAINT "FK_d62fc401adef8abd1726b140974" FOREIGN KEY ("idCompany") REFERENCES "Company"("idCompany") ON DELETE CASCADE ON UPDATE NO ACTION`,
@@ -125,13 +125,13 @@ export class InitMigration1755124955141 implements MigrationInterface {
       `ALTER TABLE "Address" DROP CONSTRAINT "FK_d62fc401adef8abd1726b140974"`,
     );
     await queryRunner.query(
+      `ALTER TABLE "Employee" DROP CONSTRAINT "FK_4f630298fc5cc22d7df9411e754"`,
+    );
+    await queryRunner.query(
       `ALTER TABLE "Employee" DROP CONSTRAINT "FK_37717af96a4acd609eb7014dafd"`,
     );
     await queryRunner.query(
       `ALTER TABLE "Employee" DROP CONSTRAINT "FK_66f6caa27ec8a40e71343bf3ad3"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "EmployeePosition" DROP CONSTRAINT "FK_bfcb5f84d614ed4c18c649fd874"`,
     );
     await queryRunner.query(`ALTER TABLE "Kpi" DROP CONSTRAINT "FK_c80808997e7aeac5ddbe1c244fb"`);
     await queryRunner.query(

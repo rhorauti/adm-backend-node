@@ -49,6 +49,20 @@ companyRoute.post(
   },
 );
 
+companyRoute.get(
+  '/companies/:idCompany',
+  (request: Request, response: Response, next: NextFunction) => {
+    companyController.getCompanyInfo(request, response, next);
+  },
+);
+
+companyRoute.get(
+  '/companies/detail/:idCompany',
+  (request: Request, response: Response, next: NextFunction) => {
+    companyController.getCompanyCompleteInfo(request, response, next);
+  },
+);
+
 companyRoute.delete(
   '/companies/:idCompany',
   (request: Request, response: Response<ICompanyResponse>, next: NextFunction) => {

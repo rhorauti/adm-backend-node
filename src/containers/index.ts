@@ -27,7 +27,6 @@ container.registerSingleton('AddressRepository', AddressRepository);
 container.registerSingleton('AddressController', AddressController);
 container.registerSingleton('EmployeeRepository', EmployeeRepository);
 container.registerSingleton('EmployeeController', EmployeeController);
-container.registerSingleton('EmployeeController', EmployeeController);
 container.registerSingleton('DepartmentController', DepartmentController);
 container.registerSingleton('DepartmentRepository', DepartmentRepository);
 container.registerSingleton('JwtHandler', JwtHandler);

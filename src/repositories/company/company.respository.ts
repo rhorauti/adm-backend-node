@@ -4,19 +4,20 @@ import { DataSource, QueryRunner, Repository } from 'typeorm';
 import { ICompanyRegister } from '@core/interfaces/company.interface';
 import { Address } from '@models/address/address';
 import { Employee } from '@models/employee/employee';
-import { ApiResponse } from '@utils/api-response';
 import { Department } from '@models/department/department';
 import { CustomError } from '@middlewares/error';
 import { EmployeePosition } from '@models/employee/employee-position';
+import { emptyStringToNull } from '@utils/misc';
 
 @injectable()
 export class CompanyRepository {
   private companyRepository: Repository<Company>;
+  private addressRepository: Repository<Address>;
+  private employeeRepository: Repository<Employee>;
+  private departmentRepository: Repository<Department>;
+  private employeePositionRepository: Repository<EmployeePosition>;
 
-  constructor(
-    @inject('DataSource') private dataSource: DataSource,
-    @inject('ApiResponse') private apiResponse: ApiResponse,
-  ) {
+  constructor(@inject('DataSource') private dataSource: DataSource) {
     this.companyRepository = this.dataSource.getRepository(Company);
   }
 
@@ -25,6 +26,59 @@ export class CompanyRepository {
       .createQueryBuilder('company')
       .orderBy('company.idCompany', 'DESC');
     return query.getMany();
+  }
+
+  async getCompanyCompleteInfo(idCompany: number): Promise<ICompanyRegister> {
+    let currentStep = 'initial';
+    try {
+      currentStep = 'getting-company';
+      const company = await this.companyRepository.findOne({ where: { idCompany: idCompany } });
+
+      currentStep = 'getting-address';
+      const address = await this.addressRepository.findOne({
+        where: { company: { idCompany: idCompany } },
+        relations: {
+          company: true,
+        },
+      });
+      currentStep = 'getting-employee';
+      const employee = await this.employeeRepository.findOne({
+        where: { company: { idCompany: idCompany } },
+        relations: { company: true },
+      });
+
+      currentStep = 'getting-department';
+      const department = await this.departmentRepository.findOne({
+        where: { employee: { idEmployee: employee.idEmployee } },
+        relations: { employee: true },
+      });
+
+      currentStep = 'getting-employee-position';
+      const employeePosition = await this.employeePositionRepository.findOne({
+        where: { employee: { idEmployee: employee.idEmployee } },
+        relations: { employee: true },
+      });
+      return {
+        company: company,
+        address: address,
+        employee: {
+          idEmployee: employee.idEmployee,
+          isDefault: employee.isDefault,
+          name: employee.name,
+          cpf: employee.cpf,
+          department: department.name,
+          position: employeePosition.name,
+          email: employee.email,
+          deskphone: employee.deskphone,
+          cellphone: employee.cellphone,
+          photoUrl: employee.photoUrl,
+        },
+      };
+    } catch (error) {
+      const customError = error as CustomError;
+      customError.step = currentStep;
+      throw customError;
+    }
   }
 
   async findCompanyByField(fields: Partial<Company>): Promise<Company> {
@@ -40,6 +94,9 @@ export class CompanyRepository {
     let currentStep = 'initial';
 
     try {
+      emptyStringToNull(companyData.company);
+      emptyStringToNull(companyData.address);
+      emptyStringToNull(companyData.employee);
       const companyRepository = queryRunner.manager.getRepository(Company);
       const addressRepository = queryRunner.manager.getRepository(Address);
       const departamentRepository = queryRunner.manager.getRepository(Department);
@@ -60,12 +117,12 @@ export class CompanyRepository {
       });
       const savedAddress = await queryRunner.manager.save(address);
 
-      currentStep = 'finding-department';
+      currentStep = 'getting-department';
       const departmentData = await departamentRepository.findOne({
         where: { name: companyData.employee.department },
       });
 
-      currentStep = 'finding-employee-position';
+      currentStep = 'getting-employee-position';
       const employeePositionData = await employeePositionRepository.findOne({
         where: {
           name: companyData.employee.position,
@@ -81,9 +138,9 @@ export class CompanyRepository {
         deskphone: companyData.employee.deskphone,
         photoUrl: companyData.employee.photoUrl,
         cellphone: companyData.employee.cellphone,
-        department: departmentData,
-        employeePosition: employeePositionData,
-        company: savedCompany,
+        department: departmentData ?? null,
+        employeePosition: employeePositionData ?? null,
+        company: savedCompany ?? null,
       };
 
       currentStep = 'saving-employee';
@@ -131,15 +188,15 @@ export class CompanyRepository {
 
       const idCompany = Number(companyData.company.idCompany);
 
-      currentStep = 'finding-company';
+      currentStep = 'getting-company';
 
       await companyRepository.findOne({ where: { idCompany: idCompany } });
 
-      currentStep = 'finding-address';
+      currentStep = 'getting-address';
 
       await addressRepository.findOne({ where: { company: { idCompany: idCompany } } });
 
-      currentStep = 'finding-employee';
+      currentStep = 'getting-employee';
 
       await employeeRepository.findOne({ where: { company: { idCompany: idCompany } } });
 
@@ -156,13 +213,13 @@ export class CompanyRepository {
         company: updatedCompany,
       });
 
-      currentStep = 'finding-department';
+      currentStep = 'getting-department';
 
       const updatedDepartment = await departmentRepository.findOne({
         where: { name: companyData.employee.department.trim() },
       });
 
-      currentStep = 'finding-employee-position';
+      currentStep = 'getting-employee-position';
 
       const updatedEmployeePosition = await employeePositionRepository.findOne({
         where: { name: companyData.employee.position.trim() },

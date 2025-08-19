@@ -13,6 +13,86 @@ export class CompanyController {
     @inject('ApiResponse') private apiResponse: ApiResponse,
   ) {}
 
+  async getCompanyInfo(
+    request: Request,
+    response: Response,
+    next: NextFunction,
+  ): Promise<Response> {
+    const idCompany = Number(request.params.idCompany);
+    try {
+      const company = await this.companyRepository.findCompanyByField({ idCompany: idCompany });
+      if (company) {
+        return this.apiResponse.Ok<ICompany>(
+          response,
+          200,
+          'Detalhes da empresa recebida com sucesso!',
+          company,
+        );
+      } else {
+        return this.apiResponse.Error(
+          response,
+          500,
+          'Falha interna ao pegar as informações da empresa.',
+        );
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getCompanyCompleteInfo(
+    request: Request,
+    response: Response,
+    next: NextFunction,
+  ): Promise<Response> {
+    try {
+      const idCompany = Number(request.params.idCompany);
+      const companyCompleteInfo = await this.companyRepository.getCompanyCompleteInfo(idCompany);
+      if (companyCompleteInfo) {
+        return this.apiResponse.Ok<ICompanyRegister>(
+          response,
+          200,
+          'Detalhes da empresa recebida com sucesso!',
+          companyCompleteInfo,
+        );
+      } else {
+        return this.apiResponse.Error(
+          response,
+          500,
+          'Falha interna ao pegar as informações da empresa.',
+        );
+      }
+    } catch (error) {
+      const customError = error as CustomError;
+      const step = typeof customError.step == 'string' ? customError.step : '';
+      switch (step) {
+        case 'getting-company':
+          customError.message =
+            'Erro interno ao procurar os dados existentes da empresa. Tente novamente mais tarde.';
+          break;
+        case 'getting-address':
+          customError.message =
+            'Erro interno ao procurar os dados do endereço da empresa. Tente novamente mais tarde.';
+          break;
+        case 'getting-employee':
+          customError.message =
+            'Erro interno ao procurar os dados do funcionário. Tente novamente mais tarde.';
+          break;
+        case 'getting-department':
+          customError.message =
+            'Erro interno ao procurar os dados do departamento do funcionário. Tente novamente mais tarde.';
+          break;
+        case 'getting-employee-position':
+          customError.message =
+            'Erro interno ao procurar os dados do cargo do funcionário. Tente novamente mais tarde.';
+          break;
+        default:
+          customError.message = 'Erro interno inesperado. Tente novamente mais tarde.';
+      }
+      next(customError);
+    }
+  }
+
   async getCompanyList(
     request: Request<ICompany>,
     response: Response<ICompanyResponse>,
@@ -84,33 +164,33 @@ export class CompanyController {
             customError.message =
               'Erro interno ao salvar os dados da empresa. Tente novamente mais tarde.';
             break;
-          case 'finding-company':
+          case 'getting-company':
             customError.message =
-              'Erro interno ao procurar os dados existentes da empresa. Tente novamente mais tarde.';
+              'Erro interno ao procurar os dados da empresa. Tente novamente mais tarde.';
             break;
           case 'saving-address':
             customError.message =
               'Erro interno ao salvar os dados do endereço da empresa. Tente novamente mais tarde.';
             break;
-          case 'finding-address':
+          case 'getting-address':
             customError.message =
-              'Erro interno ao procurar os dados existentes de endereço. Tente novamente mais tarde.';
+              'Erro interno ao procurar os dados de endereço. Tente novamente mais tarde.';
             break;
           case 'saving-employee':
             customError.message =
               'Erro interno ao salvar os dados do funcionário. Tente novamente mais tarde.';
             break;
-          case 'finding-employee':
+          case 'getting-employee':
             customError.message =
-              'Erro interno ao procurar os dados existentes do funcionário. Tente novamente mais tarde.';
+              'Erro interno ao procurar os dados do funcionário. Tente novamente mais tarde.';
             break;
-          case 'finding-department':
+          case 'getting-department':
             customError.message =
-              'Erro interno ao procurar os dados existentes do departamento do funcionário. Tente novamente mais tarde.';
+              'Erro interno ao procurar os dados do departamento do funcionário. Tente novamente mais tarde.';
             break;
-          case 'finding-employee-position':
+          case 'getting-employee-position':
             customError.message =
-              'Erro interno ao procurar os dados existentes do cargo do funcionário. Tente novamente mais tarde.';
+              'Erro interno ao procurar os dados do cargo do funcionário. Tente novamente mais tarde.';
             break;
           default:
             customError.message = 'Erro interno inesperado. Tente novamente mais tarde.';

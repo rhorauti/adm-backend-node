@@ -58,6 +58,7 @@ export class Employee {
     nullable: true,
     onDelete: 'CASCADE',
   })
+  @JoinColumn({ name: 'idEmployeePosition' })
   employeePosition?: EmployeePosition;
 
   @OneToOne(() => EmployeeContract, employeeContract => employeeContract.employee, {

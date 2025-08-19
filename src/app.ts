@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 if (process.env.NODE_ENV === 'production') {
   import('module-alias/register');
 }
@@ -5,7 +6,6 @@ import './module-alias-setup';
 import dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
-import 'reflect-metadata';
 import { container } from 'tsyringe';
 import { DataSource } from 'typeorm';
 

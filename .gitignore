@@ -5,3 +5,4 @@ node_modules
 tsconfig.json
 .env.development
 .env.production
+tsconfig.tsbuildinfo
