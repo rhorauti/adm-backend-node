@@ -3,16 +3,20 @@ import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 't
 
 @Entity('PurchasingOrder')
 export class PurchasingOrder {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_purchasing_order' })
   idPurchasingOrder: number;
 
   @Column({ type: 'float' })
   productQty: number;
 
-  @Column({ type: 'char', length: 30, nullable: true })
+  @Column({ type: 'varchar', length: 30, nullable: true })
   paymentCondition: string;
 
   @ManyToOne(() => Company, company => company.purchasingOrder, { nullable: true })
-  @JoinColumn({ name: 'idCompany' })
+  @JoinColumn({
+    name: 'idCompany',
+    referencedColumnName: 'idCompany',
+    foreignKeyConstraintName: 'FK_purchasing_order_company',
+  })
   company: Company;
 }

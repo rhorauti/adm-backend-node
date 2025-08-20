@@ -3,10 +3,10 @@ import { Project } from './project';
 
 @Entity('ProjectEvent')
 export class ProjectEvent {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_project_event' })
   idProjectEvent: number;
 
-  @Column({ type: 'char', length: 20 })
+  @Column({ type: 'varchar', length: 20 })
   name: string;
 
   @Column({ type: 'float' })
@@ -25,6 +25,10 @@ export class ProjectEvent {
   comment: string;
 
   @ManyToOne(() => Project, project => project.projectEvent)
-  @JoinColumn({ name: 'idProject' })
+  @JoinColumn({
+    name: 'idProject',
+    referencedColumnName: 'idProject',
+    foreignKeyConstraintName: 'FK_project_event_project',
+  })
   project: Project;
 }

@@ -16,6 +16,7 @@ import { EmployeePosition } from '@models/employee/employee-position';
 import { Department } from '@models/department/department';
 import { Kpi } from '@models/kpi/kpi';
 import { ProductionLine } from '@models/production-line/production-line';
+import { MaintenanceTask } from '@models/maintenance/task';
 
 export const dataSourceDev = new DataSource({
   type: 'postgres',
@@ -44,6 +45,7 @@ export const dataSourceDev = new DataSource({
     ProjectEvent,
     PurchasingOrder,
     ProductionLine,
+    MaintenanceTask,
   ],
 });
 

@@ -5,7 +5,7 @@ import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 't
 
 @Entity('Asset')
 export class Asset {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_asset' })
   idAsset: number;
 
   @Column({ type: 'varchar' })
@@ -18,14 +18,26 @@ export class Asset {
   comment?: string;
 
   @ManyToOne(() => Project, project => project.asset, { nullable: true })
-  @JoinColumn({ name: 'idProject' })
+  @JoinColumn({
+    name: 'idProject',
+    referencedColumnName: 'idProject',
+    foreignKeyConstraintName: 'FK_asset_project',
+  })
   project?: Project;
 
   @ManyToOne(() => Company, company => company.asset, { nullable: true })
-  @JoinColumn({ name: 'idCompany' })
+  @JoinColumn({
+    name: 'idCompany',
+    referencedColumnName: 'idCompany',
+    foreignKeyConstraintName: 'FK_asset_company',
+  })
   company?: Company;
 
   @ManyToOne(() => ProductionLine, productionLine => productionLine.asset, { nullable: true })
-  @JoinColumn({ name: 'idProductionLine' })
+  @JoinColumn({
+    name: 'idProductionLine',
+    referencedColumnName: 'idProductionLine',
+    foreignKeyConstraintName: 'FK_asset_production_line',
+  })
   productionLine?: ProductionLine;
 }

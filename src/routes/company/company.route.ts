@@ -1,5 +1,5 @@
 import { CompanyController } from '@controllers/company/company.controller';
-import { ICompany, ICompanyRegister, ICompanyResponse } from '@core/interfaces/company.interface';
+import { ICompany, ICompanyDetail, ICompanyResponse } from '@core/interfaces/company.interface';
 import { ApiResponse } from '@utils/api-response';
 import Router, { NextFunction, Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
@@ -28,11 +28,7 @@ companyRoute.get(
 companyRoute.post(
   '/companies',
   companyMiddleware(),
-  (
-    request: Request<ICompanyRegister>,
-    response: Response<ICompanyResponse>,
-    next: NextFunction,
-  ) => {
+  (request: Request<ICompanyDetail>, response: Response<ICompanyResponse>, next: NextFunction) => {
     const errors = validationResult(request);
     if (!errors.isEmpty()) {
       const firstErrorMessage = errors.array()[0].msg;
@@ -40,11 +36,7 @@ companyRoute.post(
     }
     next();
   },
-  (
-    request: Request<ICompanyRegister>,
-    response: Response<ICompanyResponse>,
-    next: NextFunction,
-  ) => {
+  (request: Request<ICompanyDetail>, response: Response<ICompanyResponse>, next: NextFunction) => {
     companyController.saveCompany(request, response, next);
   },
 );

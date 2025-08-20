@@ -1,9 +1,9 @@
 import { Exclude } from 'class-transformer';
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, Timestamp } from 'typeorm';
 
-@Entity('Users')
+@Entity('User')
 export class Users {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_user' })
   id: number;
 
   @Column({ type: 'varchar', length: 100 })

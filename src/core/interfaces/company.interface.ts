@@ -11,7 +11,7 @@ export interface ICompany {
   im?: string;
 }
 
-export interface ICompanyRegister {
+export interface ICompanyDetail {
   company: ICompany;
   address: IAddress;
   employee: IEmployee;

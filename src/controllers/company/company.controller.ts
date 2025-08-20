@@ -1,5 +1,5 @@
 import { CompanyRepository } from '@repositories/company/company.respository';
-import { ICompany, ICompanyRegister, ICompanyResponse } from '@core/interfaces/company.interface';
+import { ICompany, ICompanyDetail, ICompanyResponse } from '@core/interfaces/company.interface';
 import { Company } from '@models/company/company';
 import { ApiResponse } from '@utils/api-response';
 import { NextFunction, Request, Response } from 'express';
@@ -49,7 +49,7 @@ export class CompanyController {
       const idCompany = Number(request.params.idCompany);
       const companyCompleteInfo = await this.companyRepository.getCompanyCompleteInfo(idCompany);
       if (companyCompleteInfo) {
-        return this.apiResponse.Ok<ICompanyRegister>(
+        return this.apiResponse.Ok<ICompanyDetail>(
           response,
           200,
           'Detalhes da empresa recebida com sucesso!',
@@ -63,6 +63,7 @@ export class CompanyController {
         );
       }
     } catch (error) {
+      console.log('error: ', error);
       const customError = error as CustomError;
       const step = typeof customError.step == 'string' ? customError.step : '';
       switch (step) {
@@ -116,7 +117,7 @@ export class CompanyController {
   }
 
   async saveCompany(
-    request: Request<unknown, unknown, ICompanyRegister>,
+    request: Request<unknown, unknown, ICompanyDetail>,
     response: Response,
     next: NextFunction,
   ): Promise<Response<ICompanyResponse>> {
@@ -127,7 +128,7 @@ export class CompanyController {
         request.body.company.idCompany == null
       ) {
         const company = await this.companyRepository.addCompany(request.body);
-        return this.apiResponse.Ok<ICompanyRegister>(
+        return this.apiResponse.Ok<ICompanyDetail>(
           response,
           200,
           'Empresa adicionada com sucesso.',
@@ -140,6 +141,7 @@ export class CompanyController {
         }
       }
     } catch (error) {
+      console.log('error', error);
       const customError = error as CustomError;
       if ((error && error.code == 'ER_DUP_ENTRY') || error?.code === '23505') {
         customError.statusCode = 409;
@@ -156,6 +158,10 @@ export class CompanyController {
           customError.message =
             'A Inscrição Municipal da empresa já existe e não pode estar duplicado.';
         }
+      } else if (error.message?.includes('UQ_employee_cpf')) {
+        customError.message = 'Já existe um funcionário com esse CPF.';
+      } else if (error.message?.includes('UQ_employee_name')) {
+        customError.message = 'Já existe um funcionário com esse nome.';
         return this.apiResponse.Error(response, customError.statusCode, customError.message);
       } else {
         const step = typeof customError.step == 'string' ? customError.step : '';
@@ -334,7 +340,7 @@ export class CompanyController {
           email: '',
           position: '',
         },
-      } as ICompanyRegister;
+      } as ICompanyDetail;
       for (let i = 0; i < registersNumber; i++) {
         const uniqueId = `${baseTimestamp}${i}`;
         randomCompany.company.idCompany = 0;

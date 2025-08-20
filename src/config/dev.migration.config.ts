@@ -18,6 +18,7 @@ import { EmployeePosition } from '@models/employee/employee-position';
 import { Department } from '@models/department/department';
 import { Kpi } from '@models/kpi/kpi';
 import { ProductionLine } from '@models/production-line/production-line';
+import { MaintenanceTask } from '@models/maintenance/task';
 
 dotenv.config({ path: '.env.development' });
 
@@ -48,6 +49,7 @@ const AppDataSource = new DataSource({
     ProjectEvent,
     PurchasingOrder,
     ProductionLine,
+    MaintenanceTask,
   ],
   migrations: ['src/migrations/**/*.ts'],
 });

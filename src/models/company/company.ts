@@ -12,22 +12,22 @@ import { PurchasingOrder } from '@models/purchasing-order/purchasingOrder';
 @Unique('UQ_company_im', ['im'])
 @Entity('Company')
 export class Company {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_company' })
   idCompany: number;
 
-  @Column({ type: 'char', length: 50 })
+  @Column({ type: 'varchar', length: 50 })
   nickname: string;
 
   @Column({ type: 'varchar', length: 100 })
   name: string;
 
-  @Column({ type: 'char', length: 20, nullable: true })
+  @Column({ type: 'varchar', length: 20, nullable: true })
   cnpj: string;
 
-  @Column({ type: 'char', length: 50, nullable: true })
+  @Column({ type: 'varchar', length: 50, nullable: true })
   ie?: string;
 
-  @Column({ type: 'char', length: 50, nullable: true })
+  @Column({ type: 'varchar', length: 50, nullable: true })
   im?: string;
 
   @OneToOne(() => Address, address => address.company, { nullable: true })

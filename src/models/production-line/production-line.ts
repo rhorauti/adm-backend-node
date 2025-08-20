@@ -5,10 +5,10 @@ import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Unique } from 'typeo
 @Unique('UQ_production_line_code', ['lineCode'])
 @Entity('ProductionLine')
 export class ProductionLine {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_production_line' })
   idProductionLine: number;
 
-  @Column({ type: 'varchar', unique: true })
+  @Column({ type: 'varchar' })
   lineCode?: string;
 
   @Column({ type: 'varchar' })

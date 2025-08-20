@@ -1,12 +1,17 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Employee } from '@models/employee/employee';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
-@Entity('Tasks')
+@Entity('Task')
 export class MaintenanceTask {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_maintenance_task' })
   id: number;
-
-  @Column({ type: 'varchar' })
-  employee: string;
 
   @CreateDateColumn({ type: 'timestamp' })
   startTime: Date;
@@ -25,4 +30,12 @@ export class MaintenanceTask {
 
   @Column({ type: 'varchar' })
   status: string;
+
+  @ManyToOne(() => Employee, employee => employee.maintenanceTask, { nullable: true })
+  @JoinColumn({
+    name: 'idEmployee',
+    referencedColumnName: 'idEmployee',
+    foreignKeyConstraintName: 'FK_maintenance_task_employee',
+  })
+  employee?: Employee;
 }

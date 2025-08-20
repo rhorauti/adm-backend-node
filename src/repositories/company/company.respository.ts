@@ -1,7 +1,7 @@
 import { Company } from '@models/company/company';
 import { inject, injectable } from 'tsyringe';
 import { DataSource, QueryRunner, Repository } from 'typeorm';
-import { ICompanyRegister } from '@core/interfaces/company.interface';
+import { ICompanyDetail } from '@core/interfaces/company.interface';
 import { Address } from '@models/address/address';
 import { Employee } from '@models/employee/employee';
 import { Department } from '@models/department/department';
@@ -19,6 +19,10 @@ export class CompanyRepository {
 
   constructor(@inject('DataSource') private dataSource: DataSource) {
     this.companyRepository = this.dataSource.getRepository(Company);
+    this.addressRepository = this.dataSource.getRepository(Address);
+    this.employeeRepository = this.dataSource.getRepository(Employee);
+    this.departmentRepository = this.dataSource.getRepository(Department);
+    this.employeePositionRepository = this.dataSource.getRepository(EmployeePosition);
   }
 
   async getCompanies(): Promise<Company[]> {
@@ -28,7 +32,7 @@ export class CompanyRepository {
     return query.getMany();
   }
 
-  async getCompanyCompleteInfo(idCompany: number): Promise<ICompanyRegister> {
+  async getCompanyCompleteInfo(idCompany: number): Promise<ICompanyDetail> {
     let currentStep = 'initial';
     try {
       currentStep = 'getting-company';
@@ -60,14 +64,23 @@ export class CompanyRepository {
       });
       return {
         company: company,
-        address: address,
+        address: {
+          idAddress: address.idAddress,
+          address: address.address,
+          number: address.number,
+          postalCode: address.postalCode,
+          complement: address.complement,
+          city: address.city,
+          district: address.district,
+          state: address.state,
+        },
         employee: {
           idEmployee: employee.idEmployee,
           isDefault: employee.isDefault,
           name: employee.name,
           cpf: employee.cpf,
-          department: department.name,
-          position: employeePosition.name,
+          department: department?.name ?? null,
+          position: employeePosition?.name ?? null,
           email: employee.email,
           deskphone: employee.deskphone,
           cellphone: employee.cellphone,
@@ -87,7 +100,7 @@ export class CompanyRepository {
     });
   }
 
-  async addCompany(companyData: ICompanyRegister): Promise<ICompanyRegister> {
+  async addCompany(companyData: ICompanyDetail): Promise<ICompanyDetail> {
     const queryRunner: QueryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -100,6 +113,7 @@ export class CompanyRepository {
       const companyRepository = queryRunner.manager.getRepository(Company);
       const addressRepository = queryRunner.manager.getRepository(Address);
       const departamentRepository = queryRunner.manager.getRepository(Department);
+      const employeeRepository = queryRunner.manager.getRepository(Employee);
       const employeePositionRepository = queryRunner.manager.getRepository(EmployeePosition);
 
       currentStep = 'saving-company';
@@ -129,7 +143,7 @@ export class CompanyRepository {
         },
       });
 
-      const employeeDataToSave: Employee = {
+      const employeData: Employee = {
         idEmployee: null,
         isDefault: false,
         name: companyData.employee.name,
@@ -143,6 +157,7 @@ export class CompanyRepository {
         company: savedCompany ?? null,
       };
 
+      const employeeDataToSave = employeeRepository.create(employeData);
       currentStep = 'saving-employee';
       const savedEmployee = await queryRunner.manager.save(employeeDataToSave);
 
@@ -150,7 +165,16 @@ export class CompanyRepository {
 
       return {
         company: savedCompany,
-        address: savedAddress,
+        address: {
+          idAddress: savedAddress.idAddress,
+          address: savedAddress.address,
+          number: savedAddress.number,
+          postalCode: savedAddress.postalCode,
+          complement: savedAddress.complement,
+          city: savedAddress.city,
+          district: savedAddress.district,
+          state: savedAddress.state,
+        },
         employee: {
           idEmployee: savedEmployee.idEmployee,
           isDefault: savedEmployee.isDefault,
@@ -160,8 +184,8 @@ export class CompanyRepository {
           deskphone: savedEmployee.deskphone,
           photoUrl: savedEmployee.photoUrl,
           cellphone: savedEmployee.cellphone,
-          department: savedEmployee.department.name ?? null,
-          position: savedEmployee.employeePosition.name ?? null,
+          department: savedEmployee.department?.name ?? null,
+          position: savedEmployee.employeePosition?.name ?? null,
         },
       };
     } catch (error) {
@@ -174,11 +198,14 @@ export class CompanyRepository {
     }
   }
 
-  async updateCompany(companyData: ICompanyRegister): Promise<ICompanyRegister> {
+  async updateCompany(companyData: ICompanyDetail): Promise<ICompanyDetail> {
     const queryRunner: QueryRunner = this.dataSource.createQueryRunner();
-    queryRunner.connect();
-    queryRunner.startTransaction();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
     let currentStep = 'initial';
+    emptyStringToNull(companyData.company);
+    emptyStringToNull(companyData.address);
+    emptyStringToNull(companyData.employee);
     try {
       const companyRepository = queryRunner.manager.getRepository(Company);
       const addressRepository = queryRunner.manager.getRepository(Address);
@@ -189,58 +216,75 @@ export class CompanyRepository {
       const idCompany = Number(companyData.company.idCompany);
 
       currentStep = 'getting-company';
-
       await companyRepository.findOne({ where: { idCompany: idCompany } });
 
       currentStep = 'getting-address';
-
       await addressRepository.findOne({ where: { company: { idCompany: idCompany } } });
 
       currentStep = 'getting-employee';
-
       await employeeRepository.findOne({ where: { company: { idCompany: idCompany } } });
 
       currentStep = 'saving-company';
-
-      const updatedCompany = await queryRunner.manager.save({
-        ...companyData.company,
-      });
+      const companyToBeUpdated = companyRepository.create(companyData.company);
+      const updatedCompany = await queryRunner.manager.save(companyToBeUpdated);
 
       currentStep = 'saving-address';
 
-      const updatedAddress = await queryRunner.manager.save({
-        ...companyData.address,
-        company: updatedCompany,
-      });
+      const addressToBeUpdated = addressRepository.create(companyData.address);
+      const updatedAddress = await queryRunner.manager.save(addressToBeUpdated);
 
       currentStep = 'getting-department';
 
-      const updatedDepartment = await departmentRepository.findOne({
-        where: { name: companyData.employee.department.trim() },
+      const departament = await departmentRepository.findOne({
+        where: { name: (companyData.employee.department || '').trim() },
       });
 
       currentStep = 'getting-employee-position';
 
-      const updatedEmployeePosition = await employeePositionRepository.findOne({
-        where: { name: companyData.employee.position.trim() },
+      const employeePosition = await employeePositionRepository.findOne({
+        where: { name: (companyData.employee.position || '').trim() },
       });
 
       currentStep = 'saving-employee';
+      const employeeData: Employee = {
+        idEmployee: companyData.employee.idEmployee,
+        isDefault: companyData.employee.isDefault,
+        name: companyData.employee.name,
+        cpf: companyData.employee.cpf,
+        cellphone: companyData.employee.cellphone,
+        email: companyData.employee.email,
+        deskphone: companyData.employee.deskphone,
+        department: departament,
+        employeePosition: employeePosition,
+      };
 
-      const updatedEmployee = await queryRunner.manager.save({
-        ...companyData.employee,
-        department: updatedDepartment,
-        employeePosition: updatedEmployeePosition,
-      });
+      const employeeToBeUpdated = employeeRepository.create(employeeData);
+      const updatedEmployee = await queryRunner.manager.save(employeeToBeUpdated);
 
       await queryRunner.commitTransaction();
       return {
         company: updatedCompany,
-        address: updatedAddress,
+        address: {
+          idAddress: updatedAddress.idAddress,
+          address: updatedAddress.address,
+          number: updatedAddress.number,
+          postalCode: updatedAddress.postalCode,
+          complement: updatedAddress.complement,
+          city: updatedAddress.city,
+          district: updatedAddress.district,
+          state: updatedAddress.state,
+        },
         employee: {
-          ...updatedEmployee,
-          position: updatedEmployee.employeePosition.name,
-          department: updatedEmployee.department.name,
+          idEmployee: updatedEmployee.idEmployee,
+          isDefault: updatedEmployee.isDefault,
+          name: updatedEmployee.name,
+          cpf: updatedEmployee.cpf,
+          email: updatedEmployee.email,
+          deskphone: updatedEmployee.deskphone,
+          photoUrl: updatedEmployee.photoUrl,
+          cellphone: updatedEmployee.cellphone,
+          department: updatedEmployee.department?.name ?? null,
+          position: updatedEmployee.employeePosition?.name ?? null,
         },
       };
     } catch (error) {

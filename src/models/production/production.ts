@@ -2,10 +2,10 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('Production')
 export class Production {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_production' })
   idProduction: number;
 
-  @Column({ type: 'char', length: 20, nullable: true })
+  @Column({ type: 'varchar', length: 20, nullable: true })
   lineCode: string;
 
   @Column({ type: 'varchar', length: 30 })

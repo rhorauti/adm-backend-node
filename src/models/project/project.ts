@@ -5,13 +5,13 @@ import { Asset } from '@models/asset/asset';
 @Unique('UQ_project_code', ['code'])
 @Entity('Project')
 export class Project {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_project' })
   idProject: number;
 
-  @Column({ type: 'char', length: 15 })
+  @Column({ type: 'varchar', length: 15 })
   code: string;
 
-  @Column({ type: 'char', length: 20 })
+  @Column({ type: 'varchar', length: 20 })
   product: string;
 
   @Column({ type: 'timestamp' })

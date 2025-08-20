@@ -3,14 +3,14 @@ import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Timestam
 
 @Entity('Invoice')
 export class Invoice {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_invoice' })
   idInvoice: number;
 
   @Column({ type: 'timestamp' })
   issueDate: Timestamp;
 
   //entrada ou saída
-  @Column({ type: 'char', length: 10 })
+  @Column({ type: 'varchar', length: 10 })
   type: string;
 
   @Column({ type: 'timestamp', nullable: true })
@@ -20,6 +20,10 @@ export class Invoice {
   paymentDateActual: Timestamp;
 
   @ManyToOne(() => Company, company => company.invoice, { nullable: true })
-  @JoinColumn({ name: 'idCompany' })
+  @JoinColumn({
+    name: 'idCompany',
+    referencedColumnName: 'idCompany',
+    foreignKeyConstraintName: 'FR_invoice_company',
+  })
   company: Company;
 }
