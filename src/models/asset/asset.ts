@@ -1,4 +1,5 @@
 import { Company } from '@models/company/company';
+import { Product } from '@models/product/product';
 import { ProductionLine } from '@models/production-line/production-line';
 import { Project } from '@models/project/project';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
@@ -17,6 +18,17 @@ export class Asset {
   @Column({ type: 'varchar', nullable: true })
   comment?: string;
 
+  @ManyToOne(() => Product, product => product.asset, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({
+    name: 'idProduct',
+    referencedColumnName: 'idProduct',
+    foreignKeyConstraintName: 'FK_asset_product',
+  })
+  product: Product;
+
   @ManyToOne(() => Project, project => project.asset, { nullable: true })
   @JoinColumn({
     name: 'idProject',
@@ -25,7 +37,7 @@ export class Asset {
   })
   project?: Project;
 
-  @ManyToOne(() => Company, company => company.asset, { nullable: true })
+  @ManyToOne(() => Company, company => company.asset, { nullable: true, onDelete: 'CASCADE' })
   @JoinColumn({
     name: 'idCompany',
     referencedColumnName: 'idCompany',
@@ -33,7 +45,10 @@ export class Asset {
   })
   company?: Company;
 
-  @ManyToOne(() => ProductionLine, productionLine => productionLine.asset, { nullable: true })
+  @ManyToOne(() => ProductionLine, productionLine => productionLine.asset, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({
     name: 'idProductionLine',
     referencedColumnName: 'idProductionLine',

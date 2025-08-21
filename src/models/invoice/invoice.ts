@@ -19,7 +19,7 @@ export class Invoice {
   @Column({ type: 'timestamp', nullable: true })
   paymentDateActual: Timestamp;
 
-  @ManyToOne(() => Company, company => company.invoice, { nullable: true })
+  @ManyToOne(() => Company, company => company.invoice, { nullable: true, onDelete: 'CASCADE' })
   @JoinColumn({
     name: 'idCompany',
     referencedColumnName: 'idCompany',

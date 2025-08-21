@@ -16,22 +16,28 @@ export class MaintenanceTask {
   @CreateDateColumn({ type: 'timestamp' })
   startTime: Date;
 
-  @Column({ type: 'timestamp' })
-  pauseTime: string;
+  @Column({ type: 'timestamp', nullable: true })
+  pauseTime?: string;
 
-  @Column({ type: 'timestamp' })
-  finishTime: string;
+  @Column({ type: 'timestamp', nullable: true })
+  finishTime?: string;
 
-  @Column({ type: 'varchar' })
-  type: string;
+  @Column({ type: 'varchar', nullable: true })
+  type?: string;
 
-  @Column({ type: 'varchar' })
-  task: string;
+  @Column({ type: 'varchar', nullable: true })
+  task?: string;
 
-  @Column({ type: 'varchar' })
-  status: string;
+  @Column({ type: 'varchar', nullable: true })
+  status?: string;
 
-  @ManyToOne(() => Employee, employee => employee.maintenanceTask, { nullable: true })
+  @Column({ type: 'varchar', nullable: true })
+  comment?: string;
+
+  @ManyToOne(() => Employee, employee => employee.maintenanceTask, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({
     name: 'idEmployee',
     referencedColumnName: 'idEmployee',

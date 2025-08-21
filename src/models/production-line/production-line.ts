@@ -1,5 +1,4 @@
 import { Asset } from '@models/asset/asset';
-import { Product } from '@models/product/product';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Unique } from 'typeorm';
 
 @Unique('UQ_production_line_code', ['lineCode'])
@@ -8,18 +7,15 @@ export class ProductionLine {
   @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_production_line' })
   idProductionLine: number;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', nullable: true })
   lineCode?: string;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', nullable: true })
   lineName?: string;
 
-  @OneToMany(() => Asset, asset => asset.productionLine, { nullable: true, onDelete: 'CASCADE' })
-  asset?: Asset[];
+  @Column({ type: 'varchar', nullable: true })
+  comment?: string;
 
-  @OneToMany(() => Product, product => product.productionLine, {
-    nullable: true,
-    onDelete: 'CASCADE',
-  })
-  product?: Product[];
+  @OneToMany(() => Asset, asset => asset.productionLine, { nullable: true })
+  asset?: Asset[];
 }

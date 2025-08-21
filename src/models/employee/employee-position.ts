@@ -7,8 +7,11 @@ export class EmployeePosition {
   @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_employee_position' })
   idEmployeePosition: number;
 
-  @Column({ type: 'varchar' })
-  name: string;
+  @Column({ type: 'varchar', nullable: true })
+  name?: string;
+
+  @Column({ type: 'varchar', nullable: true })
+  comment?: string;
 
   @OneToOne(() => Employee, employee => employee.employeePosition, { nullable: true })
   employee: Employee;

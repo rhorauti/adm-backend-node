@@ -6,13 +6,16 @@ export class PurchasingOrder {
   @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_purchasing_order' })
   idPurchasingOrder: number;
 
-  @Column({ type: 'float' })
-  productQty: number;
+  @Column({ type: 'float', nullable: true })
+  productQty?: number;
 
   @Column({ type: 'varchar', length: 30, nullable: true })
-  paymentCondition: string;
+  paymentCondition?: string;
 
-  @ManyToOne(() => Company, company => company.purchasingOrder, { nullable: true })
+  @ManyToOne(() => Company, company => company.purchasingOrder, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({
     name: 'idCompany',
     referencedColumnName: 'idCompany',

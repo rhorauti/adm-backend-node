@@ -6,14 +6,14 @@ export class Production {
   idProduction: number;
 
   @Column({ type: 'varchar', length: 20, nullable: true })
-  lineCode: string;
+  lineCode?: string;
 
-  @Column({ type: 'varchar', length: 30 })
-  lineName: string;
+  @Column({ type: 'varchar', length: 30, nullable: true })
+  lineName?: string;
 
-  @Column({ type: 'float' })
-  productQtyPlan: number;
+  @Column({ type: 'float', nullable: true })
+  productQtyPlan?: number;
 
-  @Column({ type: 'float' })
-  productQtyActual: number;
+  @Column({ type: 'float', nullable: true })
+  productQtyActual?: number;
 }

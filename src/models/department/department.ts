@@ -8,18 +8,17 @@ export class Department {
   @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_department' })
   idDepartment: number;
 
-  @Column({ type: 'varchar' })
-  name: string;
+  @Column({ type: 'varchar', nullable: true })
+  name?: string;
+
+  @Column({ type: 'varchar', nullable: true })
+  comment?: string;
 
   @OneToMany(() => Employee, employee => employee.department, {
-    onDelete: 'CASCADE',
     nullable: true,
   })
   employee?: Employee[];
 
-  @OneToMany(() => Kpi, kpi => kpi.department, {
-    onDelete: 'CASCADE',
-    nullable: true,
-  })
+  @OneToMany(() => Kpi, kpi => kpi.department, { nullable: true })
   kpi?: Kpi[];
 }

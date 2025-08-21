@@ -21,7 +21,10 @@ export class EmployeeContract {
   @Column({ type: 'varchar', length: 500, nullable: true })
   comment: string;
 
-  @OneToOne(() => Employee, employee => employee.employeeContract)
+  @OneToOne(() => Employee, employee => employee.employeeContract, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({
     name: 'idEmployee',
     referencedColumnName: 'idEmployee',

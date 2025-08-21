@@ -8,26 +8,26 @@ export class Address {
   @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_address' })
   idAddress: number;
 
-  @Column({ type: 'varchar', length: 15 })
-  postalCode: string;
-
-  @Column({ type: 'varchar', length: 150 })
-  address: string;
+  @Column({ type: 'varchar', length: 15, nullable: true })
+  postalCode?: string;
 
   @Column({ type: 'varchar', length: 150, nullable: true })
-  number: string;
+  address?: string;
+
+  @Column({ type: 'varchar', length: 150, nullable: true })
+  number?: string;
 
   @Column({ type: 'varchar', length: 50, nullable: true })
-  complement: string;
+  complement?: string;
 
   @Column({ type: 'varchar', length: 50, nullable: true })
-  district: string;
+  district?: string;
 
   @Column({ type: 'varchar', length: 50, nullable: true })
-  city: string;
+  city?: string;
 
   @Column({ type: 'varchar', length: 2, nullable: true })
-  state: string;
+  state?: string;
 
   @Exclude()
   @OneToOne(() => Company, company => company.address, { nullable: true, onDelete: 'CASCADE' })

@@ -15,14 +15,14 @@ export class Company {
   @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_company' })
   idCompany: number;
 
-  @Column({ type: 'varchar', length: 50 })
+  @Column({ type: 'varchar', length: 50, nullable: true })
   nickname: string;
 
-  @Column({ type: 'varchar', length: 100 })
+  @Column({ type: 'varchar', length: 100, nullable: true })
   name: string;
 
   @Column({ type: 'varchar', length: 20, nullable: true })
-  cnpj: string;
+  cnpj?: string;
 
   @Column({ type: 'varchar', length: 50, nullable: true })
   ie?: string;
@@ -33,15 +33,18 @@ export class Company {
   @OneToOne(() => Address, address => address.company, { nullable: true })
   address: Address;
 
-  @OneToMany(() => Employee, employee => employee.company, { nullable: true, onDelete: 'CASCADE' })
+  @OneToMany(() => Employee, employee => employee.company, { nullable: true })
   employee: Employee[];
 
-  @OneToMany(() => Asset, asset => asset.company, { nullable: true, onDelete: 'CASCADE' })
+  @OneToMany(() => Asset, asset => asset.company, { nullable: true })
   asset: Asset;
 
-  @OneToMany(() => Invoice, invoice => invoice.company, { nullable: true, onDelete: 'CASCADE' })
+  @OneToMany(() => Invoice, invoice => invoice.company, { nullable: true })
   invoice: Invoice;
 
-  @OneToMany(() => PurchasingOrder, purchasingOrder => purchasingOrder.company, { nullable: true })
+  @OneToMany(() => PurchasingOrder, purchasingOrder => purchasingOrder.company, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
   purchasingOrder: PurchasingOrder;
 }

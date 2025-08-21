@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn, Timestamp } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Timestamp } from 'typeorm';
 import { Employee } from './employee';
 
 @Entity('EmployeeVacation')
@@ -27,6 +27,14 @@ export class EmployeeVacation {
   @Column({ type: 'varchar', length: 300 })
   comment: string;
 
-  @ManyToOne(() => Employee, employee => employee.employeeVacation)
+  @ManyToOne(() => Employee, employee => employee.employeeVacation, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({
+    name: 'idEmployee',
+    referencedColumnName: 'idEmployee',
+    foreignKeyConstraintName: 'FK_employee_vacation_employee',
+  })
   employee: Employee;
 }

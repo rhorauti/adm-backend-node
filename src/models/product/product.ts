@@ -1,5 +1,7 @@
+import { Asset } from '@models/asset/asset';
 import { ProductionLine } from '@models/production-line/production-line';
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Project } from '@models/project/project';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('Product')
 export class Product {
@@ -9,17 +11,25 @@ export class Product {
   @Column({ type: 'varchar' })
   name: string;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'int', nullable: true })
   stock?: number;
 
-  @ManyToOne(() => ProductionLine, productionLine => productionLine.product, {
+  @Column({ type: 'int', nullable: true })
+  comment?: number;
+
+  @OneToMany(() => Asset, asset => asset.product, {
     nullable: true,
-    onDelete: 'CASCADE',
+  })
+  asset: Asset;
+
+  @ManyToOne(() => Project, project => project.product, {
+    nullable: true,
+    onDelete: 'SET NULL',
   })
   @JoinColumn({
-    name: 'idProductionLine',
-    referencedColumnName: 'idProductionLine',
-    foreignKeyConstraintName: 'FK_product_production_line',
+    name: 'idProject',
+    referencedColumnName: 'idProject',
+    foreignKeyConstraintName: 'FK_product_project',
   })
-  productionLine?: ProductionLine;
+  project?: Project;
 }

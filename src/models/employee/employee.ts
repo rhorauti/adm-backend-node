@@ -17,16 +17,15 @@ import { EmployeePosition } from './employee-position';
 import { MaintenanceTask } from '@models/maintenance/task';
 
 @Unique('UQ_employee_cpf', ['cpf'])
-@Unique('UQ_employee_name', ['name'])
 @Entity('Employee')
 export class Employee {
   @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_employee' })
   idEmployee: number;
 
   @Column({ type: 'bool' })
-  isDefault: boolean;
+  isDefault: boolean = false;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', nullable: true })
   name: string;
 
   @Column({ type: 'varchar', length: 14, nullable: true })
@@ -44,7 +43,7 @@ export class Employee {
   @Column({ type: 'varchar', length: 20, nullable: true })
   cellphone?: string;
 
-  @ManyToOne(() => Company, company => company.employee, { nullable: true })
+  @ManyToOne(() => Company, company => company.employee, { nullable: true, onDelete: 'CASCADE' })
   @JoinColumn({
     name: 'idCompany',
     referencedColumnName: 'idCompany',
@@ -52,7 +51,10 @@ export class Employee {
   })
   company?: Company;
 
-  @ManyToOne(() => Department, department => department.employee, { nullable: true })
+  @ManyToOne(() => Department, department => department.employee, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({
     name: 'idDepartment',
     referencedColumnName: 'idDepartment',
@@ -82,13 +84,11 @@ export class Employee {
 
   @OneToMany(() => EmployeeVacation, employeeVacation => employeeVacation.employee, {
     nullable: true,
-    onDelete: 'CASCADE',
   })
   employeeVacation?: EmployeeVacation[];
 
   @OneToMany(() => MaintenanceTask, maintenanceTask => maintenanceTask.employee, {
     nullable: true,
-    onDelete: 'CASCADE',
   })
   maintenanceTask?: MaintenanceTask[];
 }

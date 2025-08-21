@@ -8,7 +8,7 @@ import { inject, injectable } from 'tsyringe';
 @injectable()
 export class DepartmentController {
   constructor(
-    @inject('EmployeeRepository') private departmentRepository: DepartmentRepository,
+    @inject('DepartmentRepository') private departmentRepository: DepartmentRepository,
     @inject('ApiResponse') private apiResponse: ApiResponse,
   ) {}
 

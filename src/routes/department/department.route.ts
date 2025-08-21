@@ -30,7 +30,7 @@ departmentRoute.post('/departments', (request: Request, response: Response, next
 });
 
 departmentRoute.delete(
-  '/departments',
+  '/departments/:idDepartment',
   (request: Request, response: Response, next: NextFunction) => {
     departmentController.deleteDepartment(request, response, next);
   },
