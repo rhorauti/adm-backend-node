@@ -10,7 +10,10 @@ export class DepartmentRepository {
   }
 
   async getDepartmentList(): Promise<Department[]> {
-    return await this.departmentRepository.find();
+    const query = this.departmentRepository
+      .createQueryBuilder('department')
+      .orderBy('department.idDepartment', 'DESC');
+    return query.getMany();
   }
 
   async getDepartment(idDepartment: number): Promise<Department> {

@@ -2,37 +2,46 @@ import { DepartmentController } from '@controllers/department/department.control
 import Router, { NextFunction, Request, Response } from 'express';
 import { param, ValidationChain } from 'express-validator';
 import { container } from 'tsyringe';
+import { raiseMiddlewareError } from '@utils/misc';
 
 const departmentRoute = Router();
 
 const departmentController = container.resolve(DepartmentController);
+const route = 'departments';
+const id = 'idDepartment';
 
-const departmentParamsMiddleware = (): ValidationChain[] => {
-  return [
-    param('idDepartment').notEmpty().withMessage('O parâmetro idDepartment não pode estar vazio.'),
-  ];
+const paramsMiddleware = (): ValidationChain[] => {
+  return [param(`${id}`).notEmpty().withMessage(`O parâmetro ${id} não pode estar vazio.`)];
 };
 
 departmentRoute.get(
-  '/departments/:idDepartment',
-  departmentParamsMiddleware(),
+  `/${route}/:${id}`,
+  paramsMiddleware(),
   (request: Request, response: Response, next: NextFunction) => {
-    departmentController.getDepartment(request, response, next);
+    raiseMiddlewareError(request, response, next);
+  },
+
+  (request: Request, response: Response, next: NextFunction) => {
+    departmentController.getData(request, response, next);
   },
 );
 
-departmentRoute.get('/departments', (request: Request, response: Response, next: NextFunction) => {
-  departmentController.getDepartmentList(request, response, next);
+departmentRoute.get(`/${route}`, (request: Request, response: Response, next: NextFunction) => {
+  departmentController.getDataList(request, response, next);
 });
 
-departmentRoute.post('/departments', (request: Request, response: Response, next: NextFunction) => {
-  departmentController.saveDepartment(request, response, next);
+departmentRoute.post(`/${route}`, (request: Request, response: Response, next: NextFunction) => {
+  departmentController.save(request, response, next);
 });
 
 departmentRoute.delete(
-  '/departments/:idDepartment',
+  `/${route}/:${id}`,
+  paramsMiddleware(),
   (request: Request, response: Response, next: NextFunction) => {
-    departmentController.deleteDepartment(request, response, next);
+    raiseMiddlewareError(request, response, next);
+  },
+  (request: Request, response: Response, next: NextFunction) => {
+    departmentController.delete(request, response, next);
   },
 );
 

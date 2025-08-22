@@ -1,3 +1,4 @@
+import { EmployeePosition } from '@models/employee/employee-position';
 import { IDefaultResponse } from './base.interface';
 
 export interface IEmployee {
@@ -15,4 +16,12 @@ export interface IEmployee {
 
 export interface IEmployeeResponse extends IDefaultResponse {
   data: IEmployee;
+}
+
+export interface IEmployeePositionListResponse {
+  data?: EmployeePosition[];
+}
+
+export interface IEmployeePositionResponse extends IDefaultResponse {
+  data?: EmployeePosition;
 }

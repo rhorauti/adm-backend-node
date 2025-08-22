@@ -4,10 +4,12 @@ import { companyRoute } from './company/company.route';
 import { addressRoute } from './address/address.route';
 import { employeeRoute } from './employee/employee.route';
 import { departmentRoute } from './department/department.route';
+import { companyFakeRoute } from './company/company.fake.route';
 
 const router = Router();
 router.use(authRoute);
 router.use(companyRoute);
+router.use(companyFakeRoute);
 router.use(addressRoute);
 router.use(employeeRoute);
 router.use(departmentRoute);

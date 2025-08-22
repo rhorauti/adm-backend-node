@@ -12,6 +12,7 @@ export class EmployeeRepository {
 
   constructor(@inject('DataSource') private dataSource: DataSource) {
     this.employeeRepository = this.dataSource.getRepository(Employee);
+    this.employeePositionRepository = this.dataSource.getRepository(EmployeePosition);
   }
 
   async getEmployee(idCompany: number): Promise<Employee> {
@@ -25,18 +26,24 @@ export class EmployeeRepository {
   }
 
   async getEmployeePositionList(): Promise<EmployeePosition[]> {
-    return this.employeePositionRepository.find();
+    return this.employeePositionRepository.find({
+      order: { idEmployeePosition: 'DESC' },
+    });
   }
 
   async getEmployeePosition(idEmployeePosition: number): Promise<EmployeePosition> {
-    return await this.employeePositionRepository
-      .createQueryBuilder()
-      .relation(EmployeePosition, 'employee')
-      .of(idEmployeePosition)
-      .loadOne();
+    return await this.employeePositionRepository.findOne({
+      where: {
+        idEmployeePosition: idEmployeePosition,
+      },
+    });
   }
 
   async saveEmployeePosition(position: EmployeePosition): Promise<EmployeePosition> {
     return this.employeePositionRepository.save(position);
+  }
+
+  async deleteEmployeePosition(idEmployeePosition: number): Promise<void> {
+    await this.employeePositionRepository.delete(idEmployeePosition);
   }
 }

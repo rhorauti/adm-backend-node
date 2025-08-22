@@ -1,14 +1,14 @@
 import { CompanyController } from '@controllers/company/company.controller';
 import { ICompany, ICompanyDetail, ICompanyResponse } from '@core/interfaces/company.interface';
-import { ApiResponse } from '@utils/api-response';
+import { raiseMiddlewareError } from '@utils/misc';
 import Router, { NextFunction, Request, Response } from 'express';
-import { body, validationResult } from 'express-validator';
+import { body } from 'express-validator';
 import { container } from 'tsyringe';
 
 const companyRoute = Router();
-
 const companyController = container.resolve(CompanyController);
-const apiResponse = container.resolve(ApiResponse);
+const route = 'companies';
+const id = 'idCompany';
 
 const companyMiddleware = () => {
   return [
@@ -19,60 +19,38 @@ const companyMiddleware = () => {
 };
 
 companyRoute.get(
-  '/companies',
+  `/${route}`,
   (request: Request<ICompany>, response: Response<ICompanyResponse>, next: NextFunction) => {
     companyController.getCompanyList(request, response, next);
   },
 );
 
 companyRoute.post(
-  '/companies',
+  `/${route}`,
   companyMiddleware(),
-  (request: Request<ICompanyDetail>, response: Response<ICompanyResponse>, next: NextFunction) => {
-    const errors = validationResult(request);
-    if (!errors.isEmpty()) {
-      const firstErrorMessage = errors.array()[0].msg;
-      return apiResponse.Error(response, 401, firstErrorMessage);
-    }
-    next();
+  (request: Request, response: Response, next: NextFunction) => {
+    raiseMiddlewareError(request, response, next);
   },
   (request: Request<ICompanyDetail>, response: Response<ICompanyResponse>, next: NextFunction) => {
     companyController.saveCompany(request, response, next);
   },
 );
 
-companyRoute.get(
-  '/companies/:idCompany',
-  (request: Request, response: Response, next: NextFunction) => {
-    companyController.getCompanyInfo(request, response, next);
-  },
-);
+companyRoute.get(`/${route}/:${id}`, (request: Request, response: Response, next: NextFunction) => {
+  companyController.getCompanyInfo(request, response, next);
+});
 
 companyRoute.get(
-  '/companies/detail/:idCompany',
+  `/${route}/detail/:${id}`,
   (request: Request, response: Response, next: NextFunction) => {
     companyController.getCompanyCompleteInfo(request, response, next);
   },
 );
 
 companyRoute.delete(
-  '/companies/:idCompany',
+  `/${route}/:${id}`,
   (request: Request, response: Response<ICompanyResponse>, next: NextFunction) => {
     companyController.deleteCompany(request, response, next);
-  },
-);
-
-companyRoute.post(
-  '/companies/test/add',
-  (request: Request, response: Response, next: NextFunction) => {
-    companyController.addRandomRegisters(request, response, next);
-  },
-);
-
-companyRoute.delete(
-  '/companies/test/delete',
-  (request: Request, response: Response, next: NextFunction) => {
-    companyController.deleteAllRandomRegisters(request, response, next);
   },
 );
 

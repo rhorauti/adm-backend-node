@@ -10,8 +10,8 @@ import {
 } from 'typeorm';
 import { Company } from '../company/company';
 import { Address } from '@models/address/address';
-import { EmployeeContract } from './employeeContract';
-import { EmployeeVacation } from './employeeVacation';
+import { EmployeeContract } from './employee-contract';
+import { EmployeeVacation } from './employee-vacation';
 import { Department } from '@models/department/department';
 import { EmployeePosition } from './employee-position';
 import { MaintenanceTask } from '@models/maintenance/task';

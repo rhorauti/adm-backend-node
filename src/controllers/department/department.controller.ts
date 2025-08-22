@@ -12,7 +12,7 @@ export class DepartmentController {
     @inject('ApiResponse') private apiResponse: ApiResponse,
   ) {}
 
-  async getDepartmentList(
+  async getDataList(
     request: Request,
     response: Response,
     next: NextFunction,
@@ -34,7 +34,7 @@ export class DepartmentController {
     }
   }
 
-  async getDepartment(
+  async getData(
     request: Request,
     response: Response,
     next: NextFunction,
@@ -56,11 +56,7 @@ export class DepartmentController {
     }
   }
 
-  async saveDepartment(
-    request: Request,
-    response: Response,
-    next: NextFunction,
-  ): Promise<Response> {
+  async save(request: Request, response: Response, next: NextFunction): Promise<Response> {
     try {
       const department = await this.departmentRepository.saveDepartment(request.body);
       return this.apiResponse.Ok(response, 200, 'Departamento salvo com sucesso.', department);
@@ -82,11 +78,7 @@ export class DepartmentController {
     }
   }
 
-  async deleteDepartment(
-    request: Request,
-    response: Response,
-    next: NextFunction,
-  ): Promise<Response> {
+  async delete(request: Request, response: Response, next: NextFunction): Promise<Response> {
     try {
       const department = await this.departmentRepository.getDepartment(
         Number(request.params.idDepartment),
