@@ -1,4 +1,4 @@
-import { Asset } from '@models/asset/asset';
+import { Task } from '@models/task/task.model';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Unique } from 'typeorm';
 
 @Unique('UQ_production_line_code', ['lineCode'])
@@ -11,11 +11,11 @@ export class ProductionLine {
   lineCode?: string;
 
   @Column({ type: 'varchar', nullable: true })
-  lineName?: string;
+  lineName: string;
 
   @Column({ type: 'varchar', nullable: true })
   comment?: string;
 
-  @OneToMany(() => Asset, asset => asset.productionLine, { nullable: true })
-  asset?: Asset[];
+  @OneToMany(() => Task, task => task.productionLine, { nullable: true })
+  task?: Task[];
 }

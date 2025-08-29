@@ -1,5 +1,6 @@
-import { Company } from '@models/company/company';
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Company } from '@models/company/company.model';
+import { Invoice } from '@models/invoice/invoice.model';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('PurchasingOrder')
 export class PurchasingOrder {
@@ -22,4 +23,9 @@ export class PurchasingOrder {
     foreignKeyConstraintName: 'FK_purchasing_order_company',
   })
   company: Company;
+
+  @OneToMany(() => Invoice, invoice => invoice.purchasingOrder, {
+    nullable: true,
+  })
+  invoice: Invoice[];
 }

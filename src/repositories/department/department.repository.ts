@@ -1,34 +1,41 @@
-import { Department } from '@models/department/department';
+import { Department } from '@models/department/department.model';
+import { emptyStringToNull } from '@utils/misc';
 import { inject, injectable } from 'tsyringe';
 import { DataSource, Repository } from 'typeorm';
 
 @injectable()
 export class DepartmentRepository {
-  private departmentRepository: Repository<Department>;
+  private repository: Repository<Department>;
+
+  keyId: keyof Department = 'idDepartment';
+
   constructor(@inject('DataSource') private dataSource: DataSource) {
-    this.departmentRepository = this.dataSource.getRepository(Department);
+    this.repository = this.dataSource.getRepository(Department);
   }
 
-  async getDepartmentList(): Promise<Department[]> {
-    const query = this.departmentRepository
-      .createQueryBuilder('department')
-      .orderBy('department.idDepartment', 'DESC');
-    return query.getMany();
+  async getDataList(): Promise<Department[]> {
+    return this.repository.find({
+      order: { [this.keyId]: 'DESC' },
+    });
   }
 
-  async getDepartment(idDepartment: number): Promise<Department> {
-    return await this.departmentRepository.findOne({
+  async getDataByField<K extends keyof Department>(
+    key: K,
+    value: Department[K],
+  ): Promise<Department> {
+    return await this.repository.findOne({
       where: {
-        idDepartment: idDepartment,
+        [key]: value,
       },
     });
   }
 
-  async saveDepartment(departament: Department): Promise<Department> {
-    return this.departmentRepository.save(departament);
+  async save(data: Department): Promise<Department> {
+    emptyStringToNull(data);
+    return this.repository.save(data);
   }
 
-  async deleteDepartment(idDepartment: number): Promise<void> {
-    await this.departmentRepository.delete(idDepartment);
+  async delete(id: number): Promise<void> {
+    await this.repository.delete(id);
   }
 }

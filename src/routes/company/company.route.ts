@@ -1,5 +1,5 @@
 import { CompanyController } from '@controllers/company/company.controller';
-import { ICompany, ICompanyDetail, ICompanyResponse } from '@core/interfaces/company.interface';
+import { ICompanyDetail, ICompanyResponse } from '@core/interfaces/company.interface';
 import { raiseMiddlewareError } from '@utils/misc';
 import Router, { NextFunction, Request, Response } from 'express';
 import { body } from 'express-validator';
@@ -18,12 +18,9 @@ const companyMiddleware = () => {
   ];
 };
 
-companyRoute.get(
-  `/${route}`,
-  (request: Request<ICompany>, response: Response<ICompanyResponse>, next: NextFunction) => {
-    companyController.getCompanyList(request, response, next);
-  },
-);
+companyRoute.get(`/${route}`, (request: Request, response: Response, next: NextFunction) => {
+  companyController.getCompanyList(request, response, next);
+});
 
 companyRoute.post(
   `/${route}`,
@@ -31,7 +28,7 @@ companyRoute.post(
   (request: Request, response: Response, next: NextFunction) => {
     raiseMiddlewareError(request, response, next);
   },
-  (request: Request<ICompanyDetail>, response: Response<ICompanyResponse>, next: NextFunction) => {
+  (request: Request, response: Response, next: NextFunction) => {
     companyController.saveCompany(request, response, next);
   },
 );

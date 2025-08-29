@@ -1,12 +1,12 @@
 import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { Employee } from './employee';
+import { Employee } from './employee.model';
 
 @Entity('EmployeeContract')
 export class EmployeeContract {
   @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_employee_contract' })
   idEmployeeContract: number;
 
-  // production or office
+  // CLT or PJ
   @Column({ type: 'varchar', length: 15 })
   type: string;
 

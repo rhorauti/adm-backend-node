@@ -1,5 +1,5 @@
-import { Column, Entity, OneToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
-import { Employee } from './employee';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { Employee } from './employee.model';
 
 @Unique('UQ_employee_position_name', ['name'])
 @Entity('EmployeePosition')
@@ -8,11 +8,14 @@ export class EmployeePosition {
   idEmployeePosition: number;
 
   @Column({ type: 'varchar', nullable: true })
-  name?: string;
+  name: string;
 
   @Column({ type: 'varchar', nullable: true })
   comment?: string;
 
-  @OneToOne(() => Employee, employee => employee.employeePosition, { nullable: true })
-  employee: Employee;
+  @ManyToOne(() => Employee, employee => employee.employeePosition, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  employee?: Employee;
 }

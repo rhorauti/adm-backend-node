@@ -1,9 +1,7 @@
 import { Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
-import { Address } from '@models/address/address';
-import { Employee } from '@models/employee/employee';
-import { Asset } from '@models/asset/asset';
-import { Invoice } from '@models/invoice/invoice';
-import { PurchasingOrder } from '@models/purchasing-order/purchasingOrder';
+import { Address } from '@models/address/address.model';
+import { Employee } from '@models/employee/employee.model';
+import { PurchasingOrder } from '@models/purchasing-order/purchasing-order.model';
 
 @Unique('UQ_company_nickname', ['nickname'])
 @Unique('UQ_company_name', ['name'])
@@ -36,15 +34,8 @@ export class Company {
   @OneToMany(() => Employee, employee => employee.company, { nullable: true })
   employee: Employee[];
 
-  @OneToMany(() => Asset, asset => asset.company, { nullable: true })
-  asset: Asset;
-
-  @OneToMany(() => Invoice, invoice => invoice.company, { nullable: true })
-  invoice: Invoice;
-
   @OneToMany(() => PurchasingOrder, purchasingOrder => purchasingOrder.company, {
     nullable: true,
-    onDelete: 'CASCADE',
   })
   purchasingOrder: PurchasingOrder;
 }

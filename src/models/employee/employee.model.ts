@@ -8,13 +8,13 @@ import {
   PrimaryGeneratedColumn,
   Unique,
 } from 'typeorm';
-import { Company } from '../company/company';
-import { Address } from '@models/address/address';
-import { EmployeeContract } from './employee-contract';
-import { EmployeeVacation } from './employee-vacation';
-import { Department } from '@models/department/department';
-import { EmployeePosition } from './employee-position';
-import { MaintenanceTask } from '@models/maintenance/task';
+import { Company } from '../company/company.model';
+import { Address } from '@models/address/address.model';
+import { EmployeeContract } from './employee-contract.model';
+import { EmployeeVacation } from './employee-vacation.model';
+import { Department } from '@models/department/department.model';
+import { EmployeePosition } from './employee-position.model';
+import { Task } from '@models/task/task.model';
 
 @Unique('UQ_employee_cpf', ['cpf'])
 @Entity('Employee')
@@ -53,7 +53,7 @@ export class Employee {
 
   @ManyToOne(() => Department, department => department.employee, {
     nullable: true,
-    onDelete: 'CASCADE',
+    onDelete: 'SET NULL',
   })
   @JoinColumn({
     name: 'idDepartment',
@@ -62,23 +62,21 @@ export class Employee {
   })
   department?: Department;
 
-  @OneToOne(() => Address, address => address.employee, { nullable: true, onDelete: 'CASCADE' })
+  @OneToOne(() => Address, address => address.employee, { nullable: true })
   address?: Address;
 
-  @OneToOne(() => EmployeePosition, employeePosition => employeePosition.employee, {
+  @OneToMany(() => EmployeePosition, employeePosition => employeePosition.employee, {
     nullable: true,
-    onDelete: 'CASCADE',
   })
   @JoinColumn({
     name: 'idEmployeePosition',
     referencedColumnName: 'idEmployeePosition',
     foreignKeyConstraintName: 'FK_employee_employee_position',
   })
-  employeePosition?: EmployeePosition;
+  employeePosition?: EmployeePosition[];
 
   @OneToOne(() => EmployeeContract, employeeContract => employeeContract.employee, {
     nullable: true,
-    onDelete: 'CASCADE',
   })
   employeeContract?: EmployeeContract;
 
@@ -87,8 +85,8 @@ export class Employee {
   })
   employeeVacation?: EmployeeVacation[];
 
-  @OneToMany(() => MaintenanceTask, maintenanceTask => maintenanceTask.employee, {
+  @OneToMany(() => Task, task => task.employee, {
     nullable: true,
   })
-  maintenanceTask?: MaintenanceTask[];
+  task?: Task[];
 }

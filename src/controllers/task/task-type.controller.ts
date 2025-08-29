@@ -1,35 +1,35 @@
-import {
-  IEmployeePositionListResponse,
-  IEmployeePositionResponse,
-} from '@core/interfaces/employee.interface';
 import { CustomError } from '@middlewares/error';
 import { ApiResponse } from '@utils/api-response';
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import { IDefaultResponse } from '@core/interfaces/base.interface';
+import { TaskTypeRepository } from '@repositories/task/task-type.repository';
+import { ITaskTypeListResponse, ITaskTypeResponse } from '@core/interfaces/task.interface';
 import { DepartmentRepository } from '@repositories/department/department.repository';
-import { Department } from '@models/department/department.model';
 
 @injectable()
-export class DepartmentController {
+export class TaskTypeController {
   constructor(
-    @inject('DepartmentRepository') private repository: DepartmentRepository,
+    @inject('TaskTypeRepository') private taskTypeRepository: TaskTypeRepository,
+    @inject('DepartmentRepository') private departmentRepository: DepartmentRepository,
     @inject('ApiResponse')
     private apiResponse: ApiResponse,
   ) {}
 
-  routeNameTranslated = 'departamentos';
-  idKey: keyof Department = 'idDepartment';
+  routeNameTranslated = 'Tipos de atividades';
+  relatedName = 'department';
+  keyId = 'idTaskType';
   routeNameTranslatedSingular = this.routeNameTranslated.slice(0, -1);
-  uniqueConstraint = 'UQ_department_name';
 
   async getDataList(
     request: Request,
     response: Response,
     next: NextFunction,
-  ): Promise<Response<IEmployeePositionListResponse>> {
+  ): Promise<Response<ITaskTypeListResponse>> {
     try {
-      const dataList = await this.repository.getDataList();
+      const deptName = request.params[this.relatedName];
+      const selectedDept = await this.departmentRepository.getDataByField('name', deptName);
+      const dataList = await this.taskTypeRepository.getDataList(selectedDept.name);
       return this.apiResponse.Ok(
         response,
         200,
@@ -47,9 +47,14 @@ export class DepartmentController {
     request: Request,
     response: Response,
     next: NextFunction,
-  ): Promise<Response<IEmployeePositionResponse>> {
+  ): Promise<Response<ITaskTypeResponse>> {
     try {
-      const data = await this.repository.getDataByField(this.idKey, request.body[this.idKey]);
+      const deptName = request.params[this.relatedName];
+      const selectedDept = await this.departmentRepository.getDataByField('name', deptName);
+      const data = await this.taskTypeRepository.getDataThroughRelation(
+        request.body[this.keyId],
+        selectedDept.name,
+      );
       return this.apiResponse.Ok(
         response,
         200,
@@ -67,9 +72,9 @@ export class DepartmentController {
     request: Request,
     response: Response,
     next: NextFunction,
-  ): Promise<Response<IEmployeePositionResponse>> {
+  ): Promise<Response<ITaskTypeResponse>> {
     try {
-      const savedData = await this.repository.save(request.body);
+      const savedData = await this.taskTypeRepository.save(request.body);
       return this.apiResponse.Ok(
         response,
         200,
@@ -78,16 +83,9 @@ export class DepartmentController {
       );
     } catch (error) {
       const customError = error as CustomError;
-      console.log('customError1', customError.message);
       if ((error && error.code == 'ER_DUP_ENTRY') || error?.code === '23505') {
-        console.log('customError2', customError.message);
         customError.statusCode = 409;
-        if (error.message.includes(this.uniqueConstraint)) {
-          console.log('customError3', customError.message);
-          customError.message = `O ${this.routeNameTranslatedSingular} já existe e não pode estar duplicado.`;
-        } else {
-          customError.message = 'Registro duplicado.';
-        }
+        customError.message = 'Registro duplicado.';
         this.apiResponse.Error(response, customError.statusCode, customError.message);
       } else {
         customError.message = `Erro de conexão com o banco de dados ao consultar a tabela de ${this.routeNameTranslated}.`;
@@ -102,11 +100,13 @@ export class DepartmentController {
     next: NextFunction,
   ): Promise<Response<IDefaultResponse>> {
     try {
-      const data = await this.repository.getDataByField(
-        this.idKey,
-        Number(request.params[this.idKey]),
+      const deptName = request.params[this.relatedName];
+      const selectedDept = await this.departmentRepository.getDataByField('name', deptName);
+      const data = await this.taskTypeRepository.getData(
+        Number(request.params[this.keyId]),
+        selectedDept.name,
       );
-      await this.repository.delete(data[this.idKey] as number);
+      await this.taskTypeRepository.delete(data[this.keyId]);
       return this.apiResponse.Ok(
         response,
         200,

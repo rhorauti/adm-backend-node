@@ -1,22 +1,22 @@
 import { DataSource } from 'typeorm';
-import { Users } from '@models/auth/users';
-import { Company } from '@models/company/company';
-import { Employee } from '@models/employee/employee';
-import { EmployeeContract } from '@models/employee/employee-contract';
-import { EmployeeVacation } from '@models/employee/employee-vacation';
-import { Invoice } from '@models/invoice/invoice';
-import { Product } from '@models/product/product';
-import { Production } from '@models/production/production';
-import { Project } from '@models/project/project';
-import { ProjectEvent } from '@models/project/projectEvent';
-import { PurchasingOrder } from '@models/purchasing-order/purchasingOrder';
-import { Address } from '@models/address/address';
-import { Asset } from '@models/asset/asset';
-import { EmployeePosition } from '@models/employee/employee-position';
-import { Department } from '@models/department/department';
-import { Kpi } from '@models/kpi/kpi';
-import { ProductionLine } from '@models/production-line/production-line';
-import { MaintenanceTask } from '@models/maintenance/task';
+import { User } from '@models/auth/user.model.';
+import { Company } from '@models/company/company.model';
+import { Employee } from '@models/employee/employee.model';
+import { EmployeeContract } from '@models/employee/employee-contract.model';
+import { EmployeeVacation } from '@models/employee/employee-vacation.model';
+import { Invoice } from '@models/invoice/invoice.model';
+import { Product } from '@models/product/product.model';
+import { Production } from '@models/production/production.model';
+import { Project } from '@models/project/project.model';
+import { ProjectEvent } from '@models/project/project-event.model';
+import { PurchasingOrder } from '@models/purchasing-order/purchasing-order.model';
+import { Address } from '@models/address/address.model';
+import { EmployeePosition } from '@models/employee/employee-position.model';
+import { Department } from '@models/department/department.model';
+import { Kpi } from '@models/kpi/kpi.model';
+import { ProductionLine } from '@models/production-line/production-line.model';
+import { Task } from '@models/task/task.model';
+import { TaskType } from '@models/task/task-type.model';
 
 export const dataSourceDev = new DataSource({
   type: 'postgres',
@@ -29,9 +29,8 @@ export const dataSourceDev = new DataSource({
   logging: true,
   entities: [
     Company,
-    Users,
+    User,
     Address,
-    Asset,
     Employee,
     EmployeeContract,
     EmployeePosition,
@@ -45,7 +44,8 @@ export const dataSourceDev = new DataSource({
     ProjectEvent,
     PurchasingOrder,
     ProductionLine,
-    MaintenanceTask,
+    Task,
+    TaskType,
   ],
 });
 
@@ -59,14 +59,13 @@ export const dataSourceProd = new DataSource({
   logging: true,
   entities: [
     Company,
-    Users,
+    User,
     Address,
-    Asset,
     Employee,
     EmployeeContract,
-    EmployeeVacation,
     EmployeePosition,
     Department,
+    EmployeeVacation,
     Kpi,
     Invoice,
     Product,
@@ -75,5 +74,7 @@ export const dataSourceProd = new DataSource({
     ProjectEvent,
     PurchasingOrder,
     ProductionLine,
+    Task,
+    TaskType,
   ],
 });

@@ -1,4 +1,4 @@
-import { Company } from '@models/company/company';
+import { PurchasingOrder } from '@models/purchasing-order/purchasing-order.model';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Timestamp } from 'typeorm';
 
 @Entity('Invoice')
@@ -19,11 +19,14 @@ export class Invoice {
   @Column({ type: 'timestamp', nullable: true })
   paymentDateActual: Timestamp;
 
-  @ManyToOne(() => Company, company => company.invoice, { nullable: true, onDelete: 'CASCADE' })
-  @JoinColumn({
-    name: 'idCompany',
-    referencedColumnName: 'idCompany',
-    foreignKeyConstraintName: 'FR_invoice_company',
+  @ManyToOne(() => PurchasingOrder, purchasingOrder => purchasingOrder.invoice, {
+    nullable: true,
+    onDelete: 'NO ACTION',
   })
-  company: Company;
+  @JoinColumn({
+    name: 'idPurchasingOrder',
+    referencedColumnName: 'idPurchasingOrder',
+    foreignKeyConstraintName: 'FR_invoice_purchasing_order',
+  })
+  purchasingOrder: PurchasingOrder;
 }

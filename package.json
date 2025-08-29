@@ -60,12 +60,14 @@
     "typeorm:dev": "node -r ts-node/register -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
     "schema:log": "npm run typeorm:dev -- schema:log --dataSource=src/config/dev.migration.config.ts",
     "migration:gen": "npm run typeorm:dev -- migration:generate src/migrations/InitMigration --dataSource=src/config/dev.migration.config.ts",
-    "migration:run": "npm run typeorm:dev -- migration:run --dataSource=src/config/dev.migration.config.ts",
+    "migration:run:dev": "npm run typeorm:dev -- migration:run --dataSource=src/config/dev.migration.config.ts",
+    "migration:drop:dev": "npm run typeorm:dev -- schema:drop --dataSource=src/config/dev.migration.config.ts",
     "docs": "typedoc",
     "start": "node -r module-alias/register dist/app.js",
     "typeorm:prod": "node -r module-alias/register ./node_modules/typeorm/cli.js",
     "migration:run:prod": "npm run typeorm:prod -- migration:run --dataSource=dist/config/prod.migration.config.js",
     "migration:show:prod": "npm run typeorm:prod -- migration:show --dataSource=dist/config/prod.migration.config.js",
-    "migration:revert:prod": "npm run typeorm:prod -- migration:revert --dataSource=dist/config/prod.migration.config.js"
+    "migration:revert:prod": "npm run typeorm:prod -- migration:revert --dataSource=dist/config/prod.migration.config.js",
+    "migration:drop:prod": "npm run typeorm:prod -- schema:drop --dataSource=dist/config/prod.migration.config.js"
   }
 }

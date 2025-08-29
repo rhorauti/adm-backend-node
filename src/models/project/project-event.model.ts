@@ -1,5 +1,5 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Timestamp } from 'typeorm';
-import { Project } from './project';
+import { Project } from './project.model';
 
 @Entity('ProjectEvent')
 export class ProjectEvent {
@@ -10,19 +10,19 @@ export class ProjectEvent {
   name: string;
 
   @Column({ type: 'float' })
-  productQtyPlan: number;
+  productQtyPlan?: number;
 
   @Column({ type: 'float' })
-  productQtyActual: number;
+  productQtyActual?: number;
 
   @Column({ type: 'timestamp' })
-  deliveryDatePlan: Timestamp;
+  deliveryDatePlan?: Timestamp;
 
   @Column({ type: 'timestamp' })
-  deliveryDateActual: Timestamp;
+  deliveryDateActual?: Timestamp;
 
   @Column({ type: 'varchar', length: 100 })
-  comment: string;
+  comment?: string;
 
   @ManyToOne(() => Project, project => project.projectEvent, {
     nullable: true,

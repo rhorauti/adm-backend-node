@@ -15,6 +15,7 @@ export const handleErrorMiddleware = async (
   response: Response,
   next: NextFunction,
 ): Promise<Response> => {
+  console.log('error middleware', error);
   if (!error.statusCode) error.statusCode = 500;
   if (!error.message) error.message = 'Erro interno do servidor';
   return apiResponse.Error(response, 500, error.message);

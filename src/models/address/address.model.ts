@@ -1,6 +1,6 @@
 import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { Employee } from '../employee/employee';
-import { Company } from '@models/company/company';
+import { Employee } from '../employee/employee.model';
+import { Company } from '@models/company/company.model';
 import { Exclude } from 'class-transformer';
 
 @Entity('Address')
@@ -36,7 +36,7 @@ export class Address {
     referencedColumnName: 'idCompany',
     foreignKeyConstraintName: 'FK_address_company',
   })
-  company: Company;
+  company?: Company;
 
   @Exclude()
   @OneToOne(() => Employee, employee => employee.address, { nullable: true, onDelete: 'CASCADE' })
@@ -45,5 +45,5 @@ export class Address {
     referencedColumnName: 'idEmployee',
     foreignKeyConstraintName: 'FK_address_employee',
   })
-  employee: Employee;
+  employee?: Employee;
 }

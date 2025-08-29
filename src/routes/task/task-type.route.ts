@@ -2,25 +2,34 @@ import Router, { NextFunction, Request, Response } from 'express';
 import { param, ValidationChain } from 'express-validator';
 import { container } from 'tsyringe';
 import { raiseMiddlewareError } from '@utils/misc';
-import { DepartmentController } from '@controllers/department/department.controller';
+import { TaskType } from '@models/task/task-type.model';
+import { TaskTypeController } from '@controllers/task/task-type.controller';
 
-const departmentRoute = Router();
+const taskTypeRoute = Router();
 
-const baseRouteName = 'departments';
-const idKey = 'idDepartment';
+const baseRouteName = 'task-types';
+const deptName = 'department';
+export const keyId: keyof TaskType = 'idTaskType';
 
-const controller = container.resolve(DepartmentController);
+const controller = container.resolve(TaskTypeController);
 
 const paramsMiddleware = (): ValidationChain[] => {
   return [
-    param(`${String(idKey)}`)
+    param(`${String(keyId)}`)
       .notEmpty()
-      .withMessage(`O parâmetro ${String(idKey)} não pode estar vazio.`),
+      .withMessage(`O parâmetro ${String(keyId)} não pode estar vazio.`),
   ];
 };
 
-departmentRoute.get(
-  `/${baseRouteName}/:${String(idKey)}`,
+taskTypeRoute.get(
+  `/:${deptName}/${baseRouteName}`,
+  (request: Request, response: Response, next: NextFunction) => {
+    controller.getDataList(request, response, next);
+  },
+);
+
+taskTypeRoute.get(
+  `/:${deptName}/${baseRouteName}/:${String(keyId)}`,
   paramsMiddleware(),
   (request: Request, response: Response, next: NextFunction) => {
     raiseMiddlewareError(request, response, next);
@@ -31,22 +40,15 @@ departmentRoute.get(
   },
 );
 
-departmentRoute.get(
-  `/${baseRouteName}`,
-  (request: Request, response: Response, next: NextFunction) => {
-    controller.getDataList(request, response, next);
-  },
-);
-
-departmentRoute.post(
-  `/${baseRouteName}`,
+taskTypeRoute.post(
+  `/:${deptName}/${baseRouteName}`,
   (request: Request, response: Response, next: NextFunction) => {
     controller.save(request, response, next);
   },
 );
 
-departmentRoute.delete(
-  `/${baseRouteName}/:${String(idKey)}`,
+taskTypeRoute.delete(
+  `/:${deptName}/${baseRouteName}/:${String(keyId)}`,
   paramsMiddleware(),
   (request: Request, response: Response, next: NextFunction) => {
     raiseMiddlewareError(request, response, next);
@@ -56,4 +58,4 @@ departmentRoute.delete(
   },
 );
 
-export { departmentRoute };
+export { taskTypeRoute };

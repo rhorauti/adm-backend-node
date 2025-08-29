@@ -1,28 +1,28 @@
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
-import { Users } from '@models/auth/users';
-import { Company } from '@models/company/company';
-import { Employee } from '@models/employee/employee';
-import { EmployeeContract } from '@models/employee/employee-contract';
-import { EmployeeVacation } from '@models/employee/employee-vacation';
-import { Invoice } from '@models/invoice/invoice';
-import { Product } from '@models/product/product';
-import { Production } from '@models/production/production';
-import { Project } from '@models/project/project';
-import { ProjectEvent } from '@models/project/projectEvent';
-import { PurchasingOrder } from '@models/purchasing-order/purchasingOrder';
-import { Address } from '@models/address/address';
-import { Asset } from '@models/asset/asset';
+import { User } from '@models/auth/user.model.';
+import { Company } from '@models/company/company.model';
+import { Employee } from '@models/employee/employee.model';
+import { EmployeeContract } from '@models/employee/employee-contract.model';
+import { EmployeeVacation } from '@models/employee/employee-vacation.model';
+import { Invoice } from '@models/invoice/invoice.model';
+import { Product } from '@models/product/product.model';
+import { Production } from '@models/production/production.model';
+import { Project } from '@models/project/project.model';
+import { ProjectEvent } from '@models/project/project-event.model';
+import { PurchasingOrder } from '@models/purchasing-order/purchasing-order.model';
+import { Address } from '@models/address/address.model';
 import * as dotenv from 'dotenv';
-import { EmployeePosition } from '@models/employee/employee-position';
-import { Department } from '@models/department/department';
-import { Kpi } from '@models/kpi/kpi';
-import { ProductionLine } from '@models/production-line/production-line';
-import { MaintenanceTask } from '@models/maintenance/task';
+import { EmployeePosition } from '@models/employee/employee-position.model';
+import { Department } from '@models/department/department.model';
+import { Kpi } from '@models/kpi/kpi.model';
+import { ProductionLine } from '@models/production-line/production-line.model';
+import { TaskType } from '@models/task/task-type.model';
+import { Task } from '@models/task/task.model';
 
 dotenv.config({ path: '.env.development' });
 
-const AppDataSource = new DataSource({
+const AppDataSourceDev = new DataSource({
   type: 'postgres',
   host: process.env.DB_HOST,
   port: Number(process.env.DB_PORT),
@@ -33,9 +33,8 @@ const AppDataSource = new DataSource({
   logging: true,
   entities: [
     Company,
-    Users,
+    User,
     Address,
-    Asset,
     Employee,
     EmployeeContract,
     EmployeePosition,
@@ -49,9 +48,10 @@ const AppDataSource = new DataSource({
     ProjectEvent,
     PurchasingOrder,
     ProductionLine,
-    MaintenanceTask,
+    Task,
+    TaskType,
   ],
   migrations: ['src/migrations/**/*.ts'],
 });
 
-export default AppDataSource;
+export default AppDataSourceDev;

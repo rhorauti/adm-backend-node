@@ -1,16 +1,16 @@
-import { Users } from '@models/auth/users';
+import { User } from '@models/auth/user.model.';
 import { DataSource, Repository } from 'typeorm';
 import { inject, injectable } from 'tsyringe';
 
 @injectable()
 export class AuthRepository {
-  private userRepository: Repository<Users>;
+  private userRepository: Repository<User>;
 
   constructor(@inject('DataSource') private dataSource: DataSource) {
-    this.userRepository = this.dataSource.getRepository(Users);
+    this.userRepository = this.dataSource.getRepository(User);
   }
 
-  async createNewUser(name: string, email: string, password: string): Promise<Users> {
+  async createNewUser(name: string, email: string, password: string): Promise<User> {
     const newUser = this.userRepository.create({
       name: name,
       email: email,
@@ -24,7 +24,7 @@ export class AuthRepository {
     return this.userRepository.save(newUser);
   }
 
-  async findUserByEmail(email: string): Promise<Users> {
+  async findUserByEmail(email: string): Promise<User> {
     const user = await this.userRepository.findOneBy({
       email: email,
     });
@@ -34,7 +34,7 @@ export class AuthRepository {
   async validateEmail(email: string): Promise<void> {
     await this.userRepository
       .createQueryBuilder()
-      .update(Users)
+      .update(User)
       .set({ emailConfirmed: true })
       .where({ email: email })
       .execute();
@@ -43,7 +43,7 @@ export class AuthRepository {
   async changePassword(email: string, password: string): Promise<void> {
     await this.userRepository
       .createQueryBuilder()
-      .update(Users)
+      .update(User)
       .set({ password: password })
       .where({ email: email })
       .execute();

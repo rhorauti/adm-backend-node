@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 import jwt from 'jsonwebtoken';
-import { Users } from '@models/auth/users';
+import { User } from '@models/auth/user.model.';
 
 export class EmailSender {
   private transporter: nodemailer.Transporter;
@@ -20,7 +20,7 @@ export class EmailSender {
     });
   }
 
-  async sendEmailConfirmationSignUp(user: Users): Promise<void> {
+  async sendEmailConfirmationSignUp(user: User): Promise<void> {
     const token: string = jwt.sign({ email: user.email }, process.env.JWT_SECRET_KEY, {
       algorithm: 'HS256',
       expiresIn: Number(process.env.JWT_EXPIRES_IN),
@@ -44,7 +44,7 @@ export class EmailSender {
     }
   }
 
-  async sendEmailConfirmationResetPassword(user: Users): Promise<void> {
+  async sendEmailConfirmationResetPassword(user: User): Promise<void> {
     const token: string = jwt.sign({ email: user.email }, process.env.JWT_SECRET_KEY, {
       expiresIn: Number(process.env.JWT_EXPIRES_IN),
     });

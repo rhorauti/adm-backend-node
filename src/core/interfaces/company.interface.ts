@@ -1,30 +1,18 @@
-import { IAddress } from './address.interface';
+import { Company } from '@models/company/company.model';
 import { IDefaultResponse } from './base.interface';
 import { IEmployee } from './employee.interface';
-
-export interface ICompany {
-  idCompany: number;
-  nickname: string;
-  name: string;
-  cnpj?: string;
-  ie?: string;
-  im?: string;
-}
+import { Address } from '@models/address/address.model';
 
 export interface ICompanyDetail {
-  company: ICompany;
-  address: IAddress;
+  company: Company;
+  address: Address;
   employee: IEmployee;
 }
 
 export interface ICompanyResponse extends IDefaultResponse {
   data?: {
-    company?: ICompany;
-    address?: IAddress;
+    company?: Company;
+    address?: Address;
     employee?: IEmployee;
   };
-}
-
-export interface ICompanyParams {
-  idCompany: string;
 }

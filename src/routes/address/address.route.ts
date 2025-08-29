@@ -24,7 +24,7 @@ addressRoute.get(
     raiseMiddlewareError(request, response, next);
   },
   (request: Request<ICompanyParams>, response: Response, next: NextFunction) => {
-    addressController.getAddressList(request, response, next);
+    addressController.getDataList(request, response, next);
   },
 );
 

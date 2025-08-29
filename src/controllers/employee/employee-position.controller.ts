@@ -6,22 +6,21 @@ import { CustomError } from '@middlewares/error';
 import { ApiResponse } from '@utils/api-response';
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
+import { EmployeePositionRepository } from '@repositories/employee/employee-position.repository';
 import { IDefaultResponse } from '@core/interfaces/base.interface';
-import { DepartmentRepository } from '@repositories/department/department.repository';
-import { Department } from '@models/department/department.model';
 
 @injectable()
-export class DepartmentController {
+export class EmployeePositionController {
   constructor(
-    @inject('DepartmentRepository') private repository: DepartmentRepository,
+    @inject('EmployeePositionRepository') private repository: EmployeePositionRepository,
     @inject('ApiResponse')
     private apiResponse: ApiResponse,
   ) {}
 
-  routeNameTranslated = 'departamentos';
-  idKey: keyof Department = 'idDepartment';
+  routeNameTranslated = 'cargos';
+  keyId = 'idEmployeePosition';
   routeNameTranslatedSingular = this.routeNameTranslated.slice(0, -1);
-  uniqueConstraint = 'UQ_department_name';
+  uniqueConstraint = 'UQ_employee_position_name';
 
   async getDataList(
     request: Request,
@@ -49,7 +48,7 @@ export class DepartmentController {
     next: NextFunction,
   ): Promise<Response<IEmployeePositionResponse>> {
     try {
-      const data = await this.repository.getDataByField(this.idKey, request.body[this.idKey]);
+      const data = await this.repository.getData(request.body[this.keyId]);
       return this.apiResponse.Ok(
         response,
         200,
@@ -78,12 +77,9 @@ export class DepartmentController {
       );
     } catch (error) {
       const customError = error as CustomError;
-      console.log('customError1', customError.message);
       if ((error && error.code == 'ER_DUP_ENTRY') || error?.code === '23505') {
-        console.log('customError2', customError.message);
         customError.statusCode = 409;
         if (error.message.includes(this.uniqueConstraint)) {
-          console.log('customError3', customError.message);
           customError.message = `O ${this.routeNameTranslatedSingular} já existe e não pode estar duplicado.`;
         } else {
           customError.message = 'Registro duplicado.';
@@ -102,11 +98,8 @@ export class DepartmentController {
     next: NextFunction,
   ): Promise<Response<IDefaultResponse>> {
     try {
-      const data = await this.repository.getDataByField(
-        this.idKey,
-        Number(request.params[this.idKey]),
-      );
-      await this.repository.delete(data[this.idKey] as number);
+      const data = await this.repository.getData(Number(request.params[this.keyId]));
+      await this.repository.delete(data[this.keyId]);
       return this.apiResponse.Ok(
         response,
         200,

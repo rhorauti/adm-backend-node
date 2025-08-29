@@ -2,25 +2,33 @@ import Router, { NextFunction, Request, Response } from 'express';
 import { param, ValidationChain } from 'express-validator';
 import { container } from 'tsyringe';
 import { raiseMiddlewareError } from '@utils/misc';
-import { DepartmentController } from '@controllers/department/department.controller';
+import { EmployeePositionController } from '@controllers/employee/employee-position.controller';
+import { EmployeePosition } from '@models/employee/employee-position.model';
 
-const departmentRoute = Router();
+const employeePositionRoute = Router();
 
-const baseRouteName = 'departments';
-const idKey = 'idDepartment';
+const baseRouteName = 'employee-positions';
+export const keyId: keyof EmployeePosition = 'idEmployeePosition';
 
-const controller = container.resolve(DepartmentController);
+const controller = container.resolve(EmployeePositionController);
 
 const paramsMiddleware = (): ValidationChain[] => {
   return [
-    param(`${String(idKey)}`)
+    param(`${String(keyId)}`)
       .notEmpty()
-      .withMessage(`O parâmetro ${String(idKey)} não pode estar vazio.`),
+      .withMessage(`O parâmetro ${String(keyId)} não pode estar vazio.`),
   ];
 };
 
-departmentRoute.get(
-  `/${baseRouteName}/:${String(idKey)}`,
+employeePositionRoute.get(
+  `/${baseRouteName}`,
+  (request: Request, response: Response, next: NextFunction) => {
+    controller.getDataList(request, response, next);
+  },
+);
+
+employeePositionRoute.get(
+  `/${baseRouteName}/:${String(keyId)}`,
   paramsMiddleware(),
   (request: Request, response: Response, next: NextFunction) => {
     raiseMiddlewareError(request, response, next);
@@ -31,22 +39,15 @@ departmentRoute.get(
   },
 );
 
-departmentRoute.get(
-  `/${baseRouteName}`,
-  (request: Request, response: Response, next: NextFunction) => {
-    controller.getDataList(request, response, next);
-  },
-);
-
-departmentRoute.post(
+employeePositionRoute.post(
   `/${baseRouteName}`,
   (request: Request, response: Response, next: NextFunction) => {
     controller.save(request, response, next);
   },
 );
 
-departmentRoute.delete(
-  `/${baseRouteName}/:${String(idKey)}`,
+employeePositionRoute.delete(
+  `/${baseRouteName}/:${String(keyId)}`,
   paramsMiddleware(),
   (request: Request, response: Response, next: NextFunction) => {
     raiseMiddlewareError(request, response, next);
@@ -56,4 +57,4 @@ departmentRoute.delete(
   },
 );
 
-export { departmentRoute };
+export { employeePositionRoute };

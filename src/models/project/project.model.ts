@@ -1,7 +1,6 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Timestamp, Unique } from 'typeorm';
-import { ProjectEvent } from './projectEvent';
-import { Asset } from '@models/asset/asset';
-import { Product } from '@models/product/product';
+import { ProjectEvent } from './project-event.model';
+import { Product } from '@models/product/product.model';
 
 @Unique('UQ_project_code', ['code'])
 @Entity('Project')
@@ -19,11 +18,6 @@ export class Project {
     nullable: true,
   })
   product?: Product[];
-
-  @OneToMany(() => Asset, asset => asset.project, {
-    nullable: true,
-  })
-  asset?: Asset[];
 
   @OneToMany(() => ProjectEvent, projectEvent => projectEvent.project, {
     nullable: true,

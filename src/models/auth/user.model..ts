@@ -2,7 +2,7 @@ import { Exclude } from 'class-transformer';
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, Timestamp } from 'typeorm';
 
 @Entity('User')
-export class Users {
+export class User {
   @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_user' })
   id: number;
 

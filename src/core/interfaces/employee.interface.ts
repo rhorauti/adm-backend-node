@@ -1,4 +1,4 @@
-import { EmployeePosition } from '@models/employee/employee-position';
+import { EmployeePosition } from '@models/employee/employee-position.model';
 import { IDefaultResponse } from './base.interface';
 
 export interface IEmployee {

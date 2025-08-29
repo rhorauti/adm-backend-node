@@ -1,6 +1,6 @@
 import { CompanyRepository } from '@repositories/company/company.respository';
-import { ICompany, ICompanyDetail, ICompanyResponse } from '@core/interfaces/company.interface';
-import { Company } from '@models/company/company';
+import { ICompanyDetail, ICompanyResponse } from '@core/interfaces/company.interface';
+import { Company } from '@models/company/company.model';
 import { ApiResponse } from '@utils/api-response';
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
@@ -13,26 +13,30 @@ export class CompanyController {
     @inject('ApiResponse') private apiResponse: ApiResponse,
   ) {}
 
+  routeNameTranslated = 'empresas';
+  keyId = 'idCompany';
+  routeNameTranslatedSingular = 'da ' + this.routeNameTranslated.slice(0, -1);
+
   async getCompanyInfo(
     request: Request,
     response: Response,
     next: NextFunction,
   ): Promise<Response> {
-    const idCompany = Number(request.params.idCompany);
+    const id = Number(request.params[this.keyId]);
     try {
-      const company = await this.companyRepository.findCompanyByField({ idCompany: idCompany });
-      if (company) {
-        return this.apiResponse.Ok<ICompany>(
+      const data = await this.companyRepository.findCompanyByField({ [this.keyId]: id });
+      if (data) {
+        return this.apiResponse.Ok<Company>(
           response,
           200,
-          'Detalhes da empresa recebida com sucesso!',
-          company,
+          `Detalhes ${this.routeNameTranslatedSingular} recebida com sucesso!`,
+          data,
         );
       } else {
         return this.apiResponse.Error(
           response,
           500,
-          'Falha interna ao pegar as informações da empresa.',
+          `Falha interna ao pegar as informações ${this.routeNameTranslatedSingular}.`,
         );
       }
     } catch (error) {
@@ -46,20 +50,20 @@ export class CompanyController {
     next: NextFunction,
   ): Promise<Response> {
     try {
-      const idCompany = Number(request.params.idCompany);
-      const companyCompleteInfo = await this.companyRepository.getCompanyCompleteInfo(idCompany);
-      if (companyCompleteInfo) {
+      const id = Number(request.params[this.keyId]);
+      const data = await this.companyRepository.getCompanyCompleteInfo(id);
+      if (data) {
         return this.apiResponse.Ok<ICompanyDetail>(
           response,
           200,
-          'Detalhes da empresa recebida com sucesso!',
-          companyCompleteInfo,
+          `Detalhes ${this.routeNameTranslatedSingular} recebida com sucesso!`,
+          data,
         );
       } else {
         return this.apiResponse.Error(
           response,
           500,
-          'Falha interna ao pegar as informações da empresa.',
+          `Falha interna ao pegar as informações ${this.routeNameTranslatedSingular}.`,
         );
       }
     } catch (error) {
@@ -68,12 +72,10 @@ export class CompanyController {
       const step = typeof customError.step == 'string' ? customError.step : '';
       switch (step) {
         case 'getting-company':
-          customError.message =
-            'Erro interno ao procurar os dados existentes da empresa. Tente novamente mais tarde.';
+          customError.message = `Erro interno ao procurar os dados existentes ${this.routeNameTranslatedSingular}. Tente novamente mais tarde.`;
           break;
         case 'getting-address':
-          customError.message =
-            'Erro interno ao procurar os dados do endereço da empresa. Tente novamente mais tarde.';
+          customError.message = `Erro interno ao procurar os dados do endereço ${this.routeNameTranslatedSingular}. Tente novamente mais tarde.`;
           break;
         case 'getting-employee':
           customError.message =
@@ -81,11 +83,11 @@ export class CompanyController {
           break;
         case 'getting-department':
           customError.message =
-            'Erro interno ao procurar os dados do departamento do funcionário. Tente novamente mais tarde.';
+            'Erro interno ao procurar os dados do departamento. Tente novamente mais tarde.';
           break;
         case 'getting-employee-position':
           customError.message =
-            'Erro interno ao procurar os dados do cargo do funcionário. Tente novamente mais tarde.';
+            'Erro interno ao procurar os dados do cargo. Tente novamente mais tarde.';
           break;
         default:
           customError.message = 'Erro interno inesperado. Tente novamente mais tarde.';
@@ -95,8 +97,8 @@ export class CompanyController {
   }
 
   async getCompanyList(
-    request: Request<ICompany>,
-    response: Response<ICompanyResponse>,
+    request: Request,
+    response: Response,
     next: NextFunction,
   ): Promise<Response<ICompanyResponse>> {
     try {
@@ -109,7 +111,7 @@ export class CompanyController {
           companies,
         );
       } else {
-        return this.apiResponse.Error(response, 500, 'Falha ao listar as empresas.');
+        return this.apiResponse.Error(response, 500, `Falha ao listar ${this.routeNameTranslated}`);
       }
     } catch (error) {
       next(error);
@@ -123,40 +125,42 @@ export class CompanyController {
   ): Promise<Response<ICompanyResponse>> {
     try {
       if (
-        request.body.company.idCompany == 0 ||
-        request.body.company.idCompany == undefined ||
-        request.body.company.idCompany == null
+        request.body.company[this.keyId] == 0 ||
+        request.body.company[this.keyId] == undefined ||
+        request.body.company[this.keyId] == null
       ) {
-        const company = await this.companyRepository.addCompany(request.body);
+        const data = await this.companyRepository.addCompany(request.body);
         return this.apiResponse.Ok<ICompanyDetail>(
           response,
           200,
-          'Empresa adicionada com sucesso.',
-          company,
+          `Dados do(a) ${this.routeNameTranslatedSingular} adicionada com sucesso.`,
+          data,
         );
       } else {
-        const company = await this.companyRepository.updateCompany(request.body);
-        if (company) {
-          return this.apiResponse.Ok(response, 200, 'Empresa salva com sucesso.', company);
+        const data = await this.companyRepository.updateCompany(request.body);
+        if (data) {
+          return this.apiResponse.Ok(
+            response,
+            200,
+            `Dados do(a) ${this.routeNameTranslatedSingular} salvos com sucesso.`,
+            data,
+          );
         }
       }
     } catch (error) {
-      console.log('error', error);
       const customError = error as CustomError;
       if ((error && error.code == 'ER_DUP_ENTRY') || error?.code === '23505') {
         customError.statusCode = 409;
         if (error.message.includes('UQ_company_name')) {
-          customError.message = 'O nome da empresa já existe e não pode estar duplicado.';
+          customError.message = `O nome da ${this.routeNameTranslatedSingular} já existe e não pode estar duplicado.`;
         } else if (error.message.includes('UQ_company_nickname')) {
-          customError.message = 'O Nome Fantasia da empresa já existe e não pode estar duplicado.';
+          customError.message = `O Nome Fantasia da ${this.routeNameTranslatedSingular} já existe e não pode estar duplicado.`;
         } else if (error.message.includes('UQ_company_cnpj')) {
-          customError.message = 'O CNPJ/CPF da empresa já existe e não pode estar duplicado.';
+          customError.message = `O CNPJ/CPF ${this.routeNameTranslatedSingular} já existe e não pode estar duplicado.`;
         } else if (error.message.includes('UQ_company_ie')) {
-          customError.message =
-            'A Inscrição Estadual da empresa já existe e não pode estar duplicado.';
+          customError.message = `A Inscrição Estadual ${this.routeNameTranslatedSingular} já existe e não pode estar duplicado.`;
         } else if (error.message.includes('UQ_company_im')) {
-          customError.message =
-            'A Inscrição Municipal da empresa já existe e não pode estar duplicado.';
+          customError.message = `A Inscrição Municipal ${this.routeNameTranslatedSingular} já existe e não pode estar duplicado.`;
         }
       } else if (error.message?.includes('UQ_employee_cpf')) {
         customError.message = 'Já existe um funcionário com esse CPF.';
@@ -167,20 +171,17 @@ export class CompanyController {
         const step = typeof customError.step == 'string' ? customError.step : '';
         switch (step) {
           case 'saving-company':
-            customError.message =
-              'Erro interno ao salvar os dados da empresa. Tente novamente mais tarde.';
+            customError.message = `Erro interno ao salvar os dados ${this.routeNameTranslatedSingular}. Tente novamente mais tarde.`;
             break;
           case 'getting-company':
-            customError.message =
-              'Erro interno ao procurar os dados da empresa. Tente novamente mais tarde.';
+            customError.message = `Erro interno ao procurar os dados ${this.routeNameTranslatedSingular}. Tente novamente mais tarde.`;
             break;
           case 'saving-address':
-            customError.message =
-              'Erro interno ao salvar os dados do endereço da empresa. Tente novamente mais tarde.';
+            customError.message = `Erro interno ao salvar os dados do endereço ${this.routeNameTranslatedSingular}. Tente novamente mais tarde.`;
             break;
           case 'getting-address':
             customError.message =
-              'Erro interno ao procurar os dados de endereço. Tente novamente mais tarde.';
+              'Erro interno ao procurar os dados do endereço. Tente novamente mais tarde.';
             break;
           case 'saving-employee':
             customError.message =
@@ -192,11 +193,11 @@ export class CompanyController {
             break;
           case 'getting-department':
             customError.message =
-              'Erro interno ao procurar os dados do departamento do funcionário. Tente novamente mais tarde.';
+              'Erro interno ao procurar os dados do departamento. Tente novamente mais tarde.';
             break;
           case 'getting-employee-position':
             customError.message =
-              'Erro interno ao procurar os dados do cargo do funcionário. Tente novamente mais tarde.';
+              'Erro interno ao procurar os dados do cargo. Tente novamente mais tarde.';
             break;
           default:
             customError.message = 'Erro interno inesperado. Tente novamente mais tarde.';
@@ -212,166 +213,15 @@ export class CompanyController {
     next: NextFunction,
   ): Promise<Response<ICompanyResponse>> {
     try {
-      const company = await this.companyRepository.findCompanyByField({
-        idCompany: Number(request.params.idCompany),
+      const data = await this.companyRepository.findCompanyByField({
+        [this.keyId]: Number(request.params[this.keyId]),
       });
-      await this.companyRepository.deleteCompany(company.idCompany);
-      return this.apiResponse.Ok(response, 200, `Empresa ${company.name} excluida com sucesso!`);
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  prefixes = [
-    'Blue',
-    'Green',
-    'Red',
-    'Silver',
-    'Golden',
-    'Bright',
-    'Quantum',
-    'Neo',
-    'Next',
-    'Future',
-    'Nova',
-    'Apex',
-    'Zenith',
-    'Hyper',
-    'Meta',
-    'Omni',
-    'Eco',
-    'Cyber',
-    'Fusion',
-    'Vertex',
-    'Alpha',
-    'Beta',
-    'Lunar',
-    'Solar',
-    'Urban',
-    'Velocity',
-    'Cloud',
-    'Net',
-    'Digital',
-    'Smart',
-    'Infinity',
-    'Dynamic',
-    'Synergy',
-  ];
-
-  suffixes = [
-    'Solutions',
-    'Systems',
-    'Technologies',
-    'Enterprises',
-    'Group',
-    'Corp',
-    'LLC',
-    'Inc',
-    'Studios',
-    'Labs',
-    'Works',
-    'Networks',
-    'Industries',
-    'Holdings',
-    'Partners',
-    'Consulting',
-    'Software',
-    'Media',
-    'Logistics',
-    'Innovations',
-    'Ventures',
-    'Designs',
-    'Development',
-    'Analytics',
-    'Services',
-    'Dynamics',
-  ];
-
-  setRandomNameAndNickName(): string {
-    const prefix = this.prefixes[Math.floor(Math.random() * this.prefixes.length)];
-    const suffix = this.suffixes[Math.floor(Math.random() * this.suffixes.length)];
-    const id = Math.floor(Math.random());
-    return `${prefix} ${suffix} ${id}`;
-  }
-
-  setRandomCnpjOrIeOrIm(length = 14): string {
-    let cnpj = '';
-    for (let i = 0; i < length; i++) {
-      cnpj += Math.floor(Math.random() * 10);
-    }
-    return cnpj;
-  }
-
-  async addRandomRegisters(
-    request: Request,
-    response: Response,
-    next: NextFunction,
-  ): Promise<Response> {
-    try {
-      const registersNumber = 30;
-      const baseTimestamp = Date.now();
-      const randomCompany = {
-        company: {
-          idCompany: 0,
-          name: '',
-          nickname: '',
-          cnpj: '',
-          ie: '',
-          im: '',
-        },
-        address: {
-          idAddress: 0,
-          postalCode: '',
-          address: '',
-          complement: '',
-          number: '',
-          district: '',
-          city: '',
-          state: '',
-        },
-        employee: {
-          idEmployee: 0,
-          isDefault: false,
-          name: '',
-          cellphone: '',
-          cpf: '',
-          department: '',
-          deskphone: '',
-          email: '',
-          position: '',
-        },
-      } as ICompanyDetail;
-      for (let i = 0; i < registersNumber; i++) {
-        const uniqueId = `${baseTimestamp}${i}`;
-        randomCompany.company.idCompany = 0;
-        randomCompany.company.name = this.setRandomNameAndNickName() + uniqueId;
-        randomCompany.company.nickname = this.setRandomNameAndNickName() + uniqueId;
-        randomCompany.company.cnpj = this.setRandomCnpjOrIeOrIm();
-        randomCompany.company.ie = this.setRandomCnpjOrIeOrIm(8);
-        randomCompany.company.im = this.setRandomCnpjOrIeOrIm(10);
-        await this.companyRepository.addCompany(randomCompany);
-      }
-      return response.json({
-        message: `${registersNumber} registros de teste inseridos com sucesso!`,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async deleteAllRandomRegisters(
-    request: Request,
-    response: Response,
-    next: NextFunction,
-  ): Promise<Response> {
-    try {
-      const companies = await this.companyRepository.getCompanies();
-      companies.forEach(async company => {
-        await this.companyRepository.deleteCompany(company.idCompany);
-      });
-      return response.json({
-        message: `Todas as ${companies.length} empresas excluidas com sucesso.`,
-      });
+      await this.companyRepository.deleteCompany(data[this.keyId]);
+      return this.apiResponse.Ok(
+        response,
+        200,
+        `Dados ${this.routeNameTranslatedSingular} ${data.name} excluida com sucesso!`,
+      );
     } catch (error) {
       next(error);
     }

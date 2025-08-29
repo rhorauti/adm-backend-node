@@ -1,12 +1,12 @@
-import { Company } from '@models/company/company';
+import { Company } from '@models/company/company.model';
 import { inject, injectable } from 'tsyringe';
-import { DataSource, QueryRunner, Repository } from 'typeorm';
+import { DataSource, DeepPartial, FindOneOptions, QueryRunner, Repository } from 'typeorm';
 import { ICompanyDetail } from '@core/interfaces/company.interface';
-import { Address } from '@models/address/address';
-import { Employee } from '@models/employee/employee';
-import { Department } from '@models/department/department';
+import { Address } from '@models/address/address.model';
+import { Employee } from '@models/employee/employee.model';
+import { Department } from '@models/department/department.model';
 import { CustomError } from '@middlewares/error';
-import { EmployeePosition } from '@models/employee/employee-position';
+import { EmployeePosition } from '@models/employee/employee-position.model';
 import { emptyStringToNull } from '@utils/misc';
 
 @injectable()
@@ -26,10 +26,9 @@ export class CompanyRepository {
   }
 
   async getCompanies(): Promise<Company[]> {
-    const query = this.companyRepository
-      .createQueryBuilder('company')
-      .orderBy('company.idCompany', 'DESC');
-    return query.getMany();
+    return this.companyRepository.find({
+      order: { idCompany: 'DESC' },
+    });
   }
 
   async getCompanyCompleteInfo(idCompany: number): Promise<ICompanyDetail> {
@@ -94,10 +93,10 @@ export class CompanyRepository {
     }
   }
 
-  async findCompanyByField(fields: Partial<Company>): Promise<Company> {
+  async findCompanyByField(fields: DeepPartial<Company>): Promise<Company> {
     return await this.companyRepository.findOne({
       where: fields,
-    });
+    } as FindOneOptions<Company>);
   }
 
   async addCompany(companyData: ICompanyDetail): Promise<ICompanyDetail> {
@@ -153,7 +152,7 @@ export class CompanyRepository {
         photoUrl: companyData.employee.photoUrl,
         cellphone: companyData.employee.cellphone,
         department: departmentData ?? null,
-        employeePosition: employeePositionData ?? null,
+        employeePosition: [employeePositionData],
         company: savedCompany ?? null,
       };
 
@@ -185,7 +184,7 @@ export class CompanyRepository {
           photoUrl: savedEmployee.photoUrl,
           cellphone: savedEmployee.cellphone,
           department: savedEmployee.department?.name ?? null,
-          position: savedEmployee.employeePosition?.name ?? null,
+          position: savedEmployee.employeePosition?.[0]?.name ?? null,
         },
       };
     } catch (error) {
@@ -255,7 +254,7 @@ export class CompanyRepository {
         email: companyData.employee.email,
         deskphone: companyData.employee.deskphone,
         department: departament,
-        employeePosition: employeePosition,
+        employeePosition: [employeePosition],
       };
 
       const employeeToBeUpdated = employeeRepository.create(employeeData);
@@ -284,7 +283,7 @@ export class CompanyRepository {
           photoUrl: updatedEmployee.photoUrl,
           cellphone: updatedEmployee.cellphone,
           department: updatedEmployee.department?.name ?? null,
-          position: updatedEmployee.employeePosition?.name ?? null,
+          position: updatedEmployee.employeePosition?.[0]?.name ?? null,
         },
       };
     } catch (error) {

@@ -1,5 +1,6 @@
-import { Employee } from '@models/employee/employee';
-import { Kpi } from '@models/kpi/kpi';
+import { Employee } from '@models/employee/employee.model';
+import { Kpi } from '@models/kpi/kpi.model';
+import { TaskType } from '@models/task/task-type.model';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Unique } from 'typeorm';
 
 @Unique('UQ_department_name', ['name'])
@@ -9,7 +10,7 @@ export class Department {
   idDepartment: number;
 
   @Column({ type: 'varchar', nullable: true })
-  name?: string;
+  name: string;
 
   @Column({ type: 'varchar', nullable: true })
   comment?: string;
@@ -21,4 +22,7 @@ export class Department {
 
   @OneToMany(() => Kpi, kpi => kpi.department, { nullable: true })
   kpi?: Kpi[];
+
+  @OneToMany(() => TaskType, taskType => taskType.department, { nullable: true })
+  taskType?: TaskType[];
 }

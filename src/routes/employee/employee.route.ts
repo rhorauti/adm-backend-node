@@ -1,77 +1,70 @@
-import { EmployeeController } from '@controllers/employee/employee.controller';
-import { raiseMiddlewareError } from '@utils/misc';
 import Router, { NextFunction, Request, Response } from 'express';
 import { param, ValidationChain } from 'express-validator';
 import { container } from 'tsyringe';
+import { raiseMiddlewareError } from '@utils/misc';
+// import { Employee } from '@models/employee/employee.model';
+import { EmployeeRepository } from '@repositories/employee/employee.repository';
+// import { BASE_CONTROLLER_FACTORY } from '@containers/tokens';
+// import { BaseControllerFactory } from '@containers/index';
+// import { MergedDataType, RelatedEntityProps } from '@core/types/base.type';
+// import { Employee } from '@models/employee/employee.model';
 
 const employeeRoute = Router();
 
-const employeeController = container.resolve(EmployeeController);
-const routeEmployee = 'employees';
-const idCompany = 'idCompany';
+const route = 'employees';
+const idKey = 'idEmployee';
+// const routeTranslated = 'Funcionários';
+// const entityRelated: RelatedEntityProps = 'company';
+// const idKeyRelated: keyof MergedDataType | null = 'idCompany';
 
-const companyParamsMiddleware = (): ValidationChain[] => {
+// const makeController = container.resolve<BaseControllerFactory>(BASE_CONTROLLER_FACTORY);
+// const employeeController = makeController<Employee, 'idEmployee'>({
+//   entity: Employee,
+//   idKey: idKey,
+//   parseId: raw => Number(raw) as Employee['idEmployee'],
+//   routeTranslated: routeTranslated,
+//   entityRelated: entityRelated,
+//   idKeyRelated: idKeyRelated,
+// });
+
+const controller = container.resolve(EmployeeRepository);
+
+const paramsMiddleware = (): ValidationChain[] => {
   return [
-    param(`${idCompany}`).notEmpty().withMessage(`O parâmetro ${idCompany} não pode estar vazio.`),
-  ];
-};
-
-employeeRoute.get(
-  `/${routeEmployee}/:${idCompany}`,
-  companyParamsMiddleware(),
-  (request: Request, response: Response, next: NextFunction) => {
-    raiseMiddlewareError(request, response, next);
-  },
-  (request: Request, response: Response) => {
-    employeeController.getEmployee(request, response);
-  },
-);
-
-const routeEmployeePosition = 'employee-positions';
-const idEmployeePosition = 'idEmployeePosition';
-
-const employeePositionParamsMiddleware = (): ValidationChain[] => {
-  return [
-    param(`${idEmployeePosition}`)
+    param(`${String(idKey)}`)
       .notEmpty()
-      .withMessage(`O parâmetro ${idEmployeePosition} não pode estar vazio.`),
+      .withMessage(`O parâmetro ${String(idKey)} não pode estar vazio.`),
   ];
 };
 
 employeeRoute.get(
-  `/${routeEmployeePosition}`,
-  (request: Request, response: Response, next: NextFunction) => {
-    employeeController.getEmployeePositionList(request, response, next);
-  },
-);
-
-employeeRoute.get(
-  `/${routeEmployeePosition}/:${idEmployeePosition}`,
-  employeePositionParamsMiddleware(),
+  `/${route}/:${String(idKey)}`,
+  paramsMiddleware(),
   (request: Request, response: Response, next: NextFunction) => {
     raiseMiddlewareError(request, response, next);
   },
+
   (request: Request, response: Response, next: NextFunction) => {
-    employeeController.getEmployeePosition(request, response, next);
+    // controller.getData(request, response, next);
   },
 );
 
-employeeRoute.post(
-  `/${routeEmployeePosition}`,
-  (request: Request, response: Response, next: NextFunction) => {
-    employeeController.saveEmployeePosition(request, response, next);
-  },
-);
+employeeRoute.get(`/${route}`, (request: Request, response: Response, next: NextFunction) => {
+  // controller.getDataListWithRelation(request, response, next);
+});
+
+employeeRoute.post(`/${route}`, (request: Request, response: Response, next: NextFunction) => {
+  // controller.save(request, response, next);
+});
 
 employeeRoute.delete(
-  `/${routeEmployeePosition}/:${idEmployeePosition}`,
-  employeePositionParamsMiddleware(),
+  `/${route}/:${String(idKey)}`,
+  paramsMiddleware(),
   (request: Request, response: Response, next: NextFunction) => {
     raiseMiddlewareError(request, response, next);
   },
   (request: Request, response: Response, next: NextFunction) => {
-    console.log('route', request.params);
-    employeeController.deleteEmployeePosition(request, response, next);
+    // controller.delete(request, response, next);
   },
 );
 

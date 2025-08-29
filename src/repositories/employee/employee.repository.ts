@@ -1,49 +1,23 @@
-import { Employee } from '@models/employee/employee';
+import { Employee } from '@models/employee/employee.model';
 import { inject, injectable } from 'tsyringe';
-import { Company } from '@models/company/company';
-import { DataSource, Repository } from 'typeorm';
-import { EmployeePosition } from '@models/employee/employee-position';
-import { Department } from '@models/department/department';
+import { DataSource, FindOptionsWhere, Repository } from 'typeorm';
 
 @injectable()
 export class EmployeeRepository {
-  private employeeRepository: Repository<Employee>;
-  private employeePositionRepository: Repository<EmployeePosition>;
+  private repository: Repository<Employee>;
 
   constructor(@inject('DataSource') private dataSource: DataSource) {
-    this.employeeRepository = this.dataSource.getRepository(Employee);
-    this.employeePositionRepository = this.dataSource.getRepository(EmployeePosition);
+    this.repository = this.dataSource.getRepository(Employee);
   }
 
-  async getEmployee(idCompany: number): Promise<Employee> {
-    return await this.employeeRepository
-      .createQueryBuilder()
-      .relation(Company, 'employee')
-      .relation(Department, 'employee')
-      .relation(EmployeePosition, 'employee')
-      .of(idCompany)
-      .loadOne();
-  }
+  keyId = 'idEmployee';
+  relatedKeyId = 'idCompany';
 
-  async getEmployeePositionList(): Promise<EmployeePosition[]> {
-    return this.employeePositionRepository.find({
-      order: { idEmployeePosition: 'DESC' },
-    });
-  }
-
-  async getEmployeePosition(idEmployeePosition: number): Promise<EmployeePosition> {
-    return await this.employeePositionRepository.findOne({
+  async getData(id: number): Promise<Employee> {
+    return await this.repository.findOne({
       where: {
-        idEmployeePosition: idEmployeePosition,
+        company: { [this.relatedKeyId]: id } as FindOptionsWhere<Employee>,
       },
     });
-  }
-
-  async saveEmployeePosition(position: EmployeePosition): Promise<EmployeePosition> {
-    return this.employeePositionRepository.save(position);
-  }
-
-  async deleteEmployeePosition(idEmployeePosition: number): Promise<void> {
-    await this.employeePositionRepository.delete(idEmployeePosition);
   }
 }
