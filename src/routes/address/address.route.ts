@@ -1,5 +1,4 @@
 import { AddressController } from '@controllers/address/address.controller';
-import { ICompanyParams } from '@core/interfaces/company.interface';
 import { raiseMiddlewareError } from '@utils/misc';
 import Router, { NextFunction, Request, Response } from 'express';
 import { param, ValidationChain } from 'express-validator';
@@ -23,7 +22,7 @@ addressRoute.get(
   (request: Request, response: Response, next: NextFunction) => {
     raiseMiddlewareError(request, response, next);
   },
-  (request: Request<ICompanyParams>, response: Response, next: NextFunction) => {
+  (request: Request, response: Response, next: NextFunction) => {
     addressController.getDataList(request, response, next);
   },
 );
