@@ -1,5 +1,5 @@
 import { CompanyController } from '@controllers/company/company.controller';
-import { ICompanyDetail, ICompanyResponse } from '@core/interfaces/company.interface';
+import { ICompanyResponse } from '@core/interfaces/company.interface';
 import { raiseMiddlewareError } from '@utils/misc';
 import Router, { NextFunction, Request, Response } from 'express';
 import { body } from 'express-validator';

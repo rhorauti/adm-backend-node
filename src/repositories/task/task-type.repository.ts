@@ -10,36 +10,17 @@ export class TaskTypeRepository {
     this.taskTypeRepository = this.dataSource.getRepository(TaskType);
   }
 
-  async getDataList(deptName: string): Promise<TaskType[]> {
+  async getDataList(idDepartment: number): Promise<TaskType[]> {
     return this.taskTypeRepository.find({
-      where: { name: deptName },
+      where: { department: { idDepartment: idDepartment } },
       order: { idTaskType: 'DESC' },
     });
   }
 
-  async getData(id: number, deptName: string): Promise<TaskType> {
+  async getData(idTask: number): Promise<TaskType> {
     return await this.taskTypeRepository.findOne({
       where: {
-        idTaskType: id,
-        name: deptName,
-      },
-    });
-  }
-
-  async getDataThroughRelation(id: number, deptName: string): Promise<TaskType> {
-    return await this.taskTypeRepository.findOne({
-      where: {
-        department: { idDepartment: id },
-        name: deptName,
-      },
-    });
-  }
-
-  async getDataListThroughRelation(id: number, deptName: string): Promise<TaskType[]> {
-    return await this.taskTypeRepository.find({
-      where: {
-        department: { idDepartment: id },
-        name: deptName,
+        idTaskType: idTask,
       },
     });
   }

@@ -1,7 +1,5 @@
 import Router, { NextFunction, Request, Response } from 'express';
-import { param, ValidationChain } from 'express-validator';
 import { container } from 'tsyringe';
-import { raiseMiddlewareError } from '@utils/misc';
 import { DepartmentController } from '@controllers/department/department.controller';
 
 const departmentRoute = Router();
@@ -11,30 +9,18 @@ const idKey = 'idDepartment';
 
 const controller = container.resolve(DepartmentController);
 
-const paramsMiddleware = (): ValidationChain[] => {
-  return [
-    param(`${String(idKey)}`)
-      .notEmpty()
-      .withMessage(`O parâmetro ${String(idKey)} não pode estar vazio.`),
-  ];
-};
-
 departmentRoute.get(
   `/${baseRouteName}/:${String(idKey)}`,
-  paramsMiddleware(),
-  (request: Request, response: Response, next: NextFunction) => {
-    raiseMiddlewareError(request, response, next);
-  },
 
   (request: Request, response: Response, next: NextFunction) => {
-    controller.getData(request, response, next);
+    controller.getDataByField(request, response, next);
   },
 );
 
 departmentRoute.get(
   `/${baseRouteName}`,
   (request: Request, response: Response, next: NextFunction) => {
-    controller.getDataList(request, response, next);
+    controller.getData(request, response, next);
   },
 );
 
@@ -47,10 +33,6 @@ departmentRoute.post(
 
 departmentRoute.delete(
   `/${baseRouteName}/:${String(idKey)}`,
-  paramsMiddleware(),
-  (request: Request, response: Response, next: NextFunction) => {
-    raiseMiddlewareError(request, response, next);
-  },
   (request: Request, response: Response, next: NextFunction) => {
     controller.delete(request, response, next);
   },

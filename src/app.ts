@@ -28,7 +28,7 @@ dataSource
 
     await import('./containers');
     const { router } = await import('./routes');
-    const { handleErrorMiddleware } = await import('./middlewares/error');
+    const { handleErrorMiddleware } = await import('./middlewares/error.middleware');
     const swaggerUi = await import('swagger-ui-express');
     const { swaggerTemplate } = await import('./swagger');
 

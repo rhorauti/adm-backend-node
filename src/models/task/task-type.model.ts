@@ -10,7 +10,7 @@ export class TaskType {
   @Column({ type: 'varchar' })
   name: string;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', nullable: true })
   comment?: string;
 
   @OneToMany(() => Task, task => task.taskType, {

@@ -68,11 +68,6 @@ export class Employee {
   @OneToMany(() => EmployeePosition, employeePosition => employeePosition.employee, {
     nullable: true,
   })
-  @JoinColumn({
-    name: 'idEmployeePosition',
-    referencedColumnName: 'idEmployeePosition',
-    foreignKeyConstraintName: 'FK_employee_employee_position',
-  })
   employeePosition?: EmployeePosition[];
 
   @OneToOne(() => EmployeeContract, employeeContract => employeeContract.employee, {

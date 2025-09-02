@@ -31,7 +31,67 @@ export const raiseMiddlewareError = (request: Request, response: Response, next:
   if (!errors.isEmpty()) {
     const apiResponse = container.resolve(ApiResponse);
     const firstErrorMessage = errors.array()[0].msg;
-    return apiResponse.Error(response, 401, firstErrorMessage);
+    return apiResponse.Error(response, 400, firstErrorMessage);
   }
   next();
+};
+
+export const translateDeptName = (deptName: string): string => {
+  switch (deptName.toLowerCase().trim()) {
+    case 'maintenance': {
+      return 'Manutenção';
+    }
+    case 'purchasing': {
+      return 'Compras';
+    }
+    case 'pc': {
+      return 'PCP';
+    }
+    case 'sales': {
+      return 'Vendas';
+    }
+    case 'project': {
+      return 'Projetos';
+    }
+    case 'finance': {
+      return 'Financeiro';
+    }
+    case 'quality': {
+      return 'Qualidade';
+    }
+    case 'hr': {
+      return 'RH';
+    }
+  }
+  return '';
+};
+
+export const setDeptNameTranslationToDefaultName = (deptName: string): string => {
+  switch (deptName.toLowerCase().trim()) {
+    case 'manutenção': {
+      return 'maintenance';
+    }
+    case 'compras': {
+      return 'purchasing';
+    }
+    case 'pcp': {
+      return 'pc';
+    }
+    case 'vendas': {
+      return 'sales';
+    }
+    case 'projetos': {
+      return 'project';
+    }
+    case 'financeiro': {
+      return 'finance';
+    }
+    case 'qualidade': {
+      return 'quality';
+    }
+    case 'rh': {
+      return 'hr';
+    }
+  }
+  return '';
 };

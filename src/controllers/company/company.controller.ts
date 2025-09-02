@@ -4,7 +4,7 @@ import { Company } from '@models/company/company.model';
 import { ApiResponse } from '@utils/api-response';
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
-import { CustomError } from '@middlewares/error';
+import { CustomError } from '@middlewares/error.middleware';
 
 @injectable()
 export class CompanyController {

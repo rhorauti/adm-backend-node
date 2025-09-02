@@ -1,6 +1,6 @@
 import { AddressRepository } from '@repositories/address/address.repository';
 import { IAddressResponse } from '@core/interfaces/address.interface';
-import { CustomError } from '@middlewares/error';
+import { CustomError } from '@middlewares/error.middleware';
 import { ApiResponse } from '@utils/api-response';
 import { Request, Response } from 'express';
 import { NextFunction } from 'express-serve-static-core';

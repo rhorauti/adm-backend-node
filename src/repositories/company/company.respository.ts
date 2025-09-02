@@ -5,7 +5,7 @@ import { ICompanyDetail } from '@core/interfaces/company.interface';
 import { Address } from '@models/address/address.model';
 import { Employee } from '@models/employee/employee.model';
 import { Department } from '@models/department/department.model';
-import { CustomError } from '@middlewares/error';
+import { CustomError } from '@middlewares/error.middleware';
 import { EmployeePosition } from '@models/employee/employee-position.model';
 import { emptyStringToNull } from '@utils/misc';
 

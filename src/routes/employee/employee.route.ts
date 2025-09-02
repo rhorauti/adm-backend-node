@@ -2,30 +2,12 @@ import Router, { NextFunction, Request, Response } from 'express';
 import { param, ValidationChain } from 'express-validator';
 import { container } from 'tsyringe';
 import { raiseMiddlewareError } from '@utils/misc';
-// import { Employee } from '@models/employee/employee.model';
 import { EmployeeRepository } from '@repositories/employee/employee.repository';
-// import { BASE_CONTROLLER_FACTORY } from '@containers/tokens';
-// import { BaseControllerFactory } from '@containers/index';
-// import { MergedDataType, RelatedEntityProps } from '@core/types/base.type';
-// import { Employee } from '@models/employee/employee.model';
 
 const employeeRoute = Router();
 
 const route = 'employees';
 const idKey = 'idEmployee';
-// const routeTranslated = 'Funcionários';
-// const entityRelated: RelatedEntityProps = 'company';
-// const idKeyRelated: keyof MergedDataType | null = 'idCompany';
-
-// const makeController = container.resolve<BaseControllerFactory>(BASE_CONTROLLER_FACTORY);
-// const employeeController = makeController<Employee, 'idEmployee'>({
-//   entity: Employee,
-//   idKey: idKey,
-//   parseId: raw => Number(raw) as Employee['idEmployee'],
-//   routeTranslated: routeTranslated,
-//   entityRelated: entityRelated,
-//   idKeyRelated: idKeyRelated,
-// });
 
 const controller = container.resolve(EmployeeRepository);
 

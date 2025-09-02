@@ -2,7 +2,7 @@ import {
   IEmployeePositionListResponse,
   IEmployeePositionResponse,
 } from '@core/interfaces/employee.interface';
-import { CustomError } from '@middlewares/error';
+import { CustomError } from '@middlewares/error.middleware';
 import { ApiResponse } from '@utils/api-response';
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';

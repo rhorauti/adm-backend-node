@@ -1,13 +1,13 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class InitMigration1756392866811 implements MigrationInterface {
-    name = 'InitMigration1756392866811'
+export class InitMigration1756843874846 implements MigrationInterface {
+    name = 'InitMigration1756843874846'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`CREATE TABLE "User" ("id" SERIAL NOT NULL, "name" character varying(100) NOT NULL, "email" character varying(256) NOT NULL, "password" character varying(256) NOT NULL, "photoUrl" character varying(256) NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "accessLevel" integer NOT NULL, "isActive" boolean NOT NULL, "emailConfirmed" boolean NOT NULL, CONSTRAINT "UQ_4a257d2c9837248d70640b3e36e" UNIQUE ("email"), CONSTRAINT "PK_user" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TABLE "EmployeeContract" ("idEmployeeContract" SERIAL NOT NULL, "type" character varying(15) NOT NULL, "workTime" character varying(10), "workType" character varying(15), "comment" character varying(500), "idEmployee" integer, CONSTRAINT "REL_bfe4462eddfc11ac8ea4e81575" UNIQUE ("idEmployee"), CONSTRAINT "PK_employee_contract" PRIMARY KEY ("idEmployeeContract"))`);
         await queryRunner.query(`CREATE TABLE "EmployeeVacation" ("idEmployeeVacation" SERIAL NOT NULL, "isOnVacation" boolean NOT NULL, "contractLeadtime" integer NOT NULL, "availableLeadtime" integer NOT NULL, "startDate" TIMESTAMP NOT NULL, "finishDate" TIMESTAMP NOT NULL, "limitDate" TIMESTAMP NOT NULL, "comment" character varying(300) NOT NULL, "idEmployee" integer, CONSTRAINT "PK_employee_vacation" PRIMARY KEY ("idEmployeeVacation"))`);
-        await queryRunner.query(`CREATE TABLE "TaskType" ("idTaskType" SERIAL NOT NULL, "name" character varying NOT NULL, "comment" character varying NOT NULL, "idDepartment" integer, CONSTRAINT "PK_task_type" PRIMARY KEY ("idTaskType"))`);
+        await queryRunner.query(`CREATE TABLE "TaskType" ("idTaskType" SERIAL NOT NULL, "name" character varying NOT NULL, "comment" character varying, "idDepartment" integer, CONSTRAINT "PK_task_type" PRIMARY KEY ("idTaskType"))`);
         await queryRunner.query(`CREATE TABLE "ProjectEvent" ("idProjectEvent" SERIAL NOT NULL, "name" character varying(20) NOT NULL, "productQtyPlan" double precision NOT NULL, "productQtyActual" double precision NOT NULL, "deliveryDatePlan" TIMESTAMP NOT NULL, "deliveryDateActual" TIMESTAMP NOT NULL, "comment" character varying(100) NOT NULL, "idProject" integer, CONSTRAINT "PK_project_event" PRIMARY KEY ("idProjectEvent"))`);
         await queryRunner.query(`CREATE TABLE "Project" ("idProject" SERIAL NOT NULL, "code" character varying(15), "startOfProduction" TIMESTAMP, CONSTRAINT "UQ_project_code" UNIQUE ("code"), CONSTRAINT "PK_project" PRIMARY KEY ("idProject"))`);
         await queryRunner.query(`CREATE TABLE "Product" ("idProduct" SERIAL NOT NULL, "name" character varying NOT NULL, "type" character varying NOT NULL, "stock" integer, "comment" integer, "idProject" integer, CONSTRAINT "PK_product" PRIMARY KEY ("idProduct"))`);
@@ -15,7 +15,7 @@ export class InitMigration1756392866811 implements MigrationInterface {
         await queryRunner.query(`CREATE TABLE "Task" ("id" SERIAL NOT NULL, "startDate" TIMESTAMP, "finishDate" TIMESTAMP, "name" character varying, "status" character varying, "photoUrls" text array, "comment" character varying, "idEmployee" integer, "idTaskType" integer, "idKpi" integer, "idProductionLine" integer, "idProduct" integer, CONSTRAINT "PK_maintenance_task" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TABLE "Kpi" ("idKpi" SERIAL NOT NULL, "startDate" TIMESTAMP, "finishDate" TIMESTAMP, "goal" character varying, "operator" character varying(2), "metric" double precision, "unit" character varying(5), "comment" character varying, "idDepartment" integer, CONSTRAINT "PK_kpi" PRIMARY KEY ("idKpi"))`);
         await queryRunner.query(`CREATE TABLE "Department" ("idDepartment" SERIAL NOT NULL, "name" character varying, "comment" character varying, CONSTRAINT "UQ_department_name" UNIQUE ("name"), CONSTRAINT "PK_department" PRIMARY KEY ("idDepartment"))`);
-        await queryRunner.query(`CREATE TABLE "EmployeePosition" ("idEmployeePosition" SERIAL NOT NULL, "name" character varying, "comment" character varying, "employeeIdEmployee" integer, CONSTRAINT "UQ_employee_position_name" UNIQUE ("name"), CONSTRAINT "PK_employee_position" PRIMARY KEY ("idEmployeePosition"))`);
+        await queryRunner.query(`CREATE TABLE "EmployeePosition" ("idEmployeePosition" SERIAL NOT NULL, "name" character varying, "comment" character varying, "idEmployee" integer, CONSTRAINT "UQ_employee_position_name" UNIQUE ("name"), CONSTRAINT "PK_employee_position" PRIMARY KEY ("idEmployeePosition"))`);
         await queryRunner.query(`CREATE TABLE "Employee" ("idEmployee" SERIAL NOT NULL, "isDefault" boolean NOT NULL, "name" character varying, "cpf" character varying(14), "email" character varying, "deskphone" character varying(20), "photoUrl" character varying, "cellphone" character varying(20), "idCompany" integer, "idDepartment" integer, CONSTRAINT "UQ_employee_cpf" UNIQUE ("cpf"), CONSTRAINT "PK_employee" PRIMARY KEY ("idEmployee"))`);
         await queryRunner.query(`CREATE TABLE "Address" ("idAddress" SERIAL NOT NULL, "postalCode" character varying(15), "address" character varying(150), "number" character varying(150), "complement" character varying(50), "district" character varying(50), "city" character varying(50), "state" character varying(2), "idCompany" integer, "idEmployee" integer, CONSTRAINT "REL_d62fc401adef8abd1726b14097" UNIQUE ("idCompany"), CONSTRAINT "REL_5253219cb3b8acb8ccd8c64b8c" UNIQUE ("idEmployee"), CONSTRAINT "PK_address" PRIMARY KEY ("idAddress"))`);
         await queryRunner.query(`CREATE TABLE "Invoice" ("idInvoice" SERIAL NOT NULL, "issueDate" TIMESTAMP NOT NULL, "type" character varying(10) NOT NULL, "paymentDatePlan" TIMESTAMP, "paymentDateActual" TIMESTAMP, "idPurchasingOrder" integer, CONSTRAINT "PK_invoice" PRIMARY KEY ("idInvoice"))`);
@@ -33,7 +33,7 @@ export class InitMigration1756392866811 implements MigrationInterface {
         await queryRunner.query(`ALTER TABLE "Task" ADD CONSTRAINT "FK_task_production_line" FOREIGN KEY ("idProductionLine") REFERENCES "ProductionLine"("idProductionLine") ON DELETE SET NULL ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "Task" ADD CONSTRAINT "FK_task_product" FOREIGN KEY ("idProduct") REFERENCES "Product"("idProduct") ON DELETE SET NULL ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "Kpi" ADD CONSTRAINT "FK_kpi_department" FOREIGN KEY ("idDepartment") REFERENCES "Department"("idDepartment") ON DELETE CASCADE ON UPDATE NO ACTION`);
-        await queryRunner.query(`ALTER TABLE "EmployeePosition" ADD CONSTRAINT "FK_af8949b9f7b8567ceeedf508a82" FOREIGN KEY ("employeeIdEmployee") REFERENCES "Employee"("idEmployee") ON DELETE SET NULL ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "EmployeePosition" ADD CONSTRAINT "FK_employee_position_employee" FOREIGN KEY ("idEmployee") REFERENCES "Employee"("idEmployee") ON DELETE CASCADE ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "Employee" ADD CONSTRAINT "FK_employee_company" FOREIGN KEY ("idCompany") REFERENCES "Company"("idCompany") ON DELETE CASCADE ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "Employee" ADD CONSTRAINT "FK_employee_department" FOREIGN KEY ("idDepartment") REFERENCES "Department"("idDepartment") ON DELETE SET NULL ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "Address" ADD CONSTRAINT "FK_address_company" FOREIGN KEY ("idCompany") REFERENCES "Company"("idCompany") ON DELETE CASCADE ON UPDATE NO ACTION`);
@@ -49,7 +49,7 @@ export class InitMigration1756392866811 implements MigrationInterface {
         await queryRunner.query(`ALTER TABLE "Address" DROP CONSTRAINT "FK_address_company"`);
         await queryRunner.query(`ALTER TABLE "Employee" DROP CONSTRAINT "FK_employee_department"`);
         await queryRunner.query(`ALTER TABLE "Employee" DROP CONSTRAINT "FK_employee_company"`);
-        await queryRunner.query(`ALTER TABLE "EmployeePosition" DROP CONSTRAINT "FK_af8949b9f7b8567ceeedf508a82"`);
+        await queryRunner.query(`ALTER TABLE "EmployeePosition" DROP CONSTRAINT "FK_employee_position_employee"`);
         await queryRunner.query(`ALTER TABLE "Kpi" DROP CONSTRAINT "FK_kpi_department"`);
         await queryRunner.query(`ALTER TABLE "Task" DROP CONSTRAINT "FK_task_product"`);
         await queryRunner.query(`ALTER TABLE "Task" DROP CONSTRAINT "FK_task_production_line"`);

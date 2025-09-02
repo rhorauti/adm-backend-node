@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
 import { Employee } from './employee.model';
 
 @Unique('UQ_employee_position_name', ['name'])
@@ -15,7 +15,12 @@ export class EmployeePosition {
 
   @ManyToOne(() => Employee, employee => employee.employeePosition, {
     nullable: true,
-    onDelete: 'SET NULL',
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({
+    name: 'idEmployee',
+    referencedColumnName: 'idEmployee',
+    foreignKeyConstraintName: 'FK_employee_position_employee',
   })
   employee?: Employee;
 }

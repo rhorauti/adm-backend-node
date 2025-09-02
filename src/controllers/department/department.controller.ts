@@ -2,13 +2,17 @@ import {
   IEmployeePositionListResponse,
   IEmployeePositionResponse,
 } from '@core/interfaces/employee.interface';
-import { CustomError } from '@middlewares/error';
+import { CustomError } from '@middlewares/error.middleware';
 import { ApiResponse } from '@utils/api-response';
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import { IDefaultResponse } from '@core/interfaces/base.interface';
 import { DepartmentRepository } from '@repositories/department/department.repository';
 import { Department } from '@models/department/department.model';
+import {
+  IDepartmentListResponse,
+  IDepartmentResponse,
+} from '@core/interfaces/department.interface';
 
 @injectable()
 export class DepartmentController {
@@ -23,31 +27,39 @@ export class DepartmentController {
   routeNameTranslatedSingular = this.routeNameTranslated.slice(0, -1);
   uniqueConstraint = 'UQ_department_name';
 
-  async getDataList(
-    request: Request,
-    response: Response,
-    next: NextFunction,
-  ): Promise<Response<IEmployeePositionListResponse>> {
+  async getData(request: Request, response: Response, next: NextFunction): Promise<Response> {
     try {
-      const dataList = await this.repository.getDataList();
-      return this.apiResponse.Ok(
-        response,
-        200,
-        `Dados de ${this.routeNameTranslated} enviados com sucesso.`,
-        dataList,
-      );
+      const body = request.query as Partial<Department>;
+      const entries = Object.entries(body);
+      if (entries && entries.length > 0) {
+        const [key, value] = entries[0];
+        const dept = await this.repository.getDataByField(key as keyof Department, value);
+        if (!dept || dept == null) {
+          return this.apiResponse.Error(response, 400, 'Departamento não encontrado.');
+        } else {
+          return this.apiResponse.Ok(response, 200, 'Departamento enviado com sucesso.', dept);
+        }
+      } else {
+        const dataList = await this.repository.getDataList();
+        return this.apiResponse.Ok(
+          response,
+          200,
+          `Dados de ${this.routeNameTranslated} enviados com sucesso.`,
+          dataList,
+        );
+      }
     } catch (error) {
       const customError = error as CustomError;
-      customError.message = `Erro de conexão com o banco de dados ao consultar a lista de ${this.routeNameTranslated}:  ${error.message}`;
+      customError.message = `Erro na rota ${this.routeNameTranslated}: ${error.message}`;
       this.apiResponse.Error(response, 500, customError.message);
     }
   }
 
-  async getData(
+  async getDataByField(
     request: Request,
     response: Response,
     next: NextFunction,
-  ): Promise<Response<IEmployeePositionResponse>> {
+  ): Promise<Response<IDepartmentResponse>> {
     try {
       const data = await this.repository.getDataByField(this.idKey, request.body[this.idKey]);
       return this.apiResponse.Ok(
@@ -67,7 +79,7 @@ export class DepartmentController {
     request: Request,
     response: Response,
     next: NextFunction,
-  ): Promise<Response<IEmployeePositionResponse>> {
+  ): Promise<Response<IDepartmentResponse>> {
     try {
       const savedData = await this.repository.save(request.body);
       return this.apiResponse.Ok(
