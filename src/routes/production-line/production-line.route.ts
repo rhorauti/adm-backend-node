@@ -2,35 +2,37 @@ import Router, { NextFunction, Request, Response } from 'express';
 import { container } from 'tsyringe';
 import { body } from 'express-validator';
 import { raiseMiddlewareError } from '@utils/misc';
-import { EmployeeController } from '@controllers/employee/employee.controller';
-import { Employee } from '@models/employee/employee.model';
+import { ProductionLineController } from '@controllers/production-line/production-line.controller';
 
-const employeeRoute = Router();
+const productionLineRoute = Router();
 
-const baseRouteName = 'employees';
-export const keyId: keyof Employee = 'idEmployee';
+const baseRouteName = 'production-lines';
+const idKey = 'idProductionLine';
 
-const controller = container.resolve(EmployeeController);
+const controller = container.resolve(ProductionLineController);
 
 const bodyValidationMiddleware = () => {
-  return [body('name').notEmpty().withMessage('O campo Nome do Cargo não pode estar vazio!')];
+  return [
+    body('lineCode').notEmpty().withMessage('O campo de Código da Linha não pode estar vazio!'),
+  ];
 };
 
-employeeRoute.get(
+productionLineRoute.get(
+  `/${baseRouteName}/:${String(idKey)}`,
+
+  (request: Request, response: Response, next: NextFunction) => {
+    controller.getData(request, response, next);
+  },
+);
+
+productionLineRoute.get(
   `/${baseRouteName}`,
   (request: Request, response: Response, next: NextFunction) => {
     controller.getDataList(request, response, next);
   },
 );
 
-employeeRoute.get(
-  `/${baseRouteName}/:${String(keyId)}`,
-  (request: Request, response: Response, next: NextFunction) => {
-    controller.getData(request, response, next);
-  },
-);
-
-employeeRoute.post(
+productionLineRoute.post(
   `/${baseRouteName}`,
   bodyValidationMiddleware(),
   (request: Request, response: Response, next: NextFunction) => {
@@ -41,11 +43,11 @@ employeeRoute.post(
   },
 );
 
-employeeRoute.delete(
-  `/${baseRouteName}/:${String(keyId)}`,
+productionLineRoute.delete(
+  `/${baseRouteName}/:${String(idKey)}`,
   (request: Request, response: Response, next: NextFunction) => {
     controller.delete(request, response, next);
   },
 );
 
-export { employeeRoute };
+export { productionLineRoute };

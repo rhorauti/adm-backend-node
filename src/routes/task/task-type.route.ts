@@ -2,6 +2,8 @@ import Router, { NextFunction, Request, Response } from 'express';
 import { container } from 'tsyringe';
 import { TaskType } from '@models/task/task-type.model';
 import { TaskTypeController } from '@controllers/task/task-type.controller';
+import { body } from 'express-validator';
+import { raiseMiddlewareError } from '@utils/misc';
 
 const taskTypeRoute = Router();
 
@@ -10,6 +12,10 @@ const deptName = 'department';
 export const keyId: keyof TaskType = 'idTaskType';
 
 const controller = container.resolve(TaskTypeController);
+
+const bodyValidationMiddleware = () => {
+  return [body('name').notEmpty().withMessage('O campo de nome não pode estar vazio!')];
+};
 
 taskTypeRoute.get(
   `/:${deptName}/${baseRouteName}`,
@@ -27,6 +33,10 @@ taskTypeRoute.get(
 
 taskTypeRoute.post(
   `/:${deptName}/${baseRouteName}`,
+  bodyValidationMiddleware(),
+  (request: Request, response: Response, next: NextFunction) => {
+    raiseMiddlewareError(request, response, next);
+  },
   (request: Request, response: Response, next: NextFunction) => {
     controller.save(request, response, next);
   },

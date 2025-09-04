@@ -1,7 +1,3 @@
-import {
-  IEmployeePositionListResponse,
-  IEmployeePositionResponse,
-} from '@core/interfaces/employee.interface';
 import { CustomError } from '@middlewares/error.middleware';
 import { ApiResponse } from '@utils/api-response';
 import { NextFunction, Request, Response } from 'express';
@@ -9,10 +5,7 @@ import { inject, injectable } from 'tsyringe';
 import { IDefaultResponse } from '@core/interfaces/base.interface';
 import { DepartmentRepository } from '@repositories/department/department.repository';
 import { Department } from '@models/department/department.model';
-import {
-  IDepartmentListResponse,
-  IDepartmentResponse,
-} from '@core/interfaces/department.interface';
+import { IDepartmentResponse } from '@core/interfaces/department.interface';
 
 @injectable()
 export class DepartmentController {
@@ -22,8 +15,8 @@ export class DepartmentController {
     private apiResponse: ApiResponse,
   ) {}
 
-  routeNameTranslated = 'departamentos';
-  idKey: keyof Department = 'idDepartment';
+  routeNameTranslated = 'Departamentos';
+  keyId: keyof Department = 'idDepartment';
   routeNameTranslatedSingular = this.routeNameTranslated.slice(0, -1);
   uniqueConstraint = 'UQ_department_name';
 
@@ -44,14 +37,13 @@ export class DepartmentController {
         return this.apiResponse.Ok(
           response,
           200,
-          `Dados de ${this.routeNameTranslated} enviados com sucesso.`,
+          `${this.routeNameTranslated} enviados com sucesso.`,
           dataList,
         );
       }
     } catch (error) {
       const customError = error as CustomError;
-      customError.message = `Erro na rota ${this.routeNameTranslated}: ${error.message}`;
-      this.apiResponse.Error(response, 500, customError.message);
+      this.apiResponse.Error(response, 500, 'Erro de consulta: ' + customError.message);
     }
   }
 
@@ -61,17 +53,16 @@ export class DepartmentController {
     next: NextFunction,
   ): Promise<Response<IDepartmentResponse>> {
     try {
-      const data = await this.repository.getDataByField(this.idKey, request.body[this.idKey]);
+      const data = await this.repository.getDataByField(this.keyId, request.body[this.keyId]);
       return this.apiResponse.Ok(
         response,
         200,
-        `Dados do ${this.routeNameTranslatedSingular} enviado com sucesso.`,
+        `${this.routeNameTranslatedSingular} enviado com sucesso.`,
         data,
       );
     } catch (error) {
       const customError = error as CustomError;
-      customError.message = `Erro de conexão com o banco de dados ao consultar os dados do ${this.routeNameTranslatedSingular}: ${error.message}`;
-      this.apiResponse.Error(response, 500, customError.message);
+      this.apiResponse.Error(response, 500, 'Erro de consulta: ' + customError.message);
     }
   }
 
@@ -90,20 +81,16 @@ export class DepartmentController {
       );
     } catch (error) {
       const customError = error as CustomError;
-      console.log('customError1', customError.message);
       if ((error && error.code == 'ER_DUP_ENTRY') || error?.code === '23505') {
-        console.log('customError2', customError.message);
         customError.statusCode = 409;
         if (error.message.includes(this.uniqueConstraint)) {
-          console.log('customError3', customError.message);
-          customError.message = `O ${this.routeNameTranslatedSingular} já existe e não pode estar duplicado.`;
+          customError.message = `${this.routeNameTranslatedSingular} já existe e não pode estar duplicado.`;
         } else {
           customError.message = 'Registro duplicado.';
         }
         this.apiResponse.Error(response, customError.statusCode, customError.message);
       } else {
-        customError.message = `Erro de conexão com o banco de dados ao consultar a tabela de ${this.routeNameTranslated}.`;
-        this.apiResponse.Error(response, 500, customError.message);
+        this.apiResponse.Error(response, 500, 'Erro ao salvar: ' + customError.message);
       }
     }
   }
@@ -115,10 +102,10 @@ export class DepartmentController {
   ): Promise<Response<IDefaultResponse>> {
     try {
       const data = await this.repository.getDataByField(
-        this.idKey,
-        Number(request.params[this.idKey]),
+        this.keyId,
+        Number(request.params[this.keyId]),
       );
-      await this.repository.delete(data[this.idKey] as number);
+      await this.repository.delete(data[this.keyId] as number);
       return this.apiResponse.Ok(
         response,
         200,
@@ -126,8 +113,7 @@ export class DepartmentController {
       );
     } catch (error) {
       const customError = error as CustomError;
-      customError.message = `Erro de conexão com o banco de dados excluir o ${this.routeNameTranslatedSingular}: ${error.message} `;
-      this.apiResponse.Error(response, 500, customError.message);
+      this.apiResponse.Error(response, 500, 'Erro ao excluir: ' + customError.message);
     }
   }
 }

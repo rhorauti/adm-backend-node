@@ -15,6 +15,10 @@ import { EmployeePositionController } from '@controllers/employee/employee-posit
 import { EmployeePositionRepository } from '@repositories/employee/employee-position.repository';
 import { DepartmentRepository } from '@repositories/department/department.repository';
 import { DepartmentController } from '@controllers/department/department.controller';
+import { ProductionLineController } from '@controllers/production-line/production-line.controller';
+import { ProductionLineRepository } from '@repositories/production-line/production-line.repository';
+import { EmployeeRepository } from '@repositories/employee/employee.repository';
+import { EmployeeController } from '@controllers/employee/employee.controller';
 
 container.registerSingleton('AuthRepository', AuthRepository);
 container.registerSingleton('AuthController', AuthController);
@@ -23,12 +27,16 @@ container.registerSingleton('CompanyController', CompanyController);
 container.registerSingleton('CompanyFakeController', CompanyFakeController);
 container.registerSingleton('AddressRepository', AddressRepository);
 container.registerSingleton('AddressController', AddressController);
+container.registerSingleton('EmployeeController', EmployeeController);
+container.registerSingleton('EmployeeRepository', EmployeeRepository);
 container.registerSingleton('EmployeePositionController', EmployeePositionController);
 container.registerSingleton('EmployeePositionRepository', EmployeePositionRepository);
 container.registerSingleton('TaskTypeRepository', TaskTypeRepository);
 container.registerSingleton('TaskTypeController', TaskTypeController);
 container.registerSingleton('DepartmentRepository', DepartmentRepository);
 container.registerSingleton('DepartmentController', DepartmentController);
+container.registerSingleton('ProductionLineController', ProductionLineController);
+container.registerSingleton('ProductionLineRepository', ProductionLineRepository);
 container.registerSingleton('JwtHandler', JwtHandler);
 container.registerSingleton('EmailSender', EmailSender);
 container.registerSingleton('ApiResponse', ApiResponse);

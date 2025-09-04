@@ -1,42 +1,44 @@
-import { EmployeeRepository } from '@repositories/employee/employee.repository';
-import { IEmployeeResponse } from '@core/interfaces/employee.interface';
 import { CustomError } from '@middlewares/error.middleware';
 import { ApiResponse } from '@utils/api-response';
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import { IDefaultResponse } from '@core/interfaces/base.interface';
-import { Employee } from '@models/employee/employee.model';
+import {
+  IProductionLineListResponse,
+  IProductionLineResponse,
+} from '@core/interfaces/production.interface';
+import { ProductionLineRepository } from '@repositories/production-line/production-line.repository';
+import { ProductionLine } from '@models/production-line/production-line.model';
 
 @injectable()
-export class EmployeeController {
+export class ProductionLineController {
   constructor(
-    @inject('EmployeeRepository') private repository: EmployeeRepository,
+    @inject('ProductionLineRepository') private repository: ProductionLineRepository,
     @inject('ApiResponse')
     private apiResponse: ApiResponse,
   ) {}
 
-  routeNameTranslated = 'Funcionários';
-  uniqueConstraint = 'UQ_employee_cpf';
-  keyId = 'idEmployee';
-  relatedKeyId = 'idCompany';
-  routeNameTranslatedSingular = 'do' + this.routeNameTranslated.slice(0, -1);
+  routeNameTranslated = 'Linhas de Produção';
+  keyId = 'idProductionLine';
+  routeNameTranslatedSingular = 'Linha de Produção';
+  uniqueConstraint = 'UQ_production_line_code';
 
   async getDataList(
     request: Request,
     response: Response,
     next: NextFunction,
-  ): Promise<Response<IEmployeeResponse>> {
+  ): Promise<Response<IProductionLineListResponse>> {
     try {
       const dataList = await this.repository.getDataList();
       return this.apiResponse.Ok(
         response,
         200,
-        `Dados de ${this.routeNameTranslated} enviados com sucesso.`,
+        `${this.routeNameTranslated} enviados com sucesso.`,
         dataList,
       );
     } catch (error) {
       const customError = error as CustomError;
-      customError.message = `Erro ao consultar a lista de ${this.routeNameTranslated}: ${error.message}`;
+      customError.message = `Erro na consulta ${this.routeNameTranslated}: ${error.message}`;
       this.apiResponse.Error(response, 500, customError.message);
     }
   }
@@ -45,21 +47,21 @@ export class EmployeeController {
     request: Request,
     response: Response,
     next: NextFunction,
-  ): Promise<Response<IEmployeeResponse>> {
+  ): Promise<Response<IProductionLineResponse>> {
     try {
       const data = await this.repository.getDataByField(
-        this.keyId as keyof Employee,
-        Number(request.params[this.relatedKeyId]),
+        this.keyId as keyof ProductionLine,
+        request.body[this.keyId],
       );
       return this.apiResponse.Ok(
         response,
         200,
-        `Dados ${this.routeNameTranslatedSingular} enviado com sucesso.`,
+        `${this.routeNameTranslatedSingular} enviado com sucesso.`,
         data,
       );
-    } catch (error: unknown) {
+    } catch (error) {
       const customError = error as CustomError;
-      customError.message = `Erro ao consultar ${this.routeNameTranslatedSingular}.`;
+      customError.message = `Erro na consulta ${this.routeNameTranslatedSingular}: ${error.message}`;
       this.apiResponse.Error(response, 500, customError.message);
     }
   }
@@ -68,13 +70,13 @@ export class EmployeeController {
     request: Request,
     response: Response,
     next: NextFunction,
-  ): Promise<Response<IEmployeeResponse>> {
+  ): Promise<Response<IProductionLineResponse>> {
     try {
       const savedData = await this.repository.save(request.body);
       return this.apiResponse.Ok(
         response,
         200,
-        `${this.routeNameTranslatedSingular} ${savedData.name} salvo com sucesso.`,
+        `${this.routeNameTranslatedSingular} ${savedData.lineCode} salvo com sucesso.`,
         savedData,
       );
     } catch (error) {
@@ -82,14 +84,13 @@ export class EmployeeController {
       if ((error && error.code == 'ER_DUP_ENTRY') || error?.code === '23505') {
         customError.statusCode = 409;
         if (error.message.includes(this.uniqueConstraint)) {
-          const uniqueConstraintArray = this.uniqueConstraint.split('_');
-          customError.message = `O ${uniqueConstraintArray[uniqueConstraintArray.length - 1]} já existe e não pode estar duplicado.`;
+          customError.message = `${this.routeNameTranslatedSingular} já existe e não pode estar duplicado.`;
         } else {
           customError.message = 'Registro duplicado.';
         }
         this.apiResponse.Error(response, customError.statusCode, customError.message);
       } else {
-        customError.message = `Erro ao salvar o ${this.routeNameTranslated}: ${error.message}`;
+        customError.message = `Erro ao salvar ${this.routeNameTranslated}: ${error.message}`;
         this.apiResponse.Error(response, 500, customError.message);
       }
     }
@@ -102,18 +103,18 @@ export class EmployeeController {
   ): Promise<Response<IDefaultResponse>> {
     try {
       const data = await this.repository.getDataByField(
-        this.keyId as keyof Employee,
+        this.keyId as keyof ProductionLine,
         Number(request.params[this.keyId]),
       );
       await this.repository.delete(data[this.keyId]);
       return this.apiResponse.Ok(
         response,
         200,
-        `${this.routeNameTranslatedSingular} ${data.name} excluido com sucesso!`,
+        `${this.routeNameTranslatedSingular} ${data.lineCode} excluido com sucesso!`,
       );
     } catch (error) {
       const customError = error as CustomError;
-      customError.message = `Erro ao excluir o ${this.routeNameTranslated.slice(0, -1)}: ${error.message} `;
+      customError.message = `Erro ao excluir ${this.routeNameTranslatedSingular}: ${error.message} `;
       this.apiResponse.Error(response, 500, customError.message);
     }
   }

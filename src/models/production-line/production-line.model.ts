@@ -7,11 +7,11 @@ export class ProductionLine {
   @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_production_line' })
   idProductionLine: number;
 
-  @Column({ type: 'varchar', nullable: true })
-  lineCode?: string;
+  @Column({ type: 'varchar' })
+  lineCode: string;
 
   @Column({ type: 'varchar', nullable: true })
-  lineName: string;
+  lineName?: string;
 
   @Column({ type: 'varchar', nullable: true })
   comment?: string;

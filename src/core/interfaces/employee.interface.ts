@@ -15,17 +15,9 @@ export interface IEmployee {
 }
 
 export interface IEmployeeResponse extends IDefaultResponse {
-  data: IEmployee;
-}
-
-export interface IEmployeeListResponse extends IDefaultResponse {
-  data?: IEmployee[];
-}
-
-export interface IEmployeePositionListResponse {
-  data?: EmployeePosition[];
+  data?: IEmployee | IEmployee[];
 }
 
 export interface IEmployeePositionResponse extends IDefaultResponse {
-  data?: EmployeePosition;
+  data?: EmployeePosition | EmployeePosition[];
 }

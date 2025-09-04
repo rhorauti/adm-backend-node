@@ -4,7 +4,7 @@ import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import { IDefaultResponse } from '@core/interfaces/base.interface';
 import { TaskTypeRepository } from '@repositories/task/task-type.repository';
-import { ITaskTypeListResponse, ITaskTypeResponse } from '@core/interfaces/task.interface';
+import { ITaskTypeResponse } from '@core/interfaces/task.interface';
 import { DepartmentRepository } from '@repositories/department/department.repository';
 import { emptyStringToNull, translateDeptName } from '@utils/misc';
 import { Department } from '@models/department/department.model';
@@ -33,7 +33,6 @@ export class TaskTypeController {
     next: NextFunction,
   ): Promise<Response> => {
     this.paramDeptName = translateDeptName(request.params['department']);
-    console.log('params', this.paramDeptName);
     const selectedDept = await this.departmentRepository.getDataByField('name', this.paramDeptName);
     if (selectedDept) {
       this.selectedDept = selectedDept;
@@ -50,7 +49,7 @@ export class TaskTypeController {
     request: Request,
     response: Response,
     next: NextFunction,
-  ): Promise<Response<ITaskTypeListResponse>> {
+  ): Promise<Response<ITaskTypeResponse>> {
     try {
       await this.checkExistingDept(request, response, next);
       const dataList = await this.taskTypeRepository.getDataList(this.selectedDept.idDepartment);
@@ -58,7 +57,7 @@ export class TaskTypeController {
         return this.apiResponse.Ok(
           response,
           200,
-          `Dados de ${this.routeNameTranslated} enviados com sucesso.`,
+          `${this.routeNameTranslated} enviados com sucesso.`,
           dataList,
         );
       } else {
@@ -66,6 +65,7 @@ export class TaskTypeController {
       }
     } catch (error) {
       const customError = error as CustomErrorHandler;
+      customError.message = `Erro na consulta de ${this.routeNameTranslatedSingular}: ${error.message}`;
       this.apiResponse.Error(response, 500, customError.message);
     }
   }
@@ -81,11 +81,12 @@ export class TaskTypeController {
       return this.apiResponse.Ok(
         response,
         200,
-        `Dados do ${this.routeNameTranslatedSingular} enviado com sucesso.`,
+        `${this.routeNameTranslatedSingular} enviado com sucesso.`,
         data,
       );
     } catch (error) {
       const customError = error as CustomError;
+      customError.message = `Erro na consulta de ${this.routeNameTranslatedSingular}: ${error.message}`;
       this.apiResponse.Error(response, 500, customError.message);
     }
   }
@@ -96,6 +97,7 @@ export class TaskTypeController {
     next: NextFunction,
   ): Promise<Response<ITaskTypeResponse>> {
     try {
+      await this.checkExistingDept(request, response, next);
       const body = request.body as TaskType;
       emptyStringToNull(body);
       if (body.department) {
@@ -114,7 +116,7 @@ export class TaskTypeController {
         customError.message = 'Registro duplicado.';
         this.apiResponse.Error(response, customError.statusCode, customError.message);
       } else {
-        customError.message = `Erro de conexão com o banco de dados ao consultar a tabela de ${this.routeNameTranslated}.`;
+        customError.message = `Erro ao salvar o registro: ${error.message}.`;
         this.apiResponse.Error(response, 500, customError.message);
       }
     }
@@ -136,7 +138,7 @@ export class TaskTypeController {
       );
     } catch (error) {
       const customError = error as CustomError;
-      customError.message = `Erro de conexão com o banco de dados excluir o ${this.routeNameTranslatedSingular}: ${error.message} `;
+      customError.message = `Erro ao excluir ${this.routeNameTranslatedSingular}: ${error.message} `;
       this.apiResponse.Error(response, 500, customError.message);
     }
   }

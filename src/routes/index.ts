@@ -5,17 +5,19 @@ import { addressRoute } from './address/address.route';
 import { departmentRoute } from './department/department.route';
 import { companyFakeRoute } from './company/company.fake.route';
 import { employeePositionRoute } from './employee/employee-position.route';
-import { employeeRoute } from './employee/employee.route';
 import { taskTypeRoute } from './task/task-type.route';
+import { productionLineRoute } from './production-line/production-line.route';
+import { employeeRoute } from './employee/employee.route';
 
 const router = Router();
 router.use(authRoute);
 router.use(companyRoute);
 router.use(companyFakeRoute);
 router.use(addressRoute);
+router.use(employeeRoute);
 router.use(employeePositionRoute);
 router.use(taskTypeRoute);
-router.use(employeeRoute);
 router.use(departmentRoute);
+router.use(productionLineRoute);
 
 export { router };

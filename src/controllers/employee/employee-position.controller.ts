@@ -1,7 +1,4 @@
-import {
-  IEmployeePositionListResponse,
-  IEmployeePositionResponse,
-} from '@core/interfaces/employee.interface';
+import { IEmployeePositionResponse } from '@core/interfaces/employee.interface';
 import { CustomError } from '@middlewares/error.middleware';
 import { ApiResponse } from '@utils/api-response';
 import { NextFunction, Request, Response } from 'express';
@@ -17,7 +14,7 @@ export class EmployeePositionController {
     private apiResponse: ApiResponse,
   ) {}
 
-  routeNameTranslated = 'cargos';
+  routeNameTranslated = 'Cargos';
   keyId = 'idEmployeePosition';
   routeNameTranslatedSingular = this.routeNameTranslated.slice(0, -1);
   uniqueConstraint = 'UQ_employee_position_name';
@@ -26,13 +23,13 @@ export class EmployeePositionController {
     request: Request,
     response: Response,
     next: NextFunction,
-  ): Promise<Response<IEmployeePositionListResponse>> {
+  ): Promise<Response<IEmployeePositionResponse>> {
     try {
       const dataList = await this.repository.getDataList();
       return this.apiResponse.Ok(
         response,
         200,
-        `Dados de ${this.routeNameTranslated} enviados com sucesso.`,
+        `${this.routeNameTranslated} enviados com sucesso.`,
         dataList,
       );
     } catch (error) {
@@ -52,12 +49,12 @@ export class EmployeePositionController {
       return this.apiResponse.Ok(
         response,
         200,
-        `Dados do ${this.routeNameTranslatedSingular} enviado com sucesso.`,
+        `${this.routeNameTranslatedSingular} enviado com sucesso.`,
         data,
       );
     } catch (error) {
       const customError = error as CustomError;
-      customError.message = `Erro de conexão com o banco de dados ao consultar os dados do ${this.routeNameTranslatedSingular}: ${error.message}`;
+      customError.message = `Erro na consulta de ${this.routeNameTranslatedSingular}: ${error.message}`;
       this.apiResponse.Error(response, 500, customError.message);
     }
   }
@@ -80,13 +77,13 @@ export class EmployeePositionController {
       if ((error && error.code == 'ER_DUP_ENTRY') || error?.code === '23505') {
         customError.statusCode = 409;
         if (error.message.includes(this.uniqueConstraint)) {
-          customError.message = `O ${this.routeNameTranslatedSingular} já existe e não pode estar duplicado.`;
+          customError.message = `${this.routeNameTranslatedSingular} já existe e não pode estar duplicado.`;
         } else {
           customError.message = 'Registro duplicado.';
         }
         this.apiResponse.Error(response, customError.statusCode, customError.message);
       } else {
-        customError.message = `Erro de conexão com o banco de dados ao consultar a tabela de ${this.routeNameTranslated}.`;
+        customError.message = `Erro ao salvar ${this.routeNameTranslated}: ${error.message}`;
         this.apiResponse.Error(response, 500, customError.message);
       }
     }
@@ -107,7 +104,7 @@ export class EmployeePositionController {
       );
     } catch (error) {
       const customError = error as CustomError;
-      customError.message = `Erro de conexão com o banco de dados excluir o ${this.routeNameTranslatedSingular}: ${error.message} `;
+      customError.message = `Erro ao excluir ${this.routeNameTranslatedSingular}: ${error.message} `;
       this.apiResponse.Error(response, 500, customError.message);
     }
   }

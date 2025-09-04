@@ -53,7 +53,6 @@ export class Employee {
 
   @ManyToOne(() => Department, department => department.employee, {
     nullable: true,
-    onDelete: 'SET NULL',
   })
   @JoinColumn({
     name: 'idDepartment',
@@ -67,6 +66,7 @@ export class Employee {
 
   @OneToMany(() => EmployeePosition, employeePosition => employeePosition.employee, {
     nullable: true,
+    cascade: true,
   })
   employeePosition?: EmployeePosition[];
 
