@@ -31,7 +31,7 @@ export class Company {
   @OneToOne(() => Address, address => address.company, { nullable: true })
   address: Address;
 
-  @OneToMany(() => Employee, employee => employee.company, { nullable: true })
+  @OneToMany(() => Employee, employee => employee.company, { nullable: true, cascade: true })
   employee: Employee[];
 
   @OneToMany(() => PurchasingOrder, purchasingOrder => purchasingOrder.company, {

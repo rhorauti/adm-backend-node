@@ -1,7 +1,6 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Employee } from './employee.model';
 
-@Unique('UQ_employee_position_name', ['name'])
 @Entity('EmployeePosition')
 export class EmployeePosition {
   @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_employee_position' })
