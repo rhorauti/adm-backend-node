@@ -10,9 +10,5 @@ export interface ICompanyDetail {
 }
 
 export interface ICompanyResponse extends IDefaultResponse {
-  data?: {
-    company?: Company;
-    address?: Address;
-    employee?: Employee;
-  };
+  data?: ICompanyDetail;
 }

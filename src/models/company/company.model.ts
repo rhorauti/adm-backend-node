@@ -37,5 +37,5 @@ export class Company {
   @OneToMany(() => PurchasingOrder, purchasingOrder => purchasingOrder.company, {
     nullable: true,
   })
-  purchasingOrder: PurchasingOrder;
+  purchasingOrder?: PurchasingOrder;
 }

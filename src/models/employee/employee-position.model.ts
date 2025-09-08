@@ -1,25 +1,21 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
 import { Employee } from './employee.model';
 
+@Unique('UQ_employee_name', ['name'])
 @Entity('EmployeePosition')
 export class EmployeePosition {
   @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_employee_position' })
   idEmployeePosition: number;
 
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ type: 'varchar' })
   name: string;
 
   @Column({ type: 'varchar', nullable: true })
   comment?: string;
 
-  @ManyToOne(() => Employee, employee => employee.employeePosition, {
+  @OneToMany(() => Employee, employee => employee.employeePosition, {
     nullable: true,
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({
-    name: 'idEmployee',
-    referencedColumnName: 'idEmployee',
-    foreignKeyConstraintName: 'FK_employee_position_employee',
+    cascade: true,
   })
   employee?: Employee;
 }

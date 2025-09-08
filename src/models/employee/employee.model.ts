@@ -64,11 +64,15 @@ export class Employee {
   @OneToOne(() => Address, address => address.employee, { nullable: true })
   address?: Address;
 
-  @OneToMany(() => EmployeePosition, employeePosition => employeePosition.employee, {
+  @ManyToOne(() => EmployeePosition, employeePosition => employeePosition.employee, {
     nullable: true,
-    cascade: true,
   })
-  employeePosition?: EmployeePosition[];
+  @JoinColumn({
+    name: 'idEmployeePosition',
+    referencedColumnName: 'idEmployeePosition',
+    foreignKeyConstraintName: 'FK_employee_employee_position',
+  })
+  employeePosition?: EmployeePosition;
 
   @OneToOne(() => EmployeeContract, employeeContract => employeeContract.employee, {
     nullable: true,
