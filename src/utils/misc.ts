@@ -4,11 +4,15 @@ import { container } from 'tsyringe';
 import { ApiResponse } from './api-response';
 
 export const emptyStringToNull = (obj: Record<string, any>): void => {
-  Object.entries(obj).forEach(([key, value]) => {
-    if ((typeof obj[key] === 'string' || typeof obj[key] === 'undefined') && value.trim() === '') {
+  for (const key in obj) {
+    const value = obj[key];
+    if (
+      (typeof value === 'string' && value.trim() === '') ||
+      (typeof value === 'number' && value === 0)
+    ) {
       obj[key] = null;
     }
-  });
+  }
 };
 
 type DateFormat = 'short' | 'long' | 'medium' | 'full';

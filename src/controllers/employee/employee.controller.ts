@@ -27,7 +27,7 @@ export class EmployeeController {
     next: NextFunction,
   ): Promise<Response<IEmployeeResponse>> {
     try {
-      const dataList = await this.repository.getDataList();
+      const dataList = await this.repository.getCompleteDataList();
       return this.apiResponse.Ok(
         response,
         200,

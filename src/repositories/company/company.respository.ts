@@ -92,6 +92,8 @@ export class CompanyRepository {
       emptyStringToNull(companyData.company);
       emptyStringToNull(companyData.address);
       emptyStringToNull(companyData.employee);
+      emptyStringToNull(companyData.employee.employeePosition);
+      emptyStringToNull(companyData.employee.department);
 
       currentStep = 'saving-company';
       companyData.company.idCompany = null;
@@ -114,7 +116,7 @@ export class CompanyRepository {
         ...companyData.employee,
         company: savedCompany,
         department: companyData.employee.department
-          ? { idDepartment: Number(companyData.employee.department.idDepartment) }
+          ? { idDepartment: companyData.employee.department.idDepartment }
           : null,
         employeePosition: employeePositionToBeSaved,
       });
@@ -179,7 +181,7 @@ export class CompanyRepository {
         ...companyData.employee,
         company: updatedCompany,
         department: companyData.employee.department
-          ? { idDepartment: Number(companyData.employee.department.idDepartment) }
+          ? { idDepartment: companyData.employee.department.idDepartment }
           : null,
       });
       const updatedEmployee = await queryRunner.manager.save(employeeToBeUpdated);
