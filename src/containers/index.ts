@@ -19,6 +19,7 @@ import { ProductionLineController } from '@controllers/production-line/productio
 import { ProductionLineRepository } from '@repositories/production-line/production-line.repository';
 import { EmployeeRepository } from '@repositories/employee/employee.repository';
 import { EmployeeController } from '@controllers/employee/employee.controller';
+import { CloudStorage } from 'GCP/cloud-storage.gcp';
 
 container.registerSingleton('AuthRepository', AuthRepository);
 container.registerSingleton('AuthController', AuthController);
@@ -40,3 +41,4 @@ container.registerSingleton('ProductionLineRepository', ProductionLineRepository
 container.registerSingleton('JwtHandler', JwtHandler);
 container.registerSingleton('EmailSender', EmailSender);
 container.registerSingleton('ApiResponse', ApiResponse);
+container.registerSingleton('CloudStorage', CloudStorage);

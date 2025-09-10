@@ -5,17 +5,20 @@ import { Employee } from '@models/employee/employee.model';
 import { emptyStringToNull } from '@utils/misc';
 import { inject, injectable } from 'tsyringe';
 import { DataSource, Repository } from 'typeorm';
+import { EmployeePositionRepository } from './employee-position.repository';
+import { DepartmentRepository } from '@repositories/department/department.repository';
 
 @injectable()
 export class EmployeeRepository {
   private employeeRepository: Repository<Employee>;
-  private employeePositionRepository: Repository<EmployeePosition>;
-  private departmentRepository: Repository<Department>;
 
-  constructor(@inject('DataSource') private dataSource: DataSource) {
+  constructor(
+    @inject('DataSource') private dataSource: DataSource,
+    @inject('EmployeePositionRepository')
+    private employeePositionRepository: EmployeePositionRepository,
+    @inject('DepartmentRepository') private departmentRepository: DepartmentRepository,
+  ) {
     this.employeeRepository = this.dataSource.getRepository(Employee);
-    this.employeePositionRepository = this.dataSource.getRepository(EmployeePosition);
-    this.departmentRepository = this.dataSource.getRepository(Department);
   }
 
   keyId = 'idEmployee';
@@ -56,6 +59,16 @@ export class EmployeeRepository {
 
   async save(data: Employee): Promise<Employee> {
     emptyStringToNull(data);
+    const department = await this.departmentRepository.getDataByField(
+      'idDepartment',
+      data.department.idDepartment,
+    );
+    const employeePosition = await this.employeePositionRepository.getDataByField(
+      'idEmployeePosition',
+      data.employeePosition.idEmployeePosition,
+    );
+    data.department = department;
+    data.employeePosition = employeePosition;
     return this.employeeRepository.save(data);
   }
 

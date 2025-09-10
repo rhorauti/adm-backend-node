@@ -19,10 +19,13 @@ export class EmployeePositionRepository {
     });
   }
 
-  async getData(id: number): Promise<EmployeePosition> {
+  async getDataByField<K extends keyof EmployeePosition>(
+    key: K,
+    value: EmployeePosition[K],
+  ): Promise<EmployeePosition> {
     return await this.repository.findOne({
       where: {
-        [this.keyId]: id,
+        [key]: value,
       },
     });
   }

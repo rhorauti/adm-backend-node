@@ -6,3 +6,4 @@ tsconfig.json
 .env.development
 .env.production
 tsconfig.tsbuildinfo
+credentials.json

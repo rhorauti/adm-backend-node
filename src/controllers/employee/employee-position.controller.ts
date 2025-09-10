@@ -45,7 +45,10 @@ export class EmployeePositionController {
     next: NextFunction,
   ): Promise<Response<IEmployeePositionResponse>> {
     try {
-      const data = await this.repository.getData(request.body[this.keyId]);
+      const data = await this.repository.getDataByField(
+        'idEmployeePosition',
+        request.body[this.keyId],
+      );
       return this.apiResponse.Ok(
         response,
         200,
@@ -95,7 +98,10 @@ export class EmployeePositionController {
     next: NextFunction,
   ): Promise<Response<IDefaultResponse>> {
     try {
-      const data = await this.repository.getData(Number(request.params[this.keyId]));
+      const data = await this.repository.getDataByField(
+        'idEmployeePosition',
+        Number(request.params[this.keyId]),
+      );
       await this.repository.delete(data[this.keyId]);
       return this.apiResponse.Ok(
         response,

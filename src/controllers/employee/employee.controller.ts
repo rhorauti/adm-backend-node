@@ -6,13 +6,17 @@ import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import { IDefaultResponse } from '@core/interfaces/base.interface';
 import { Employee } from '@models/employee/employee.model';
+import { CloudStorage } from 'GCP/cloud-storage.gcp';
+import { CompanyRepository } from '@repositories/company/company.respository';
 
 @injectable()
 export class EmployeeController {
   constructor(
-    @inject('EmployeeRepository') private repository: EmployeeRepository,
+    @inject('EmployeeRepository') private employeeRepository: EmployeeRepository,
+    @inject('CompanyRepository') private companyRepository: CompanyRepository,
     @inject('ApiResponse')
     private apiResponse: ApiResponse,
+    @inject('CloudStorage') private cloudStorage: CloudStorage,
   ) {}
 
   routeNameTranslated = 'Funcionários';
@@ -27,7 +31,7 @@ export class EmployeeController {
     next: NextFunction,
   ): Promise<Response<IEmployeeResponse>> {
     try {
-      const dataList = await this.repository.getCompleteDataList();
+      const dataList = await this.employeeRepository.getCompleteDataList();
       return this.apiResponse.Ok(
         response,
         200,
@@ -47,7 +51,7 @@ export class EmployeeController {
     next: NextFunction,
   ): Promise<Response<IEmployeeResponse>> {
     try {
-      const data = await this.repository.getDataByField(
+      const data = await this.employeeRepository.getDataByField(
         this.keyId as keyof Employee,
         Number(request.params[this.relatedKeyId]),
       );
@@ -64,19 +68,50 @@ export class EmployeeController {
     }
   }
 
+  bucketFolder = 'profile-img/';
+
   async save(
     request: Request,
     response: Response,
     next: NextFunction,
   ): Promise<Response<IEmployeeResponse>> {
     try {
-      const savedData = await this.repository.save(request.body);
-      return this.apiResponse.Ok(
-        response,
-        200,
-        `${this.routeNameTranslatedSingular} ${savedData.name} salvo com sucesso.`,
-        savedData,
-      );
+      const idCompany = Number(request.params.idCompany) ?? 0;
+      if (idCompany == 0) {
+        this.apiResponse.Error(response, 400, 'Erro ao receber o idCompany');
+      } else {
+        const company = await this.companyRepository.findCompanyByField({ idCompany: idCompany });
+        request.body.company = company;
+        if (company) {
+          const savedData = await this.employeeRepository.save(request.body);
+          if (savedData) {
+            const fileUrl = await this.cloudStorage.saveFile(
+              request,
+              response,
+              'profile-img/1.jpeg',
+            );
+            const responseData = {
+              idEmployee: savedData.idEmployee,
+              isDefault: savedData.isDefault,
+              name: savedData.name,
+              email: savedData.email,
+              deskphone: savedData.deskphone,
+              cellphone: savedData.cellphone,
+              photoUrl: fileUrl ?? '',
+              department: savedData.department,
+              employeePosition: savedData.employeePosition,
+            } as Employee;
+            if (savedData && fileUrl) {
+              return this.apiResponse.Ok(
+                response,
+                200,
+                `${this.routeNameTranslatedSingular} ${savedData.name} salvo com sucesso.`,
+                responseData,
+              );
+            }
+          }
+        }
+      }
     } catch (error) {
       const customError = error as CustomError;
       if ((error && error.code == 'ER_DUP_ENTRY') || error?.code === '23505') {
@@ -92,6 +127,7 @@ export class EmployeeController {
         customError.message = `Erro ao salvar o ${this.routeNameTranslated}: ${error.message}`;
         this.apiResponse.Error(response, 500, customError.message);
       }
+      console.log('erro', error);
     }
   }
 
@@ -101,11 +137,11 @@ export class EmployeeController {
     next: NextFunction,
   ): Promise<Response<IDefaultResponse>> {
     try {
-      const data = await this.repository.getDataByField(
+      const data = await this.employeeRepository.getDataByField(
         this.keyId as keyof Employee,
         Number(request.params[this.keyId]),
       );
-      await this.repository.delete(data[this.keyId]);
+      await this.employeeRepository.delete(data[this.keyId]);
       return this.apiResponse.Ok(
         response,
         200,

@@ -4,6 +4,7 @@ import { body } from 'express-validator';
 import { raiseMiddlewareError } from '@utils/misc';
 import { EmployeeController } from '@controllers/employee/employee.controller';
 import { Employee } from '@models/employee/employee.model';
+import { CloudStorage } from 'GCP/cloud-storage.gcp';
 
 const employeeRoute = Router();
 
@@ -11,28 +12,30 @@ const baseRouteName = 'employees';
 export const keyId: keyof Employee = 'idEmployee';
 
 const controller = container.resolve(EmployeeController);
+const cloudStorage = container.resolve(CloudStorage);
 
 const bodyValidationMiddleware = () => {
-  return [body('name').notEmpty().withMessage('O campo Nome do Cargo não pode estar vazio!')];
+  return [body('name').notEmpty().withMessage('O campo Nome do funcionário não pode estar vazio!')];
 };
 
 employeeRoute.get(
-  `/${baseRouteName}`,
+  `/:idCompany/${baseRouteName}`,
   (request: Request, response: Response, next: NextFunction) => {
     controller.getDataList(request, response, next);
   },
 );
 
 employeeRoute.get(
-  `/${baseRouteName}/:${String(keyId)}`,
+  `/:idCompany/${baseRouteName}/:${String(keyId)}`,
   (request: Request, response: Response, next: NextFunction) => {
     controller.getData(request, response, next);
   },
 );
 
 employeeRoute.post(
-  `/${baseRouteName}`,
-  bodyValidationMiddleware(),
+  `/:idCompany/${baseRouteName}`,
+  // bodyValidationMiddleware(),
+  cloudStorage.upload.single('file'),
   (request: Request, response: Response, next: NextFunction) => {
     raiseMiddlewareError(request, response, next);
   },
@@ -42,7 +45,7 @@ employeeRoute.post(
 );
 
 employeeRoute.delete(
-  `/${baseRouteName}/:${String(keyId)}`,
+  `/:idCompany/${baseRouteName}/:${String(keyId)}`,
   (request: Request, response: Response, next: NextFunction) => {
     controller.delete(request, response, next);
   },
