@@ -101,49 +101,57 @@ export class EmployeeController {
     next: NextFunction,
   ): Promise<Response<IEmployeeResponse>> {
     try {
+      const employeeData = JSON.parse(request.body.data);
+      if (employeeData.photoUrl) delete employeeData.photoUrl;
       const idCompany = Number(request.params.idCompany) ?? 0;
       if (idCompany == 0) {
         this.apiResponse.Error(response, 400, 'Erro ao receber o idCompany');
       } else {
-        let signedPhotoUrl: GetSignedUrlResponse = null;
         const company = await this.companyRepository.findCompanyByField({ idCompany: idCompany });
-        request.body.company = company;
+        employeeData.company = company;
         if (company) {
-          const savedData = await this.employeeRepository.save(request.body);
-          if (savedData) {
-            if (request.file) {
-              const key = `${this.bucketFolder}${savedData.idEmployee}.jpeg`;
-              const objectKey = await this.cloudStorage.saveFile(request, response, key);
-              if (objectKey) {
-                await this.employeeRepository.updateField(
-                  savedData.idEmployee,
-                  'photoUrl',
-                  objectKey,
-                );
-                signedPhotoUrl = await this.cloudStorage.getReadSignedUrl(objectKey);
-              }
-            }
-            if (!signedPhotoUrl && savedData.photoUrl) {
-              signedPhotoUrl = await this.cloudStorage.getReadSignedUrl(savedData.photoUrl);
-            }
-            const responseData = {
-              idEmployee: savedData.idEmployee,
-              isDefault: savedData.isDefault,
-              name: savedData.name,
-              email: savedData.email,
-              deskphone: savedData.deskphone,
-              cellphone: savedData.cellphone,
-              photoUrl: signedPhotoUrl[0] ?? '',
-              department: savedData.department,
-              employeePosition: savedData.employeePosition,
-            } as Employee;
-            return this.apiResponse.Ok(
-              response,
-              200,
-              `${this.routeNameTranslatedSingular} ${savedData.name} salvo com sucesso.`,
-              responseData,
-            );
+          const justSavedEmployee = await this.employeeRepository.save(employeeData);
+          const updatedData = await this.employeeRepository.getDataByField(
+            'idEmployee',
+            justSavedEmployee.idEmployee,
+          );
+          if (employeeData.isRemovedPhoto && updatedData.photoUrl) {
+            await this.cloudStorage.deleteFile(updatedData.photoUrl);
+            await this.employeeRepository.updateField(updatedData.idEmployee, 'photoUrl', null);
           }
+          let signedPhotoUrl: GetSignedUrlResponse = null;
+          if (request.file) {
+            const key = `${this.bucketFolder}${updatedData.idEmployee}.jpeg`;
+            const objectKey = await this.cloudStorage.saveFile(request, response, key);
+            if (objectKey) {
+              await this.employeeRepository.updateField(
+                updatedData.idEmployee,
+                'photoUrl',
+                objectKey,
+              );
+              signedPhotoUrl = await this.cloudStorage.getReadSignedUrl(objectKey);
+            }
+          }
+          if (!signedPhotoUrl && updatedData.photoUrl) {
+            signedPhotoUrl = await this.cloudStorage.getReadSignedUrl(updatedData.photoUrl);
+          }
+          const responseData = {
+            idEmployee: updatedData.idEmployee,
+            isDefault: updatedData.isDefault,
+            name: updatedData.name,
+            email: updatedData.email,
+            deskphone: updatedData.deskphone,
+            cellphone: updatedData.cellphone,
+            photoUrl: signedPhotoUrl?.[0] ?? '',
+            department: updatedData.department,
+            employeePosition: updatedData.employeePosition,
+          } as Employee;
+          return this.apiResponse.Ok(
+            response,
+            200,
+            `${this.routeNameTranslatedSingular} ${updatedData.name} salvo com sucesso.`,
+            responseData,
+          );
         }
       }
     } catch (error) {

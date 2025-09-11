@@ -66,24 +66,22 @@ export class EmployeeRepository {
     this.employeeRepository.update(idEmployee, { [key]: value });
   }
 
-  async save(data: Employee): Promise<Employee> {
-    emptyStringToNull(data);
+  async save(employeeData: Employee): Promise<Employee> {
+    emptyStringToNull(employeeData);
     const department = await this.departmentRepository.getDataByField(
       'idDepartment',
-      data.department.idDepartment,
+      employeeData.department.idDepartment,
     );
     const employeePosition = await this.employeePositionRepository.getDataByField(
       'idEmployeePosition',
-      data.employeePosition.idEmployeePosition,
+      employeeData.employeePosition.idEmployeePosition,
     );
-    data.department = department;
-    data.employeePosition = employeePosition;
-    data.isDefault = typeof data.isDefault == 'string' && data.isDefault == 'false' ? false : true;
-    data.idEmployee = data.idEmployee ? Number(data.idEmployee) : null;
-    return this.employeeRepository.save(data);
+    employeeData.department = department;
+    employeeData.employeePosition = employeePosition;
+    return this.employeeRepository.save(employeeData);
   }
 
-  async delete(id: number): Promise<void> {
-    await this.employeeRepository.delete(id);
+  async delete(idEmployee: number): Promise<void> {
+    await this.employeeRepository.delete(idEmployee);
   }
 }
