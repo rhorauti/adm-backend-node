@@ -35,6 +35,7 @@ export class EmployeeRepository {
       .createQueryBuilder('employee')
       .leftJoinAndSelect('employee.department', 'department')
       .leftJoinAndSelect('employee.employeePosition', 'position')
+      .orderBy('employee.idEmployee', 'DESC')
       .getRawMany();
     return query.map(row => ({
       idEmployee: row.employee_idEmployee,
@@ -57,6 +58,14 @@ export class EmployeeRepository {
     });
   }
 
+  async updateField<K extends keyof Employee>(
+    idEmployee: Employee['idEmployee'],
+    key: K,
+    value: Employee[K],
+  ) {
+    this.employeeRepository.update(idEmployee, { [key]: value });
+  }
+
   async save(data: Employee): Promise<Employee> {
     emptyStringToNull(data);
     const department = await this.departmentRepository.getDataByField(
@@ -69,6 +78,8 @@ export class EmployeeRepository {
     );
     data.department = department;
     data.employeePosition = employeePosition;
+    data.isDefault = typeof data.isDefault == 'string' && data.isDefault == 'false' ? false : true;
+    data.idEmployee = data.idEmployee ? Number(data.idEmployee) : null;
     return this.employeeRepository.save(data);
   }
 

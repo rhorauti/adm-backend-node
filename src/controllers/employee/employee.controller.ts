@@ -8,6 +8,7 @@ import { IDefaultResponse } from '@core/interfaces/base.interface';
 import { Employee } from '@models/employee/employee.model';
 import { CloudStorage } from 'GCP/cloud-storage.gcp';
 import { CompanyRepository } from '@repositories/company/company.respository';
+import { GetSignedUrlResponse } from '@google-cloud/storage';
 
 @injectable()
 export class EmployeeController {
@@ -23,7 +24,7 @@ export class EmployeeController {
   uniqueConstraint = 'UQ_employee_cpf';
   keyId = 'idEmployee';
   relatedKeyId = 'idCompany';
-  routeNameTranslatedSingular = 'do' + this.routeNameTranslated.slice(0, -1);
+  routeNameTranslatedSingular = this.routeNameTranslated.slice(0, -1);
 
   async getDataList(
     request: Request,
@@ -32,11 +33,20 @@ export class EmployeeController {
   ): Promise<Response<IEmployeeResponse>> {
     try {
       const dataList = await this.employeeRepository.getCompleteDataList();
+      const withSigned = await Promise.all(
+        dataList.map(async (e: Employee) => {
+          if (e.photoUrl) {
+            const [url] = await this.cloudStorage.getReadSignedUrl(e.photoUrl);
+            return { ...e, photoUrl: url };
+          }
+          return e;
+        }),
+      );
       return this.apiResponse.Ok(
         response,
         200,
         `Dados de ${this.routeNameTranslated} enviados com sucesso.`,
-        dataList,
+        withSigned,
       );
     } catch (error) {
       const customError = error as CustomError;
@@ -53,13 +63,28 @@ export class EmployeeController {
     try {
       const data = await this.employeeRepository.getDataByField(
         this.keyId as keyof Employee,
-        Number(request.params[this.relatedKeyId]),
+        Number(request.params[this.keyId]),
       );
+      let signedPhotoUrl: GetSignedUrlResponse = null;
+      if (data.photoUrl) {
+        signedPhotoUrl = await this.cloudStorage.getReadSignedUrl(data.photoUrl);
+      }
+      const responseData = {
+        idEmployee: data.idEmployee,
+        isDefault: data.isDefault,
+        name: data.name,
+        email: data.email,
+        deskphone: data.deskphone,
+        cellphone: data.cellphone,
+        photoUrl: signedPhotoUrl[0] ?? '',
+        department: data.department,
+        employeePosition: data.employeePosition,
+      } as Employee;
       return this.apiResponse.Ok(
         response,
         200,
         `Dados ${this.routeNameTranslatedSingular} enviado com sucesso.`,
-        data,
+        responseData,
       );
     } catch (error: unknown) {
       const customError = error as CustomError;
@@ -80,16 +105,27 @@ export class EmployeeController {
       if (idCompany == 0) {
         this.apiResponse.Error(response, 400, 'Erro ao receber o idCompany');
       } else {
+        let signedPhotoUrl: GetSignedUrlResponse = null;
         const company = await this.companyRepository.findCompanyByField({ idCompany: idCompany });
         request.body.company = company;
         if (company) {
           const savedData = await this.employeeRepository.save(request.body);
           if (savedData) {
-            const fileUrl = await this.cloudStorage.saveFile(
-              request,
-              response,
-              'profile-img/1.jpeg',
-            );
+            if (request.file) {
+              const key = `${this.bucketFolder}${savedData.idEmployee}.jpeg`;
+              const objectKey = await this.cloudStorage.saveFile(request, response, key);
+              if (objectKey) {
+                await this.employeeRepository.updateField(
+                  savedData.idEmployee,
+                  'photoUrl',
+                  objectKey,
+                );
+                signedPhotoUrl = await this.cloudStorage.getReadSignedUrl(objectKey);
+              }
+            }
+            if (!signedPhotoUrl && savedData.photoUrl) {
+              signedPhotoUrl = await this.cloudStorage.getReadSignedUrl(savedData.photoUrl);
+            }
             const responseData = {
               idEmployee: savedData.idEmployee,
               isDefault: savedData.isDefault,
@@ -97,18 +133,16 @@ export class EmployeeController {
               email: savedData.email,
               deskphone: savedData.deskphone,
               cellphone: savedData.cellphone,
-              photoUrl: fileUrl ?? '',
+              photoUrl: signedPhotoUrl[0] ?? '',
               department: savedData.department,
               employeePosition: savedData.employeePosition,
             } as Employee;
-            if (savedData && fileUrl) {
-              return this.apiResponse.Ok(
-                response,
-                200,
-                `${this.routeNameTranslatedSingular} ${savedData.name} salvo com sucesso.`,
-                responseData,
-              );
-            }
+            return this.apiResponse.Ok(
+              response,
+              200,
+              `${this.routeNameTranslatedSingular} ${savedData.name} salvo com sucesso.`,
+              responseData,
+            );
           }
         }
       }
@@ -127,7 +161,6 @@ export class EmployeeController {
         customError.message = `Erro ao salvar o ${this.routeNameTranslated}: ${error.message}`;
         this.apiResponse.Error(response, 500, customError.message);
       }
-      console.log('erro', error);
     }
   }
 
@@ -141,7 +174,10 @@ export class EmployeeController {
         this.keyId as keyof Employee,
         Number(request.params[this.keyId]),
       );
-      await this.employeeRepository.delete(data[this.keyId]);
+      const employee = await this.employeeRepository.getDataByField('idEmployee', data[this.keyId]);
+      if (employee) await this.employeeRepository.delete(data[this.keyId]);
+      if (employee.photoUrl) await this.cloudStorage.deleteFile(employee.photoUrl);
+
       return this.apiResponse.Ok(
         response,
         200,
