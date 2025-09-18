@@ -3,7 +3,7 @@ import { Employee } from '../employee/employee.model';
 import { Company } from '@models/company/company.model';
 import { Exclude } from 'class-transformer';
 
-@Entity('Address')
+@Entity('address')
 export class Address {
   @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_address' })
   idAddress: number;

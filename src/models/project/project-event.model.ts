@@ -1,7 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Timestamp } from 'typeorm';
 import { Project } from './project.model';
 
-@Entity('ProjectEvent')
+@Entity('project_event')
 export class ProjectEvent {
   @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_project_event' })
   idProjectEvent: number;

@@ -3,28 +3,28 @@ import { ApiResponse } from '@utils/api-response';
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import { IDefaultResponse } from '@core/interfaces/base.interface';
-import { IProductionLineResponse } from '@core/interfaces/production.interface';
-import { ProductionLineRepository } from '@repositories/production-line/production-line.repository';
-import { ProductionLine } from '@models/production-line/production-line.model';
+import { ProductTypeRepository } from '@repositories/product/product-type.repository';
+import { IProductTypeResponse } from '@core/interfaces/product.interface';
+import { ProductType } from '@models/product/product-type.model';
 
 @injectable()
-export class ProductionLineController {
+export class ProductTypeController {
   constructor(
-    @inject('ProductionLineRepository') private repository: ProductionLineRepository,
+    @inject('ProductTypeRepository') private repository: ProductTypeRepository,
     @inject('ApiResponse')
     private apiResponse: ApiResponse,
   ) {}
 
-  routeNameTranslated = 'Linhas de Produção';
-  keyId = 'idProductionLine';
-  routeNameTranslatedSingular = 'Linha de Produção';
-  uniqueConstraint = 'UQ_production_line_code';
+  routeNameTranslated = 'Tipos de produtos';
+  keyId = 'idProductType';
+  routeNameTranslatedSingular = this.routeNameTranslated.slice(0, -1);
+  uniqueConstraint = 'UQ_product_type_name';
 
   async getDataList(
     request: Request,
     response: Response,
     next: NextFunction,
-  ): Promise<Response<IProductionLineResponse>> {
+  ): Promise<Response<IProductTypeResponse>> {
     try {
       const dataList = await this.repository.getDataList();
       return this.apiResponse.Ok(
@@ -44,10 +44,10 @@ export class ProductionLineController {
     request: Request,
     response: Response,
     next: NextFunction,
-  ): Promise<Response<IProductionLineResponse>> {
+  ): Promise<Response<IProductTypeResponse>> {
     try {
       const data = await this.repository.getDataByField(
-        this.keyId as keyof ProductionLine,
+        this.keyId as keyof ProductType,
         request.body[this.keyId],
       );
       return this.apiResponse.Ok(
@@ -67,13 +67,13 @@ export class ProductionLineController {
     request: Request,
     response: Response,
     next: NextFunction,
-  ): Promise<Response<IProductionLineResponse>> {
+  ): Promise<Response<IProductTypeResponse>> {
     try {
       const savedData = await this.repository.save(request.body);
       return this.apiResponse.Ok(
         response,
         200,
-        `${this.routeNameTranslatedSingular} ${savedData.lineCode} salvo com sucesso.`,
+        `${this.routeNameTranslatedSingular} ${savedData.name} salvo com sucesso.`,
         savedData,
       );
     } catch (error) {
@@ -100,14 +100,14 @@ export class ProductionLineController {
   ): Promise<Response<IDefaultResponse>> {
     try {
       const data = await this.repository.getDataByField(
-        this.keyId as keyof ProductionLine,
+        this.keyId as keyof ProductType,
         Number(request.params[this.keyId]),
       );
       await this.repository.delete(data[this.keyId]);
       return this.apiResponse.Ok(
         response,
         200,
-        `${this.routeNameTranslatedSingular} ${data.lineCode} excluido com sucesso!`,
+        `${this.routeNameTranslatedSingular} ${data.name} excluido com sucesso!`,
       );
     } catch (error) {
       const customError = error as CustomError;

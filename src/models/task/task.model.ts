@@ -5,10 +5,16 @@ import { ProductionLine } from '@models/production-line/production-line.model';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Employee } from '@models/employee/employee.model';
 
-@Entity('Task')
+@Entity('task')
 export class Task {
-  @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_maintenance_task' })
-  id: number;
+  @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_task' })
+  idTask: number;
+
+  @Column({ type: 'varchar', nullable: true })
+  name: string;
+
+  @Column({ type: 'varchar', nullable: true })
+  status?: string;
 
   @Column({ type: 'timestamp', nullable: true })
   startDate?: Date;
@@ -16,21 +22,24 @@ export class Task {
   @Column({ type: 'timestamp', nullable: true })
   finishDate?: Date;
 
-  @Column({ type: 'varchar', nullable: true })
-  name: string;
-
-  @Column({ type: 'varchar', nullable: true })
-  status: string;
-
   @Column('text', { array: true, nullable: true })
-  photoUrls: string[];
+  photoUrls?: string[];
+
+  @Column({ type: 'bool' })
+  isSparePartsChanged: boolean;
+
+  @Column('jsonb', { nullable: true })
+  usedSpareParts: {
+    idProduct: number;
+    name: string;
+    qty: number;
+  }[];
 
   @Column({ type: 'varchar', nullable: true })
   comment?: string;
 
   @ManyToOne(() => Employee, employee => employee.task, {
     nullable: true,
-    onDelete: 'SET NULL',
   })
   @JoinColumn({
     name: 'idEmployee',
@@ -41,7 +50,6 @@ export class Task {
 
   @ManyToOne(() => TaskType, taskType => taskType.task, {
     nullable: true,
-    onDelete: 'SET NULL',
   })
   @JoinColumn({
     name: 'idTaskType',
@@ -52,7 +60,6 @@ export class Task {
 
   @ManyToOne(() => Kpi, kpi => kpi.task, {
     nullable: true,
-    onDelete: 'SET NULL',
   })
   @JoinColumn({
     name: 'idKpi',
@@ -63,7 +70,6 @@ export class Task {
 
   @ManyToOne(() => ProductionLine, productionLine => productionLine.task, {
     nullable: true,
-    onDelete: 'SET NULL',
   })
   @JoinColumn({
     name: 'idProductionLine',
@@ -74,7 +80,6 @@ export class Task {
 
   @ManyToOne(() => Product, product => product.task, {
     nullable: true,
-    onDelete: 'SET NULL',
   })
   @JoinColumn({
     name: 'idProduct',

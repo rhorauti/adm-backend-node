@@ -19,6 +19,8 @@ import { Kpi } from '@models/kpi/kpi.model';
 import { ProductionLine } from '@models/production-line/production-line.model';
 import { TaskType } from '@models/task/task-type.model';
 import { Task } from '@models/task/task.model';
+import { Unit } from '@models/unit/unit.model';
+import { ProductType } from '@models/product/product-type.model';
 
 dotenv.config({ path: '.env.development' });
 
@@ -43,6 +45,7 @@ const AppDataSourceDev = new DataSource({
     Kpi,
     Invoice,
     Product,
+    ProductType,
     Production,
     Project,
     ProjectEvent,
@@ -50,6 +53,7 @@ const AppDataSourceDev = new DataSource({
     ProductionLine,
     Task,
     TaskType,
+    Unit,
   ],
   migrations: ['src/migrations/**/*.ts'],
 });

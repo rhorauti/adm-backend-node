@@ -2,7 +2,7 @@ import { Task } from '@models/task/task.model';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Unique } from 'typeorm';
 
 @Unique('UQ_production_line_code', ['lineCode'])
-@Entity('ProductionLine')
+@Entity('production_line')
 export class ProductionLine {
   @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_production_line' })
   idProductionLine: number;
@@ -12,6 +12,13 @@ export class ProductionLine {
 
   @Column({ type: 'varchar', nullable: true })
   lineName?: string;
+
+  @Column('jsonb', { nullable: true })
+  toolingList: {
+    idProduct: number;
+    partNumber: string;
+    name: string;
+  }[];
 
   @Column({ type: 'varchar', nullable: true })
   comment?: string;

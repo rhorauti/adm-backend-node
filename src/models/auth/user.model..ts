@@ -1,7 +1,7 @@
 import { Exclude } from 'class-transformer';
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, Timestamp } from 'typeorm';
 
-@Entity('User')
+@Entity('user')
 export class User {
   @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_user' })
   id: number;

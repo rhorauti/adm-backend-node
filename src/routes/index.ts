@@ -8,6 +8,10 @@ import { employeePositionRoute } from './employee/employee-position.route';
 import { taskTypeRoute } from './task/task-type.route';
 import { productionLineRoute } from './production-line/production-line.route';
 import { employeeRoute } from './employee/employee.route';
+import { taskRoute } from './task/task.route';
+import { productTypeRoute } from './product/product-type.route';
+import { productRoute } from './product/product.route';
+import { unitRoute } from './unit/unit.route';
 
 const router = Router();
 router.use(authRoute);
@@ -16,8 +20,12 @@ router.use(companyFakeRoute);
 router.use(addressRoute);
 router.use(employeeRoute);
 router.use(employeePositionRoute);
+router.use(taskRoute);
 router.use(taskTypeRoute);
 router.use(departmentRoute);
 router.use(productionLineRoute);
+router.use(productTypeRoute);
+router.use(productRoute);
+router.use(unitRoute);
 
 export { router };

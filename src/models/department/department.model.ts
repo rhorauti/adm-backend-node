@@ -4,7 +4,7 @@ import { TaskType } from '@models/task/task-type.model';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Unique } from 'typeorm';
 
 @Unique('UQ_department_name', ['name'])
-@Entity('Department')
+@Entity('department')
 export class Department {
   @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_department' })
   idDepartment: number;

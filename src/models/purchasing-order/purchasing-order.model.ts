@@ -2,7 +2,7 @@ import { Company } from '@models/company/company.model';
 import { Invoice } from '@models/invoice/invoice.model';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity('PurchasingOrder')
+@Entity('purchasing_order')
 export class PurchasingOrder {
   @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_purchasing_order' })
   idPurchasingOrder: number;

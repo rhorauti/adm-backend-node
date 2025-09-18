@@ -17,6 +17,8 @@ import { Kpi } from '@models/kpi/kpi.model';
 import { ProductionLine } from '@models/production-line/production-line.model';
 import { Task } from '@models/task/task.model';
 import { TaskType } from '@models/task/task-type.model';
+import { Unit } from '@models/unit/unit.model';
+import { ProductType } from '@models/product/product-type.model';
 
 export const dataSourceDev = new DataSource({
   type: 'postgres',
@@ -39,6 +41,7 @@ export const dataSourceDev = new DataSource({
     Kpi,
     Invoice,
     Product,
+    ProductType,
     Production,
     Project,
     ProjectEvent,
@@ -46,6 +49,7 @@ export const dataSourceDev = new DataSource({
     ProductionLine,
     Task,
     TaskType,
+    Unit,
   ],
 });
 
@@ -69,6 +73,7 @@ export const dataSourceProd = new DataSource({
     Kpi,
     Invoice,
     Product,
+    ProductType,
     Production,
     Project,
     ProjectEvent,
@@ -76,5 +81,6 @@ export const dataSourceProd = new DataSource({
     ProductionLine,
     Task,
     TaskType,
+    Unit,
   ],
 });

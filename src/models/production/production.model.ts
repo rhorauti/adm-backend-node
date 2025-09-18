@@ -1,6 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity('Production')
+@Entity('production')
 export class Production {
   @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_production' })
   idProduction: number;

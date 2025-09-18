@@ -1,7 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Timestamp } from 'typeorm';
 import { Employee } from './employee.model';
 
-@Entity('EmployeeVacation')
+@Entity('employee_vacation')
 export class EmployeeVacation {
   @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_employee_vacation' })
   idEmployeeVacation: number;

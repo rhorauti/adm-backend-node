@@ -2,7 +2,7 @@ import { Department } from '@models/department/department.model';
 import { Task } from '@models/task/task.model';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity('Kpi')
+@Entity('kpi')
 export class Kpi {
   @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_kpi' })
   idKpi: number;

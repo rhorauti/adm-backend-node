@@ -8,7 +8,7 @@ import { PurchasingOrder } from '@models/purchasing-order/purchasing-order.model
 @Unique('UQ_company_cnpj', ['cnpj'])
 @Unique('UQ_company_ie', ['ie'])
 @Unique('UQ_company_im', ['im'])
-@Entity('Company')
+@Entity('company')
 export class Company {
   @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_company' })
   idCompany: number;

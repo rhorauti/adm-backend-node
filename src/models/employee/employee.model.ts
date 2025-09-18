@@ -17,7 +17,7 @@ import { EmployeePosition } from './employee-position.model';
 import { Task } from '@models/task/task.model';
 
 @Unique('UQ_employee_cpf', ['cpf'])
-@Entity('Employee')
+@Entity('employee')
 export class Employee {
   @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_employee' })
   idEmployee: number;

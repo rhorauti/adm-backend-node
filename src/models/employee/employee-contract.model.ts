@@ -1,7 +1,7 @@
 import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Employee } from './employee.model';
 
-@Entity('EmployeeContract')
+@Entity('employee_contract')
 export class EmployeeContract {
   @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_employee_contract' })
   idEmployeeContract: number;

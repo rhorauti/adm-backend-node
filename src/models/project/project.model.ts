@@ -3,7 +3,7 @@ import { ProjectEvent } from './project-event.model';
 import { Product } from '@models/product/product.model';
 
 @Unique('UQ_project_code', ['code'])
-@Entity('Project')
+@Entity('project')
 export class Project {
   @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_project' })
   idProject: number;

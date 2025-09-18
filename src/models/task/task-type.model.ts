@@ -2,7 +2,7 @@ import { Department } from '@models/department/department.model';
 import { Task } from '@models/task/task.model';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity('TaskType')
+@Entity('task_type')
 export class TaskType {
   @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_task_type' })
   idTaskType: number;
@@ -20,7 +20,6 @@ export class TaskType {
 
   @ManyToOne(() => Department, department => department.taskType, {
     nullable: true,
-    onDelete: 'SET NULL',
   })
   @JoinColumn({
     name: 'idDepartment',

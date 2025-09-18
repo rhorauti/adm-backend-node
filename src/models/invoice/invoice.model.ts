@@ -1,7 +1,7 @@
 import { PurchasingOrder } from '@models/purchasing-order/purchasing-order.model';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Timestamp } from 'typeorm';
 
-@Entity('Invoice')
+@Entity('invoice')
 export class Invoice {
   @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_invoice' })
   idInvoice: number;
@@ -14,10 +14,10 @@ export class Invoice {
   type: string;
 
   @Column({ type: 'timestamp', nullable: true })
-  paymentDatePlan: Timestamp;
+  paymentDatePlan: Date;
 
   @Column({ type: 'timestamp', nullable: true })
-  paymentDateActual: Timestamp;
+  paymentDateActual: Date;
 
   @ManyToOne(() => PurchasingOrder, purchasingOrder => purchasingOrder.invoice, {
     nullable: true,
