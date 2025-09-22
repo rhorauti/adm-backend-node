@@ -28,12 +28,8 @@ export class Task {
   @Column({ type: 'bool' })
   isSparePartsChanged: boolean;
 
-  @Column('jsonb', { nullable: true })
-  usedSpareParts: {
-    idProduct: number;
-    name: string;
-    qty: number;
-  }[];
+  @Column('int', { array: true, nullable: true })
+  usedSpareParts: number[];
 
   @Column({ type: 'varchar', nullable: true })
   comment?: string;

@@ -1,7 +1,7 @@
 import { Product } from '@models/product/product.model';
 import { emptyStringToNull } from '@utils/misc';
 import { inject, injectable } from 'tsyringe';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, FindOptionsWhere, Repository } from 'typeorm';
 
 @injectable()
 export class ProductRepository {
@@ -15,6 +15,14 @@ export class ProductRepository {
 
   async getDataList(): Promise<Product[]> {
     return this.repository.find({
+      order: { [this.keyId]: 'DESC' },
+      relations: ['unit', 'productType'],
+    });
+  }
+
+  async getDataListByField(idProductType: number): Promise<Product[]> {
+    return this.repository.find({
+      where: { productType: { idProductType: idProductType } },
       order: { [this.keyId]: 'DESC' },
       relations: ['unit', 'productType'],
     });

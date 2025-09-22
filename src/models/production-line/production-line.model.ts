@@ -16,7 +16,7 @@ export class ProductionLine {
   @Column('jsonb', { nullable: true })
   toolingList: {
     idProduct: number;
-    partNumber: string;
+    internalPartNumber: string;
     name: string;
   }[];
 

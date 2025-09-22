@@ -7,5 +7,5 @@ export interface IProductTypeResponse extends IDefaultResponse {
 }
 
 export interface IProductResponse extends IDefaultResponse {
-  data: Product | Product[];
+  data: Product | Product[] | string[];
 }

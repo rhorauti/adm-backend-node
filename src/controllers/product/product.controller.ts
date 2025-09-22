@@ -10,6 +10,7 @@ import { CloudStorage } from 'GCP/cloud-storage.gcp';
 import { GetSignedUrlResponse } from '@google-cloud/storage';
 import { UnitRepository } from '@repositories/unit/unit.repository';
 import { ProductTypeRepository } from '@repositories/product/product-type.repository';
+import { ProductType } from '@models/product/product-type.model';
 
 @injectable()
 export class ProductController {
@@ -24,7 +25,8 @@ export class ProductController {
   routeNameTranslated = 'Produtos';
   keyId = 'idProduct';
   routeNameTranslatedSingular = this.routeNameTranslated.slice(0, -1);
-  uniqueConstraint = 'UQ_product_name';
+  uniqueConstraintInternalPartNumber = 'UQ_product_internal_part_number';
+  uniqueConstraintCustomerPartNumber = 'UQ_product_customer_part_number';
 
   async getDataList(
     request: Request,
@@ -32,21 +34,40 @@ export class ProductController {
     next: NextFunction,
   ): Promise<Response<IProductResponse>> {
     try {
-      const dataList = await this.productRepository.getDataList();
-      const withSigned = await Promise.all(
-        dataList.map(async (e: Product) => {
-          if (e.photoUrl) {
-            const [url] = await this.cloudStorage.getReadSignedUrl(e.photoUrl);
-            return { ...e, photoUrl: url };
-          }
-          return e;
-        }),
-      );
+      let dataList: Partial<Product>[] | Product[] | null = null;
+      const params = request.query as Partial<ProductType>;
+      if (params.name) {
+        const productTypeAsset = await this.productTypeRepository.getDataByField(
+          'name',
+          params.name,
+        );
+        const filteredData = await this.productRepository.getDataListByField(
+          productTypeAsset.idProductType,
+        );
+        dataList = filteredData.map(data => ({
+          idProduct: data.idProduct,
+          internalPartNumber: data.internalPartNumber,
+          name: data.name,
+        }));
+      } else {
+        const responseData = await this.productRepository.getDataList();
+        if (responseData) {
+          dataList = await Promise.all(
+            responseData.map(async (e: Product) => {
+              if (e.photoUrl) {
+                const [url] = await this.cloudStorage.getReadSignedUrl(e.photoUrl);
+                return { ...e, photoUrl: url };
+              }
+              return e;
+            }),
+          );
+        }
+      }
       return this.apiResponse.Ok(
         response,
         200,
         `Dados de ${this.routeNameTranslated} enviados com sucesso.`,
-        withSigned,
+        dataList,
       );
     } catch (error) {
       const customError = error as CustomError;
@@ -92,14 +113,14 @@ export class ProductController {
     try {
       const productData = JSON.parse(request.body.data);
       if (productData.photoUrl) delete productData.photoUrl;
-      if (productData.idUnit) {
-        const unit = await this.unitRepository.getDataByField('idUnit', productData.idUnit);
+      if (productData.unit.idUnit) {
+        const unit = await this.unitRepository.getDataByField('idUnit', productData.unit.idUnit);
         if (unit) productData.unit = unit;
       }
-      if (productData.idProductType) {
+      if (productData.productType.idProductType) {
         const productType = await this.productTypeRepository.getDataByField(
           'idProductType',
-          productData.idProductType,
+          productData.productType.idProductType,
         );
         if (productType) productData.productType = productType;
       }
@@ -142,11 +163,12 @@ export class ProductController {
       const customError = error as CustomError;
       if ((error && error.code == 'ER_DUP_ENTRY') || error?.code === '23505') {
         customError.statusCode = 409;
-        if (error.message.includes(this.uniqueConstraint)) {
-          const uniqueConstraintArray = this.uniqueConstraint.split('_');
-          customError.message = `O ${uniqueConstraintArray[uniqueConstraintArray.length - 1]} já existe e não pode estar duplicado.`;
+        if (error.message.includes(this.uniqueConstraintInternalPartNumber)) {
+          customError.message = 'O part number interno já existe e não pode estar duplicado.';
+        } else if (error.message.includes(this.uniqueConstraintCustomerPartNumber)) {
+          customError.message = 'O part number do cliente já existe e não pode estar duplicado.';
         } else {
-          customError.message = 'Registro duplicado.';
+          customError.message = 'O registro já existe.';
         }
         this.apiResponse.Error(response, customError.statusCode, customError.message);
       } else {

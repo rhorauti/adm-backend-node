@@ -77,7 +77,6 @@ export class CompanyRepository {
   }
 
   async addCompany(companyData: ICompanyDetail): Promise<ICompanyDetail> {
-    console.log('companyData', companyData);
     const queryRunner: QueryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -175,7 +174,6 @@ export class CompanyRepository {
       const updatedAddress = await queryRunner.manager.save(addressToBeUpdated);
 
       currentStep = 'getting-department';
-      console.log('department', companyData.employee.department);
 
       const employeeToBeUpdated = employeeRepository.create({
         ...companyData.employee,

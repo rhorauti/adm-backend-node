@@ -6,11 +6,16 @@ import { IDefaultResponse } from '@core/interfaces/base.interface';
 import { IProductionLineResponse } from '@core/interfaces/production.interface';
 import { ProductionLineRepository } from '@repositories/production-line/production-line.repository';
 import { ProductionLine } from '@models/production-line/production-line.model';
+import { ProductRepository } from '@repositories/product/product.repository';
+import { ProductTypeRepository } from '@repositories/product/product-type.repository';
+import { emptyStringToNull } from '@utils/misc';
 
 @injectable()
 export class ProductionLineController {
   constructor(
-    @inject('ProductionLineRepository') private repository: ProductionLineRepository,
+    @inject('ProductionLineRepository') private productionRepository: ProductionLineRepository,
+    @inject('ProductRepository') private productRepository: ProductRepository,
+    @inject('ProductTypeRepository') private productTypeRepository: ProductTypeRepository,
     @inject('ApiResponse')
     private apiResponse: ApiResponse,
   ) {}
@@ -26,7 +31,7 @@ export class ProductionLineController {
     next: NextFunction,
   ): Promise<Response<IProductionLineResponse>> {
     try {
-      const dataList = await this.repository.getDataList();
+      const dataList = await this.productionRepository.getDataList();
       return this.apiResponse.Ok(
         response,
         200,
@@ -46,7 +51,7 @@ export class ProductionLineController {
     next: NextFunction,
   ): Promise<Response<IProductionLineResponse>> {
     try {
-      const data = await this.repository.getDataByField(
+      const data = await this.productionRepository.getDataByField(
         this.keyId as keyof ProductionLine,
         request.body[this.keyId],
       );
@@ -69,7 +74,10 @@ export class ProductionLineController {
     next: NextFunction,
   ): Promise<Response<IProductionLineResponse>> {
     try {
-      const savedData = await this.repository.save(request.body);
+      emptyStringToNull(request.body);
+      const toolingListStringify = JSON.stringify(request.body.toolingList);
+      if (toolingListStringify == JSON.stringify([])) request.body.toolingList = null;
+      const savedData = await this.productionRepository.save(request.body);
       return this.apiResponse.Ok(
         response,
         200,
@@ -99,11 +107,11 @@ export class ProductionLineController {
     next: NextFunction,
   ): Promise<Response<IDefaultResponse>> {
     try {
-      const data = await this.repository.getDataByField(
+      const data = await this.productionRepository.getDataByField(
         this.keyId as keyof ProductionLine,
         Number(request.params[this.keyId]),
       );
-      await this.repository.delete(data[this.keyId]);
+      await this.productionRepository.delete(data[this.keyId]);
       return this.apiResponse.Ok(
         response,
         200,

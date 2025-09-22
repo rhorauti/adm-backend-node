@@ -67,7 +67,6 @@ export class CompanyController {
         );
       }
     } catch (error) {
-      console.log('error: ', error);
       const customError = error as CustomError;
       const step = typeof customError.step == 'string' ? customError.step : '';
       switch (step) {
