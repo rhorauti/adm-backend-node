@@ -13,8 +13,8 @@ export class Task {
   @Column({ type: 'varchar', nullable: true })
   name: string;
 
-  @Column({ type: 'varchar', nullable: true })
-  status?: string;
+  @Column({ type: 'int', nullable: true })
+  status?: number;
 
   @Column({ type: 'timestamp', nullable: true })
   startDate?: Date;
@@ -28,8 +28,12 @@ export class Task {
   @Column({ type: 'bool' })
   isSparePartsChanged: boolean;
 
-  @Column('int', { array: true, nullable: true })
-  usedSpareParts: number[];
+  @Column('jsonb', { nullable: true })
+  usedSpareParts?: {
+    idProduct: number;
+    name: string;
+    qty: number;
+  }[];
 
   @Column({ type: 'varchar', nullable: true })
   comment?: string;

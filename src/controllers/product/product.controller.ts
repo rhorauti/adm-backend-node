@@ -11,15 +11,16 @@ import { GetSignedUrlResponse } from '@google-cloud/storage';
 import { UnitRepository } from '@repositories/unit/unit.repository';
 import { ProductTypeRepository } from '@repositories/product/product-type.repository';
 import { ProductType } from '@models/product/product-type.model';
+import { TOKENS } from '@containers/symbol';
 
 @injectable()
 export class ProductController {
   constructor(
-    @inject('ProductRepository') private productRepository: ProductRepository,
-    @inject('UnitRepository') private unitRepository: UnitRepository,
-    @inject('ProductTypeRepository') private productTypeRepository: ProductTypeRepository,
-    @inject('ApiResponse') private apiResponse: ApiResponse,
-    @inject('CloudStorage') private cloudStorage: CloudStorage,
+    @inject(TOKENS.ProductRepository) private productRepository: ProductRepository,
+    @inject(TOKENS.UnitRepository) private unitRepository: UnitRepository,
+    @inject(TOKENS.ProductTypeRepository) private productTypeRepository: ProductTypeRepository,
+    @inject(TOKENS.ApiResponse) private apiResponse: ApiResponse,
+    @inject(TOKENS.CloudStorage) private cloudStorage: CloudStorage,
   ) {}
 
   routeNameTranslated = 'Produtos';

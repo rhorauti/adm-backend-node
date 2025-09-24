@@ -1,23 +1,14 @@
-import { IEmployeeCompleteDataResponse, IEmployeeDTO } from '@core/interfaces/employee.interface';
-import { Department } from '@models/department/department.model';
-import { EmployeePosition } from '@models/employee/employee-position.model';
+import { IEmployeeDTO } from '@core/interfaces/employee.interface';
 import { Employee } from '@models/employee/employee.model';
 import { emptyStringToNull } from '@utils/misc';
 import { inject, injectable } from 'tsyringe';
-import { DataSource, Repository } from 'typeorm';
-import { EmployeePositionRepository } from './employee-position.repository';
-import { DepartmentRepository } from '@repositories/department/department.repository';
+import { DataSource, FindOptionsWhere, Repository } from 'typeorm';
 
 @injectable()
 export class EmployeeRepository {
   private employeeRepository: Repository<Employee>;
 
-  constructor(
-    @inject('DataSource') private dataSource: DataSource,
-    @inject('EmployeePositionRepository')
-    private employeePositionRepository: EmployeePositionRepository,
-    @inject('DepartmentRepository') private departmentRepository: DepartmentRepository,
-  ) {
+  constructor(@inject('DataSource') private dataSource: DataSource) {
     this.employeeRepository = this.dataSource.getRepository(Employee);
   }
 
@@ -58,6 +49,18 @@ export class EmployeeRepository {
     });
   }
 
+  async getDataListByField(object: FindOptionsWhere<Employee>): Promise<Employee[]> {
+    return await this.employeeRepository.find({
+      where: object,
+    });
+  }
+
+  async getData(object: FindOptionsWhere<Employee>): Promise<Employee> {
+    return await this.employeeRepository.findOne({
+      where: object,
+    });
+  }
+
   async updateField<K extends keyof Employee>(
     idEmployee: Employee['idEmployee'],
     key: K,
@@ -68,16 +71,6 @@ export class EmployeeRepository {
 
   async save(employeeData: Employee): Promise<Employee> {
     emptyStringToNull(employeeData);
-    const department = await this.departmentRepository.getDataByField(
-      'idDepartment',
-      employeeData.department.idDepartment,
-    );
-    const employeePosition = await this.employeePositionRepository.getDataByField(
-      'idEmployeePosition',
-      employeeData.employeePosition.idEmployeePosition,
-    );
-    employeeData.department = department;
-    employeeData.employeePosition = employeePosition;
     return this.employeeRepository.save(employeeData);
   }
 

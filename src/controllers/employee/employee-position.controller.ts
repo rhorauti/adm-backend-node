@@ -3,14 +3,17 @@ import { CustomError } from '@middlewares/error.middleware';
 import { ApiResponse } from '@utils/api-response';
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
-import { EmployeePositionRepository } from '@repositories/employee/employee-position.repository';
 import { IDefaultResponse } from '@core/interfaces/base.interface';
+import { TOKENS } from '@containers/symbol';
+import { BaseRepository } from '@repositories/base/base.repository';
+import { EmployeePosition } from '@models/employee/employee-position.model';
 
 @injectable()
 export class EmployeePositionController {
   constructor(
-    @inject('EmployeePositionRepository') private repository: EmployeePositionRepository,
-    @inject('ApiResponse')
+    @inject(TOKENS.EmployeePositionBaseRepository)
+    private repository: BaseRepository<EmployeePosition>,
+    @inject(TOKENS.ApiResponse)
     private apiResponse: ApiResponse,
   ) {}
 
@@ -25,7 +28,7 @@ export class EmployeePositionController {
     next: NextFunction,
   ): Promise<Response<IEmployeePositionResponse>> {
     try {
-      const dataList = await this.repository.getDataList();
+      const dataList = await this.repository.getDataList('idEmployeePosition');
       return this.apiResponse.Ok(
         response,
         200,
@@ -45,10 +48,9 @@ export class EmployeePositionController {
     next: NextFunction,
   ): Promise<Response<IEmployeePositionResponse>> {
     try {
-      const data = await this.repository.getDataByField(
-        'idEmployeePosition',
-        request.body[this.keyId],
-      );
+      const data = await this.repository.getDataListByField({
+        idEmployeePosition: request.body[this.keyId],
+      });
       return this.apiResponse.Ok(
         response,
         200,
@@ -98,10 +100,9 @@ export class EmployeePositionController {
     next: NextFunction,
   ): Promise<Response<IDefaultResponse>> {
     try {
-      const data = await this.repository.getDataByField(
-        'idEmployeePosition',
-        Number(request.params[this.keyId]),
-      );
+      const data = await this.repository.getDataByField({
+        idEmployeePosition: Number(request.params[this.keyId]),
+      });
       await this.repository.delete(data[this.keyId]);
       return this.apiResponse.Ok(
         response,

@@ -1,5 +1,5 @@
 import { inject, injectable } from 'tsyringe';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, FindOptionsWhere, Repository } from 'typeorm';
 import { Task } from '@models/task/task.model';
 
 @injectable()
@@ -16,11 +16,9 @@ export class TaskRepository {
     });
   }
 
-  async getData(idTask: number): Promise<Task> {
+  async getData(object: FindOptionsWhere<Task>): Promise<Task> {
     return await this.taskRepository.findOne({
-      where: {
-        idTask: idTask,
-      },
+      where: object,
     });
   }
 

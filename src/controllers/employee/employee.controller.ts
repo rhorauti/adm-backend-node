@@ -9,15 +9,22 @@ import { Employee } from '@models/employee/employee.model';
 import { CloudStorage } from 'GCP/cloud-storage.gcp';
 import { CompanyRepository } from '@repositories/company/company.respository';
 import { GetSignedUrlResponse } from '@google-cloud/storage';
+import { TOKENS } from '@containers/symbol';
+import { DepartmentRepository } from '@repositories/department/department.repository';
+import { EmployeePosition } from '@models/employee/employee-position.model';
+import { BaseRepository } from '@repositories/base/base.repository';
 
 @injectable()
 export class EmployeeController {
   constructor(
-    @inject('EmployeeRepository') private employeeRepository: EmployeeRepository,
-    @inject('CompanyRepository') private companyRepository: CompanyRepository,
-    @inject('ApiResponse')
+    @inject(TOKENS.EmployeeRepository) private employeeRepository: EmployeeRepository,
+    @inject(TOKENS.DepartmentRepository) private departmentRepository: DepartmentRepository,
+    @inject(TOKENS.EmployeePositionBaseRepository)
+    private employeePositionBaseRepository: BaseRepository<EmployeePosition>,
+    @inject(TOKENS.CompanyRepository) private companyRepository: CompanyRepository,
+    @inject(TOKENS.ApiResponse)
     private apiResponse: ApiResponse,
-    @inject('CloudStorage') private cloudStorage: CloudStorage,
+    @inject(TOKENS.CloudStorage) private cloudStorage: CloudStorage,
   ) {}
 
   routeNameTranslated = 'Funcionários';
@@ -117,6 +124,15 @@ export class EmployeeController {
           );
           if (employeeData.isRemovedPhoto && updatedData.photoUrl) {
             await this.cloudStorage.deleteFile(updatedData.photoUrl);
+            const department = await this.departmentRepository.getDataByField(
+              'idDepartment',
+              employeeData.department.idDepartment,
+            );
+            const employeePosition = await this.employeePositionBaseRepository.getDataByField({
+              idEmployeePosition: employeeData.employeePosition.idEmployeePosition,
+            });
+            employeeData.department = department;
+            employeeData.employeePosition = employeePosition;
             await this.employeeRepository.updateField(updatedData.idEmployee, 'photoUrl', null);
           }
           let signedPhotoUrl: GetSignedUrlResponse = null;

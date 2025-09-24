@@ -5,12 +5,13 @@ import { ApiResponse } from '@utils/api-response';
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import { CustomError } from '@middlewares/error.middleware';
+import { TOKENS } from '@containers/symbol';
 
 @injectable()
 export class CompanyController {
   constructor(
-    @inject('CompanyRepository') private companyRepository: CompanyRepository,
-    @inject('ApiResponse') private apiResponse: ApiResponse,
+    @inject(TOKENS.CompanyRepository) private companyRepository: CompanyRepository,
+    @inject(TOKENS.ApiResponse) private apiResponse: ApiResponse,
   ) {}
 
   routeNameTranslated = 'empresas';

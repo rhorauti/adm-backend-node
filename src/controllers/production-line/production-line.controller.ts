@@ -9,14 +9,15 @@ import { ProductionLine } from '@models/production-line/production-line.model';
 import { ProductRepository } from '@repositories/product/product.repository';
 import { ProductTypeRepository } from '@repositories/product/product-type.repository';
 import { emptyStringToNull } from '@utils/misc';
+import { TOKENS } from '@containers/symbol';
 
 @injectable()
 export class ProductionLineController {
   constructor(
-    @inject('ProductionLineRepository') private productionRepository: ProductionLineRepository,
-    @inject('ProductRepository') private productRepository: ProductRepository,
-    @inject('ProductTypeRepository') private productTypeRepository: ProductTypeRepository,
-    @inject('ApiResponse')
+    @inject(TOKENS.ProductionLineRepository) private productionRepository: ProductionLineRepository,
+    @inject(TOKENS.ProductRepository) private productRepository: ProductRepository,
+    @inject(TOKENS.ProductTypeRepository) private productTypeRepository: ProductTypeRepository,
+    @inject(TOKENS.ApiResponse)
     private apiResponse: ApiResponse,
   ) {}
 

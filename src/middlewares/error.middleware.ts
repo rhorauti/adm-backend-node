@@ -1,3 +1,4 @@
+import { TOKENS } from '@containers/symbol';
 import { ApiResponse } from '@utils/api-response';
 import { NextFunction, Request, Response } from 'express';
 import { container } from 'tsyringe';
@@ -7,7 +8,7 @@ export interface CustomError extends Error {
   step?: string;
 }
 
-const apiResponse = container.resolve<ApiResponse>('ApiResponse');
+const apiResponse = container.resolve<ApiResponse>(TOKENS.ApiResponse);
 
 export const handleErrorMiddleware = async (
   error: CustomError,

@@ -1,3 +1,4 @@
+import { TOKENS } from '@containers/symbol';
 import { Storage } from '@google-cloud/storage';
 import { ApiResponse } from '@utils/api-response';
 import { NextFunction, Request, Response } from 'express';
@@ -7,7 +8,7 @@ import { inject, injectable } from 'tsyringe';
 @injectable()
 export class CloudStorage {
   constructor(
-    @inject('ApiResponse')
+    @inject(TOKENS.ApiResponse)
     private apiResponse: ApiResponse,
   ) {}
 

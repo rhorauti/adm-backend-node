@@ -6,12 +6,13 @@ import { IDefaultResponse } from '@core/interfaces/base.interface';
 import { DepartmentRepository } from '@repositories/department/department.repository';
 import { Department } from '@models/department/department.model';
 import { IDepartmentResponse } from '@core/interfaces/department.interface';
+import { TOKENS } from '@containers/symbol';
 
 @injectable()
 export class DepartmentController {
   constructor(
-    @inject('DepartmentRepository') private repository: DepartmentRepository,
-    @inject('ApiResponse')
+    @inject(TOKENS.DepartmentRepository) private repository: DepartmentRepository,
+    @inject(TOKENS.ApiResponse)
     private apiResponse: ApiResponse,
   ) {}
 

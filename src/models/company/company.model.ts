@@ -29,10 +29,10 @@ export class Company {
   im?: string;
 
   @OneToOne(() => Address, address => address.company, { nullable: true })
-  address: Address;
+  address?: Address;
 
   @OneToMany(() => Employee, employee => employee.company, { nullable: true, cascade: true })
-  employee: Employee[];
+  employee?: Employee[];
 
   @OneToMany(() => PurchasingOrder, purchasingOrder => purchasingOrder.company, {
     nullable: true,

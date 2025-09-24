@@ -10,13 +10,14 @@ import { emptyStringToNull, translateDeptName } from '@utils/misc';
 import { Department } from '@models/department/department.model';
 import { TaskType } from '@models/task/task-type.model';
 import { CustomErrorHandler } from '@core/error/error.core';
+import { TOKENS } from '@containers/symbol';
 
 @injectable()
 export class TaskTypeController {
   constructor(
-    @inject('TaskTypeRepository') private taskTypeRepository: TaskTypeRepository,
-    @inject('DepartmentRepository') private departmentRepository: DepartmentRepository,
-    @inject('ApiResponse')
+    @inject(TOKENS.TaskTypeRepository) private taskTypeRepository: TaskTypeRepository,
+    @inject(TOKENS.DepartmentRepository) private departmentRepository: DepartmentRepository,
+    @inject(TOKENS.ApiResponse)
     private apiResponse: ApiResponse,
   ) {}
 

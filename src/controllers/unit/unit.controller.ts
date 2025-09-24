@@ -6,12 +6,13 @@ import { IDefaultResponse } from '@core/interfaces/base.interface';
 import { UnitRepository } from '@repositories/unit/unit.repository';
 import { IUnitResponse } from '@core/interfaces/unit.interface';
 import { Unit } from '@models/unit/unit.model';
+import { TOKENS } from '@containers/symbol';
 
 @injectable()
 export class UnitController {
   constructor(
-    @inject('UnitRepository') private repository: UnitRepository,
-    @inject('ApiResponse')
+    @inject(TOKENS.UnitRepository) private repository: UnitRepository,
+    @inject(TOKENS.ApiResponse)
     private apiResponse: ApiResponse,
   ) {}
 

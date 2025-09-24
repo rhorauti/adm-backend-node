@@ -5,12 +5,13 @@ import { ApiResponse } from '@utils/api-response';
 import { Request, Response } from 'express';
 import { NextFunction } from 'express-serve-static-core';
 import { inject, injectable } from 'tsyringe';
+import { TOKENS } from '@containers/symbol';
 
 @injectable()
 export class AddressController {
   constructor(
-    @inject('AddressRepository') private repository: AddressRepository,
-    @inject('ApiResponse') private apiResponse: ApiResponse,
+    @inject(TOKENS.AddressRepository) private repository: AddressRepository,
+    @inject(TOKENS.ApiResponse) private apiResponse: ApiResponse,
   ) {}
 
   routeNameTranslated = 'endereços';

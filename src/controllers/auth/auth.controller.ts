@@ -5,14 +5,15 @@ import { AuthRepository } from '@repositories/auth/auth.repository';
 import { inject, injectable } from 'tsyringe';
 import { ApiResponse } from '@utils/api-response';
 import { JwtHandler } from '@services/jwt.service';
+import { TOKENS } from '@containers/symbol';
 
 @injectable()
 export class AuthController {
   constructor(
-    @inject('AuthRepository') private authRepository: AuthRepository,
-    @inject('EmailSender') private emailSender: EmailSender,
-    @inject('ApiResponse') private apiResponse: ApiResponse,
-    @inject('JwtHandler') private jwtHandler: JwtHandler,
+    @inject(TOKENS.AuthRepository) private authRepository: AuthRepository,
+    @inject(TOKENS.EmailSender) private emailSender: EmailSender,
+    @inject(TOKENS.ApiResponse) private apiResponse: ApiResponse,
+    @inject(TOKENS.JwtHandler) private jwtHandler: JwtHandler,
   ) {}
 
   /**

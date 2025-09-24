@@ -6,12 +6,13 @@ import { IDefaultResponse } from '@core/interfaces/base.interface';
 import { ProductTypeRepository } from '@repositories/product/product-type.repository';
 import { IProductTypeResponse } from '@core/interfaces/product.interface';
 import { ProductType } from '@models/product/product-type.model';
+import { TOKENS } from '@containers/symbol';
 
 @injectable()
 export class ProductTypeController {
   constructor(
-    @inject('ProductTypeRepository') private repository: ProductTypeRepository,
-    @inject('ApiResponse')
+    @inject(TOKENS.ProductTypeRepository) private repository: ProductTypeRepository,
+    @inject(TOKENS.ApiResponse)
     private apiResponse: ApiResponse,
   ) {}
 

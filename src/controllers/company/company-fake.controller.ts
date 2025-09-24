@@ -1,16 +1,15 @@
 import { CompanyRepository } from '@repositories/company/company.respository';
-import { ICompanyDetail, ICompanyResponse } from '@core/interfaces/company.interface';
-import { Company } from '@models/company/company.model';
+import { ICompanyDetail } from '@core/interfaces/company.interface';
 import { ApiResponse } from '@utils/api-response';
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
-import { CustomError } from '@middlewares/error.middleware';
+import { TOKENS } from '@containers/symbol';
 
 @injectable()
 export class CompanyFakeController {
   constructor(
-    @inject('CompanyRepository') private companyRepository: CompanyRepository,
-    @inject('ApiResponse') private apiResponse: ApiResponse,
+    @inject(TOKENS.CompanyRepository) private companyRepository: CompanyRepository,
+    @inject(TOKENS.ApiResponse) private apiResponse: ApiResponse,
   ) {}
 
   prefixes = [
@@ -93,6 +92,36 @@ export class CompanyFakeController {
     return cnpj;
   }
 
+  randomCompany: ICompanyDetail = {
+    company: {
+      idCompany: null,
+      nickname: '',
+      name: '',
+      cnpj: '',
+      ie: '',
+      im: '',
+    },
+    address: {
+      idAddress: null,
+      postalCode: '',
+      address: '',
+      number: '',
+      complement: '',
+      district: '',
+      city: '',
+      state: '',
+    },
+    employee: {
+      idEmployee: null,
+      isDefault: false,
+      name: '',
+      cpf: '',
+      email: '',
+      deskphone: '',
+      cellphone: '',
+    },
+  };
+
   async addRandomRegisters(
     request: Request,
     response: Response,
@@ -101,46 +130,15 @@ export class CompanyFakeController {
     try {
       const registersNumber = 30;
       const baseTimestamp = Date.now();
-      const randomCompany = {
-        company: {
-          idCompany: 0,
-          name: '',
-          nickname: '',
-          cnpj: '',
-          ie: '',
-          im: '',
-        },
-        address: {
-          idAddress: 0,
-          postalCode: '',
-          address: '',
-          complement: '',
-          number: '',
-          district: '',
-          city: '',
-          state: '',
-        },
-        employee: {
-          idEmployee: 0,
-          isDefault: false,
-          name: '',
-          cellphone: '',
-          cpf: '',
-          department: '',
-          deskphone: '',
-          email: '',
-          position: '',
-        },
-      } as ICompanyDetail;
       for (let i = 0; i < registersNumber; i++) {
         const uniqueId = `${baseTimestamp}${i}`;
-        randomCompany.company.idCompany = 0;
-        randomCompany.company.name = this.setRandomNameAndNickName() + uniqueId;
-        randomCompany.company.nickname = this.setRandomNameAndNickName() + uniqueId;
-        randomCompany.company.cnpj = this.setRandomCnpjOrIeOrIm();
-        randomCompany.company.ie = this.setRandomCnpjOrIeOrIm(8);
-        randomCompany.company.im = this.setRandomCnpjOrIeOrIm(10);
-        await this.companyRepository.addCompany(randomCompany);
+        this.randomCompany.company.idCompany = 0;
+        this.randomCompany.company.name = this.setRandomNameAndNickName() + uniqueId;
+        this.randomCompany.company.nickname = this.setRandomNameAndNickName() + uniqueId;
+        this.randomCompany.company.cnpj = this.setRandomCnpjOrIeOrIm();
+        this.randomCompany.company.ie = this.setRandomCnpjOrIeOrIm(8);
+        this.randomCompany.company.im = this.setRandomCnpjOrIeOrIm(10);
+        await this.companyRepository.addCompany(this.randomCompany);
       }
       return response.json({
         message: `${registersNumber} registros de teste inseridos com sucesso!`,

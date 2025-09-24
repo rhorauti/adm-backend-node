@@ -10,13 +10,23 @@ import { CustomErrorHandler } from '@core/error/error.core';
 import { ITaskResponse } from '@core/interfaces/task.interface';
 import { Task } from '@models/task/task.model';
 import { TaskRepository } from '@repositories/task/task.repository';
+import { EmployeeRepository } from '@repositories/employee/employee.repository';
+import { ProductRepository } from '@repositories/product/product.repository';
+import { ProductionLineRepository } from '@repositories/production-line/production-line.repository';
+import { TaskTypeRepository } from '@repositories/task/task-type.repository';
+import { TOKENS } from '@containers/symbol';
 
 @injectable()
 export class TaskController {
   constructor(
-    @inject('TaskRepository') private taskRepository: TaskRepository,
-    @inject('DepartmentRepository') private departmentRepository: DepartmentRepository,
-    @inject('ApiResponse')
+    @inject(TOKENS.TaskRepository) private taskRepository: TaskRepository,
+    @inject(TOKENS.DepartmentRepository) private departmentRepository: DepartmentRepository,
+    @inject(TOKENS.EmployeeRepository) private employeeRepository: EmployeeRepository,
+    @inject(TOKENS.ProductRepository) private productRepository: ProductRepository,
+    @inject(TOKENS.ProductionLineRepository)
+    private productionLineRepository: ProductionLineRepository,
+    @inject(TOKENS.TaskTypeRepository) private taskTypeRepository: TaskTypeRepository,
+    @inject(TOKENS.ApiResponse)
     private apiResponse: ApiResponse,
   ) {}
 
@@ -52,13 +62,16 @@ export class TaskController {
   ): Promise<Response<ITaskResponse>> {
     try {
       await this.checkExistingDept(request, response, next);
-      const dataList = await this.taskRepository.getDataList();
-      if (dataList) {
+      const task = await this.taskRepository.getDataList();
+      const employee = await this.employeeRepository.getDataListByField({
+        department: this.selectedDept,
+      });
+      if (task) {
         return this.apiResponse.Ok(
           response,
           200,
           `${this.routeNameTranslated} enviados com sucesso.`,
-          dataList,
+          task,
         );
       } else {
         return this.apiResponse.Ok(response, 200, 'Nenhum registro encontrado.');
@@ -129,7 +142,9 @@ export class TaskController {
   ): Promise<Response<IDefaultResponse>> {
     try {
       await this.checkExistingDept(request, response, next);
-      const data = await this.taskRepository.getData(Number(request.params[this.keyId]));
+      const data = await this.taskRepository.getData({
+        idTask: Number(request.params[this.keyId]),
+      });
       await this.taskRepository.delete(data[this.keyId]);
       return this.apiResponse.Ok(
         response,
