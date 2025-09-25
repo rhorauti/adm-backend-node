@@ -9,14 +9,14 @@ export class AddressRepository {
   constructor(@inject('DataSource') private dataSource: DataSource) {
     this.respository = this.dataSource.getRepository(Address);
   }
-  keyId = 'idAddress';
-  relatedKey = 'company';
+  // keyId = 'idAddress';
+  // relatedKey = 'company';
 
-  async getDataThroughRelation(id: number): Promise<Address> {
-    return await this.respository.findOne({
-      where: {
-        [this.relatedKey]: { [this.keyId]: id },
-      },
-    });
-  }
+  // async getDataThroughRelation(id: number): Promise<Address> {
+  //   return await this.respository.findOne({
+  //     where: {
+  //       [this.relatedKey]: { [this.keyId]: id },
+  //     },
+  //   });
+  // }
 }

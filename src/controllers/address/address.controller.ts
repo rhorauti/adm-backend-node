@@ -1,4 +1,3 @@
-import { AddressRepository } from '@repositories/address/address.repository';
 import { IAddressResponse } from '@core/interfaces/address.interface';
 import { CustomError } from '@middlewares/error.middleware';
 import { ApiResponse } from '@utils/api-response';
@@ -6,11 +5,13 @@ import { Request, Response } from 'express';
 import { NextFunction } from 'express-serve-static-core';
 import { inject, injectable } from 'tsyringe';
 import { TOKENS } from '@containers/symbol';
+import { BaseRepository } from '@repositories/base/base.repository';
+import { Address } from '@models/address/address.model';
 
 @injectable()
 export class AddressController {
   constructor(
-    @inject(TOKENS.AddressRepository) private repository: AddressRepository,
+    @inject(TOKENS.AddressBaseRepository) private baseRepository: BaseRepository<Address>,
     @inject(TOKENS.ApiResponse) private apiResponse: ApiResponse,
   ) {}
 
@@ -25,9 +26,9 @@ export class AddressController {
     next: NextFunction,
   ): Promise<Response<IAddressResponse>> {
     try {
-      const data = await this.repository.getDataThroughRelation(
-        Number(request.params[this.relatedKeyId]),
-      );
+      const data = await this.baseRepository.getDataByField({
+        company: { idCompany: Number(request.params[this.relatedKeyId]) },
+      });
       return this.apiResponse.Ok(
         response,
         200,

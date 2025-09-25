@@ -13,29 +13,29 @@ export class ProductionLineRepository {
     this.repository = this.dataSource.getRepository(ProductionLine);
   }
 
-  async getDataList(): Promise<ProductionLine[]> {
-    return this.repository.find({
-      order: { [this.keyId]: 'DESC' },
-    });
-  }
+  // async getDataList(): Promise<ProductionLine[]> {
+  //   return this.repository.find({
+  //     order: { [this.keyId]: 'DESC' },
+  //   });
+  // }
 
-  async getDataByField<K extends keyof ProductionLine>(
-    key: K,
-    value: ProductionLine[K],
-  ): Promise<ProductionLine> {
-    return await this.repository.findOne({
-      where: {
-        [key]: value,
-      },
-    });
-  }
+  // async getDataByField<K extends keyof ProductionLine>(
+  //   key: K,
+  //   value: ProductionLine[K],
+  // ): Promise<ProductionLine> {
+  //   return await this.repository.findOne({
+  //     where: {
+  //       [key]: value,
+  //     },
+  //   });
+  // }
 
-  async save(data: ProductionLine): Promise<ProductionLine> {
-    emptyStringToNull(data);
-    return this.repository.save(data);
-  }
+  // async save(data: ProductionLine): Promise<ProductionLine> {
+  //   emptyStringToNull(data);
+  //   return this.repository.save(data);
+  // }
 
-  async delete(id: number): Promise<void> {
-    await this.repository.delete(id);
-  }
+  // async delete(id: number): Promise<void> {
+  //   await this.repository.delete(id);
+  // }
 }

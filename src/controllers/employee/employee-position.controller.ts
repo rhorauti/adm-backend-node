@@ -12,7 +12,7 @@ import { EmployeePosition } from '@models/employee/employee-position.model';
 export class EmployeePositionController {
   constructor(
     @inject(TOKENS.EmployeePositionBaseRepository)
-    private repository: BaseRepository<EmployeePosition>,
+    private baseRepository: BaseRepository<EmployeePosition>,
     @inject(TOKENS.ApiResponse)
     private apiResponse: ApiResponse,
   ) {}
@@ -28,7 +28,7 @@ export class EmployeePositionController {
     next: NextFunction,
   ): Promise<Response<IEmployeePositionResponse>> {
     try {
-      const dataList = await this.repository.getDataList('idEmployeePosition');
+      const dataList = await this.baseRepository.getDataList('idEmployeePosition');
       return this.apiResponse.Ok(
         response,
         200,
@@ -48,7 +48,7 @@ export class EmployeePositionController {
     next: NextFunction,
   ): Promise<Response<IEmployeePositionResponse>> {
     try {
-      const data = await this.repository.getDataListByField({
+      const data = await this.baseRepository.getDataByField({
         idEmployeePosition: request.body[this.keyId],
       });
       return this.apiResponse.Ok(
@@ -70,7 +70,7 @@ export class EmployeePositionController {
     next: NextFunction,
   ): Promise<Response<IEmployeePositionResponse>> {
     try {
-      const savedData = await this.repository.save(request.body);
+      const savedData = await this.baseRepository.save(request.body);
       return this.apiResponse.Ok(
         response,
         200,
@@ -100,10 +100,10 @@ export class EmployeePositionController {
     next: NextFunction,
   ): Promise<Response<IDefaultResponse>> {
     try {
-      const data = await this.repository.getDataByField({
+      const data = await this.baseRepository.getDataByField({
         idEmployeePosition: Number(request.params[this.keyId]),
       });
-      await this.repository.delete(data[this.keyId]);
+      await this.baseRepository.delete(data[this.keyId]);
       return this.apiResponse.Ok(
         response,
         200,

@@ -3,20 +3,20 @@ import { ApiResponse } from '@utils/api-response';
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import { IDefaultResponse } from '@core/interfaces/base.interface';
-import { TaskTypeRepository } from '@repositories/task/task-type.repository';
 import { ITaskTypeResponse } from '@core/interfaces/task.interface';
-import { DepartmentRepository } from '@repositories/department/department.repository';
-import { emptyStringToNull, translateDeptName } from '@utils/misc';
+import { translateDeptName } from '@utils/misc';
 import { Department } from '@models/department/department.model';
 import { TaskType } from '@models/task/task-type.model';
 import { CustomErrorHandler } from '@core/error/error.core';
 import { TOKENS } from '@containers/symbol';
+import { BaseRepository } from '@repositories/base/base.repository';
 
 @injectable()
 export class TaskTypeController {
   constructor(
-    @inject(TOKENS.TaskTypeRepository) private taskTypeRepository: TaskTypeRepository,
-    @inject(TOKENS.DepartmentRepository) private departmentRepository: DepartmentRepository,
+    @inject(TOKENS.TaskTypeBaseRepository) private taskTypeBaseRepository: BaseRepository<TaskType>,
+    @inject(TOKENS.DepartmentBaseRepository)
+    private departmentBaseRepository: BaseRepository<Department>,
     @inject(TOKENS.ApiResponse)
     private apiResponse: ApiResponse,
   ) {}
@@ -34,7 +34,9 @@ export class TaskTypeController {
     next: NextFunction,
   ): Promise<Response> => {
     this.paramDeptName = translateDeptName(request.params['department']);
-    const selectedDept = await this.departmentRepository.getDataByField('name', this.paramDeptName);
+    const selectedDept = await this.departmentBaseRepository.getDataByField({
+      name: this.paramDeptName,
+    });
     if (selectedDept) {
       this.selectedDept = selectedDept;
       return;
@@ -53,7 +55,12 @@ export class TaskTypeController {
   ): Promise<Response<ITaskTypeResponse>> {
     try {
       await this.checkExistingDept(request, response, next);
-      const dataList = await this.taskTypeRepository.getDataList(this.selectedDept.idDepartment);
+      const dataList = await this.taskTypeBaseRepository.getDataListByField(
+        {
+          department: { idDepartment: this.selectedDept.idDepartment },
+        },
+        'idTaskType',
+      );
       if (dataList) {
         return this.apiResponse.Ok(
           response,
@@ -78,7 +85,9 @@ export class TaskTypeController {
   ): Promise<Response<ITaskTypeResponse>> {
     try {
       await this.checkExistingDept(request, response, next);
-      const data = await this.taskTypeRepository.getData(request.body[this.keyId]);
+      const data = await this.taskTypeBaseRepository.getDataByField({
+        idTaskType: request.body[this.keyId],
+      });
       return this.apiResponse.Ok(
         response,
         200,
@@ -100,9 +109,8 @@ export class TaskTypeController {
     try {
       await this.checkExistingDept(request, response, next);
       const body = request.body as TaskType;
-      emptyStringToNull(body);
       if (body.department) {
-        const savedData = await this.taskTypeRepository.save(body);
+        const savedData = await this.taskTypeBaseRepository.save(body);
         return this.apiResponse.Ok(
           response,
           200,
@@ -130,8 +138,10 @@ export class TaskTypeController {
   ): Promise<Response<IDefaultResponse>> {
     try {
       await this.checkExistingDept(request, response, next);
-      const data = await this.taskTypeRepository.getData(Number(request.params[this.keyId]));
-      await this.taskTypeRepository.delete(data[this.keyId]);
+      const data = await this.taskTypeBaseRepository.getDataByField({
+        idTaskType: Number(request.params[this.keyId]),
+      });
+      await this.taskTypeBaseRepository.delete(data[this.keyId]);
       return this.apiResponse.Ok(
         response,
         200,

@@ -3,15 +3,15 @@ import { ApiResponse } from '@utils/api-response';
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import { IDefaultResponse } from '@core/interfaces/base.interface';
-import { UnitRepository } from '@repositories/unit/unit.repository';
 import { IUnitResponse } from '@core/interfaces/unit.interface';
 import { Unit } from '@models/unit/unit.model';
 import { TOKENS } from '@containers/symbol';
+import { BaseRepository } from '@repositories/base/base.repository';
 
 @injectable()
 export class UnitController {
   constructor(
-    @inject(TOKENS.UnitRepository) private repository: UnitRepository,
+    @inject(TOKENS.UnitBaseRepository) private baseRepository: BaseRepository<Unit>,
     @inject(TOKENS.ApiResponse)
     private apiResponse: ApiResponse,
   ) {}
@@ -27,7 +27,7 @@ export class UnitController {
     next: NextFunction,
   ): Promise<Response<IUnitResponse>> {
     try {
-      const dataList = await this.repository.getDataList();
+      const dataList = await this.baseRepository.getDataList('idUnit');
       return this.apiResponse.Ok(
         response,
         200,
@@ -47,10 +47,9 @@ export class UnitController {
     next: NextFunction,
   ): Promise<Response<IUnitResponse>> {
     try {
-      const data = await this.repository.getDataByField(
-        this.keyId as keyof Unit,
-        request.body[this.keyId],
-      );
+      const data = await this.baseRepository.getDataByField({
+        [this.keyId]: request.body[this.keyId],
+      });
       return this.apiResponse.Ok(
         response,
         200,
@@ -70,7 +69,7 @@ export class UnitController {
     next: NextFunction,
   ): Promise<Response<IUnitResponse>> {
     try {
-      const savedData = await this.repository.save(request.body);
+      const savedData = await this.baseRepository.save(request.body);
       return this.apiResponse.Ok(
         response,
         200,
@@ -100,11 +99,10 @@ export class UnitController {
     next: NextFunction,
   ): Promise<Response<IDefaultResponse>> {
     try {
-      const data = await this.repository.getDataByField(
-        this.keyId as keyof Unit,
-        Number(request.params[this.keyId]),
-      );
-      await this.repository.delete(data[this.keyId]);
+      const data = await this.baseRepository.getDataByField({
+        [this.keyId]: Number(request.params[this.keyId]),
+      });
+      await this.baseRepository.delete(data[this.keyId]);
       return this.apiResponse.Ok(
         response,
         200,

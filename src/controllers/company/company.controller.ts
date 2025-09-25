@@ -6,11 +6,13 @@ import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import { CustomError } from '@middlewares/error.middleware';
 import { TOKENS } from '@containers/symbol';
+import { BaseRepository } from '@repositories/base/base.repository';
 
 @injectable()
 export class CompanyController {
   constructor(
     @inject(TOKENS.CompanyRepository) private companyRepository: CompanyRepository,
+    @inject(TOKENS.CompanyBaseRepository) private baseRepository: BaseRepository<Company>,
     @inject(TOKENS.ApiResponse) private apiResponse: ApiResponse,
   ) {}
 
@@ -25,7 +27,7 @@ export class CompanyController {
   ): Promise<Response> {
     const id = Number(request.params[this.keyId]);
     try {
-      const data = await this.companyRepository.findCompanyByField({ [this.keyId]: id });
+      const data = await this.baseRepository.getDataByField({ [this.keyId]: id });
       if (data) {
         return this.apiResponse.Ok<Company>(
           response,
@@ -102,7 +104,7 @@ export class CompanyController {
     next: NextFunction,
   ): Promise<Response<ICompanyResponse>> {
     try {
-      const companies = await this.companyRepository.getCompanies();
+      const companies = await this.baseRepository.getDataList('idCompany');
       if (companies) {
         return this.apiResponse.Ok<Company[]>(
           response,
@@ -213,10 +215,10 @@ export class CompanyController {
     next: NextFunction,
   ): Promise<Response<ICompanyResponse>> {
     try {
-      const data = await this.companyRepository.findCompanyByField({
+      const data = await this.baseRepository.getDataByField({
         [this.keyId]: Number(request.params[this.keyId]),
       });
-      await this.companyRepository.deleteCompany(data[this.keyId]);
+      await this.baseRepository.delete(data[this.keyId]);
       return this.apiResponse.Ok(
         response,
         200,

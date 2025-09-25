@@ -1,16 +1,17 @@
 import { NextFunction, Request, Response } from 'express';
 import { compare, hash } from 'bcryptjs';
 import { EmailSender } from '@services/email.service';
-import { AuthRepository } from '@repositories/auth/auth.repository';
 import { inject, injectable } from 'tsyringe';
 import { ApiResponse } from '@utils/api-response';
 import { JwtHandler } from '@services/jwt.service';
 import { TOKENS } from '@containers/symbol';
+import { BaseRepository } from '@repositories/base/base.repository';
+import { User } from '@models/auth/user.model.';
 
 @injectable()
 export class AuthController {
   constructor(
-    @inject(TOKENS.AuthRepository) private authRepository: AuthRepository,
+    @inject(TOKENS.AuthBaseRepository) private baseRepository: BaseRepository<User>,
     @inject(TOKENS.EmailSender) private emailSender: EmailSender,
     @inject(TOKENS.ApiResponse) private apiResponse: ApiResponse,
     @inject(TOKENS.JwtHandler) private jwtHandler: JwtHandler,
@@ -25,7 +26,7 @@ export class AuthController {
    */
   async loginUser(request: Request, response: Response, next: NextFunction): Promise<Response> {
     try {
-      const user = await this.authRepository.findUserByEmail(request.body.email);
+      const user = await this.baseRepository.getDataByField({ email: request.body.email });
       if (!user) {
         return this.apiResponse.Error(response, 401, 'Email inválido.');
       } else if (user && !user.emailConfirmed) {
@@ -41,7 +42,7 @@ export class AuthController {
           return this.apiResponse.Error(response, 401, 'Senha inválida.');
         } else {
           const token = this.jwtHandler.signToken(
-            { id: user.id, email: user.email },
+            { id: user.idUser, email: user.email },
             { expiresIn: process.env.JWT_EXPIRES_IN },
           );
           const data = { user, token };
@@ -62,16 +63,21 @@ export class AuthController {
    */
   async createNewUser(request: Request, response: Response, next: NextFunction): Promise<Response> {
     try {
-      const userExists = await this.authRepository.findUserByEmail(request.body.email);
+      const userExists = await this.baseRepository.getDataByField({ email: request.body.email });
       if (userExists) {
         return this.apiResponse.Error(response, 401, 'Email já cadastrado.');
       } else {
         const hashedPassword = await hash(request.body.password, 10);
-        const newUser = await this.authRepository.createNewUser(
-          request.body.name,
-          request.body.email,
-          hashedPassword,
-        );
+        const newUserInfo = {
+          idUser: null,
+          name: request.body.name,
+          email: request.body.email,
+          password: hashedPassword,
+          accessLevel: 1,
+          isActive: true,
+          emailConfirmed: false,
+        };
+        const newUser = await this.baseRepository.save(newUserInfo);
         if (!newUser) {
           return this.apiResponse.Error(response, 500, 'Erro interno do servidor.');
         } else {
@@ -103,12 +109,15 @@ export class AuthController {
           return this.apiResponse.Error(response, 401, 'Token inválido ou expirado.');
         } else {
           const decodedEmail = decodedUser.email;
-          const user = await this.authRepository.findUserByEmail(decodedEmail);
+          const user = await this.baseRepository.getDataByField({ email: decodedEmail });
           if (user.emailConfirmed) {
             return this.apiResponse.Error(response, 401, 'Usuário já validado anteriormente.');
           } else {
             try {
-              await this.authRepository.validateEmail(decodedEmail);
+              await this.baseRepository.updateField(
+                { email: decodedEmail },
+                { emailConfirmed: true },
+              );
               return this.apiResponse.Ok(response, 200, 'Usuário validado com sucesso.');
             } catch (error: unknown) {
               next(error);
@@ -127,7 +136,7 @@ export class AuthController {
     next: NextFunction,
   ): Promise<Response> {
     try {
-      const user = await this.authRepository.findUserByEmail(request.body.email);
+      const user = await this.baseRepository.getDataByField({ email: request.body.email });
       if (!user) {
         return this.apiResponse.Error(response, 401, 'Email não existe.');
       } else {
@@ -147,7 +156,7 @@ export class AuthController {
           return this.apiResponse.Error(response, 401, 'Token inválido ou expirado.');
         } else {
           const decodedEmail = decodedUser.email;
-          const user = await this.authRepository.findUserByEmail(decodedEmail);
+          const user = await this.baseRepository.getDataByField({ email: decodedEmail });
           const isPasswordOk = await compare(request.body.password, user.password);
           if (isPasswordOk) {
             return this.apiResponse.Error(
@@ -157,7 +166,10 @@ export class AuthController {
             );
           } else {
             const hashedPassword = await hash(request.body.password, 10);
-            await this.authRepository.changePassword(decodedEmail, hashedPassword);
+            await this.baseRepository.updateField(
+              { email: decodedEmail },
+              { password: hashedPassword },
+            );
             return this.apiResponse.Ok(response, 200, 'Senha alterada com sucesso.');
           }
         }

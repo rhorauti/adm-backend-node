@@ -13,26 +13,26 @@ export class UnitRepository {
     this.repository = this.dataSource.getRepository(Unit);
   }
 
-  async getDataList(): Promise<Unit[]> {
-    return this.repository.find({
-      order: { [this.keyId]: 'DESC' },
-    });
-  }
+  // async getDataList(): Promise<Unit[]> {
+  //   return this.repository.find({
+  //     order: { [this.keyId]: 'DESC' },
+  //   });
+  // }
 
-  async getDataByField<K extends keyof Unit>(key: K, value: Unit[K]): Promise<Unit> {
-    return await this.repository.findOne({
-      where: {
-        [key]: value,
-      },
-    });
-  }
+  // async getDataByField<K extends keyof Unit>(key: K, value: Unit[K]): Promise<Unit> {
+  //   return await this.repository.findOne({
+  //     where: {
+  //       [key]: value,
+  //     },
+  //   });
+  // }
 
-  async save(data: Unit): Promise<Unit> {
-    emptyStringToNull(data);
-    return this.repository.save(data);
-  }
+  // async save(data: Unit): Promise<Unit> {
+  //   emptyStringToNull(data);
+  //   return this.repository.save(data);
+  // }
 
-  async delete(id: number): Promise<void> {
-    await this.repository.delete(id);
-  }
+  // async delete(id: number): Promise<void> {
+  //   await this.repository.delete(id);
+  // }
 }

@@ -13,29 +13,29 @@ export class DepartmentRepository {
     this.repository = this.dataSource.getRepository(Department);
   }
 
-  async getDataList(): Promise<Department[]> {
-    return this.repository.find({
-      order: { [this.keyId]: 'DESC' },
-    });
-  }
+  // async getDataList(): Promise<Department[]> {
+  //   return this.repository.find({
+  //     order: { [this.keyId]: 'DESC' },
+  //   });
+  // }
 
-  async getDataByField<K extends keyof Department>(
-    key: K,
-    value: Department[K],
-  ): Promise<Department> {
-    return await this.repository.findOne({
-      where: {
-        [key]: value,
-      },
-    });
-  }
+  // async getDataByField<K extends keyof Department>(
+  //   key: K,
+  //   value: Department[K],
+  // ): Promise<Department> {
+  //   return await this.repository.findOne({
+  //     where: {
+  //       [key]: value,
+  //     },
+  //   });
+  // }
 
-  async save(data: Department): Promise<Department> {
-    emptyStringToNull(data);
-    return this.repository.save(data);
-  }
+  // async save(data: Department): Promise<Department> {
+  //   emptyStringToNull(data);
+  //   return this.repository.save(data);
+  // }
 
-  async delete(id: number): Promise<void> {
-    await this.repository.delete(id);
-  }
+  // async delete(id: number): Promise<void> {
+  //   await this.repository.delete(id);
+  // }
 }

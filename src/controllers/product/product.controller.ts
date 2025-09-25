@@ -8,17 +8,17 @@ import { IProductResponse } from '@core/interfaces/product.interface';
 import { Product } from '@models/product/product.model';
 import { CloudStorage } from 'GCP/cloud-storage.gcp';
 import { GetSignedUrlResponse } from '@google-cloud/storage';
-import { UnitRepository } from '@repositories/unit/unit.repository';
-import { ProductTypeRepository } from '@repositories/product/product-type.repository';
 import { ProductType } from '@models/product/product-type.model';
 import { TOKENS } from '@containers/symbol';
+import { BaseRepository } from '@repositories/base/base.repository';
 
 @injectable()
 export class ProductController {
   constructor(
     @inject(TOKENS.ProductRepository) private productRepository: ProductRepository,
-    @inject(TOKENS.UnitRepository) private unitRepository: UnitRepository,
-    @inject(TOKENS.ProductTypeRepository) private productTypeRepository: ProductTypeRepository,
+    @inject(TOKENS.ProductBaseRepository) private productBaseRepository: BaseRepository<Product>,
+    @inject(TOKENS.ProductTypeBaseRepository)
+    private productTypeBaseRepository: BaseRepository<ProductType>,
     @inject(TOKENS.ApiResponse) private apiResponse: ApiResponse,
     @inject(TOKENS.CloudStorage) private cloudStorage: CloudStorage,
   ) {}
@@ -38,12 +38,12 @@ export class ProductController {
       let dataList: Partial<Product>[] | Product[] | null = null;
       const params = request.query as Partial<ProductType>;
       if (params.name) {
-        const productTypeAsset = await this.productTypeRepository.getDataByField(
-          'name',
-          params.name,
-        );
-        const filteredData = await this.productRepository.getDataListByField(
-          productTypeAsset.idProductType,
+        const productTypeAsset = await this.productTypeBaseRepository.getDataByField({
+          name: params.name,
+        });
+        const filteredData = await this.productBaseRepository.getDataListByField(
+          { productType: { idProductType: productTypeAsset.idProductType } },
+          'idProduct',
         );
         dataList = filteredData.map(data => ({
           idProduct: data.idProduct,
@@ -51,7 +51,7 @@ export class ProductController {
           name: data.name,
         }));
       } else {
-        const responseData = await this.productRepository.getDataList();
+        const responseData = await this.productBaseRepository.getDataList('idProduct');
         if (responseData) {
           dataList = await Promise.all(
             responseData.map(async (e: Product) => {
@@ -83,10 +83,9 @@ export class ProductController {
     next: NextFunction,
   ): Promise<Response<IProductResponse>> {
     try {
-      const data = await this.productRepository.getDataByField(
-        this.keyId as keyof Product,
-        Number(request.params[this.keyId]),
-      );
+      const data = await this.productBaseRepository.getDataByField({
+        [this.keyId]: Number(request.params[this.keyId]),
+      });
       const responseData = {
         ...data,
         photoUrl: data.photoUrl ? (await this.cloudStorage.getReadSignedUrl(data.photoUrl))[0] : '',
@@ -114,41 +113,37 @@ export class ProductController {
     try {
       const productData = JSON.parse(request.body.data);
       if (productData.photoUrl) delete productData.photoUrl;
-      if (productData.unit.idUnit) {
-        const unit = await this.unitRepository.getDataByField('idUnit', productData.unit.idUnit);
-        if (unit) productData.unit = unit;
-      }
-      if (productData.productType.idProductType) {
-        const productType = await this.productTypeRepository.getDataByField(
-          'idProductType',
-          productData.productType.idProductType,
-        );
-        if (productType) productData.productType = productType;
-      }
-      const savedProduct = await this.productRepository.save(productData);
-      const updatedData = await this.productRepository.getDataByField(
-        'idProduct',
-        savedProduct.idProduct,
-      );
+      const savedProduct = await this.productRepository.saveProduct(productData);
+      const updatedData = await this.productBaseRepository.getDataByField({
+        idProduct: savedProduct.idProduct,
+      });
       if (productData.isRemovedPhoto && updatedData.photoUrl) {
         await this.cloudStorage.deleteFile(updatedData.photoUrl);
-        await this.productRepository.updateField(updatedData.idProduct, 'photoUrl', null);
+        await this.productBaseRepository.updateField(
+          { idProduct: updatedData.idProduct },
+          { photoUrl: null },
+        );
       }
       let signedPhotoUrl: GetSignedUrlResponse = null;
       if (request.file) {
         const key = `${this.bucketFolder}${updatedData.idProduct}.jpeg`;
         const objectKey = await this.cloudStorage.saveFile(request, response, key);
         if (objectKey) {
-          await this.productRepository.updateField(updatedData.idProduct, 'photoUrl', objectKey);
+          await this.productBaseRepository.updateField(
+            { idProduct: updatedData.idProduct },
+            { photoUrl: objectKey },
+          );
           signedPhotoUrl = await this.cloudStorage.getReadSignedUrl(objectKey);
         }
       }
       if (!signedPhotoUrl && updatedData.photoUrl) {
         signedPhotoUrl = await this.cloudStorage.getReadSignedUrl(updatedData.photoUrl);
       }
-      const finalData = await this.productRepository.getDataByField(
-        'idProduct',
-        savedProduct.idProduct,
+      const finalData = await this.productBaseRepository.getDataByField(
+        {
+          idProduct: savedProduct.idProduct,
+        },
+        ['productType', 'unit'],
       );
       const responseData = {
         ...finalData,
@@ -185,11 +180,10 @@ export class ProductController {
     next: NextFunction,
   ): Promise<Response<IDefaultResponse>> {
     try {
-      const data = await this.productRepository.getDataByField(
-        this.keyId as keyof Product,
-        Number(request.params[this.keyId]),
-      );
-      if (data) await this.productRepository.delete(data[this.keyId]);
+      const data = await this.productBaseRepository.getDataByField({
+        [this.keyId]: Number(request.params[this.keyId]),
+      });
+      if (data) await this.productBaseRepository.delete(data[this.keyId]);
       if (data.photoUrl) await this.cloudStorage.deleteFile(data.photoUrl);
 
       return this.apiResponse.Ok(

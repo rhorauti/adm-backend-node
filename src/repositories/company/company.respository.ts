@@ -1,12 +1,12 @@
 import { Company } from '@models/company/company.model';
 import { inject, injectable } from 'tsyringe';
-import { DataSource, DeepPartial, FindOneOptions, QueryRunner, Repository } from 'typeorm';
+import { DataSource, QueryRunner, Repository } from 'typeorm';
 import { ICompanyDetail } from '@core/interfaces/company.interface';
 import { Address } from '@models/address/address.model';
 import { Employee } from '@models/employee/employee.model';
 import { CustomError } from '@middlewares/error.middleware';
 import { EmployeePosition } from '@models/employee/employee-position.model';
-import { emptyStringToNull } from '@utils/misc';
+import { emptyToNullRecursive } from '@utils/misc';
 import { Department } from '@models/department/department.model';
 
 @injectable()
@@ -23,12 +23,6 @@ export class CompanyRepository {
     this.employeeRepository = this.dataSource.getRepository(Employee);
     this.departmentRepository = this.dataSource.getRepository(Department);
     this.employeePositionRepository = this.dataSource.getRepository(EmployeePosition);
-  }
-
-  async getCompanies(): Promise<Company[]> {
-    return this.companyRepository.find({
-      order: { idCompany: 'DESC' },
-    });
   }
 
   async getCompanyCompleteInfo(idCompany: number): Promise<ICompanyDetail> {
@@ -70,12 +64,6 @@ export class CompanyRepository {
     }
   }
 
-  async findCompanyByField(fields: DeepPartial<Company>): Promise<Company> {
-    return await this.companyRepository.findOne({
-      where: fields,
-    } as FindOneOptions<Company>);
-  }
-
   async addCompany(companyData: ICompanyDetail): Promise<ICompanyDetail> {
     const queryRunner: QueryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -88,11 +76,7 @@ export class CompanyRepository {
       const addressRepository = queryRunner.manager.getRepository(Address);
       const employeeRepository = queryRunner.manager.getRepository(Employee);
 
-      emptyStringToNull(companyData.company);
-      emptyStringToNull(companyData.address);
-      emptyStringToNull(companyData.employee);
-      emptyStringToNull(companyData.employee.employeePosition);
-      emptyStringToNull(companyData.employee.department);
+      emptyToNullRecursive(companyData);
 
       currentStep = 'saving-company';
       companyData.company.idCompany = null;
@@ -149,9 +133,7 @@ export class CompanyRepository {
       const addressRepository = queryRunner.manager.getRepository(Address);
       const employeeRepository = queryRunner.manager.getRepository(Employee);
 
-      emptyStringToNull(companyData.company);
-      emptyStringToNull(companyData.address);
-      emptyStringToNull(companyData.employee);
+      emptyToNullRecursive(companyData);
 
       const idCompany = Number(companyData.company.idCompany);
 
@@ -198,9 +180,5 @@ export class CompanyRepository {
     } finally {
       await queryRunner.release();
     }
-  }
-
-  async deleteCompany(idCompany: number): Promise<void> {
-    await this.companyRepository.delete(idCompany);
   }
 }

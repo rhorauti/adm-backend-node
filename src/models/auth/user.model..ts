@@ -4,10 +4,10 @@ import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, Timestamp } f
 @Entity('user')
 export class User {
   @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_user' })
-  id: number;
+  idUser: number;
 
-  @Column({ type: 'varchar', length: 100 })
-  name: string;
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  name?: string;
 
   @Column({ type: 'varchar', length: 256, unique: true })
   email: string;
@@ -16,23 +16,23 @@ export class User {
   @Exclude()
   password: string;
 
-  @Column({ type: 'varchar', length: 256 })
+  @Column({ type: 'varchar', length: 256, nullable: true })
   @Exclude()
   photoUrl?: string;
 
-  @CreateDateColumn({ type: 'timestamp' })
+  @CreateDateColumn({ type: 'timestamp', nullable: true })
   @Exclude()
-  createdAt: Timestamp;
+  createdAt?: Timestamp;
 
-  @Column()
+  @Column({ nullable: true })
   @Exclude()
-  accessLevel: number;
+  accessLevel?: number;
 
-  @Column()
+  @Column({ nullable: true })
   @Exclude()
-  isActive: boolean;
+  isActive?: boolean;
 
-  @Column()
+  @Column({ nullable: true })
   @Exclude()
-  emailConfirmed: boolean;
+  emailConfirmed?: boolean;
 }

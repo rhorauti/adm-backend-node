@@ -3,15 +3,15 @@ import { ApiResponse } from '@utils/api-response';
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import { IDefaultResponse } from '@core/interfaces/base.interface';
-import { DepartmentRepository } from '@repositories/department/department.repository';
 import { Department } from '@models/department/department.model';
 import { IDepartmentResponse } from '@core/interfaces/department.interface';
 import { TOKENS } from '@containers/symbol';
+import { BaseRepository } from '@repositories/base/base.repository';
 
 @injectable()
 export class DepartmentController {
   constructor(
-    @inject(TOKENS.DepartmentRepository) private repository: DepartmentRepository,
+    @inject(TOKENS.DepartmentBaseRepository) private baseRepository: BaseRepository<Department>,
     @inject(TOKENS.ApiResponse)
     private apiResponse: ApiResponse,
   ) {}
@@ -27,14 +27,14 @@ export class DepartmentController {
       const entries = Object.entries(body);
       if (entries && entries.length > 0) {
         const [key, value] = entries[0];
-        const dept = await this.repository.getDataByField(key as keyof Department, value);
+        const dept = await this.baseRepository.getDataByField({ [key]: value });
         if (!dept || dept == null) {
           return this.apiResponse.Error(response, 400, 'Departamento não encontrado.');
         } else {
           return this.apiResponse.Ok(response, 200, 'Departamento enviado com sucesso.', dept);
         }
       } else {
-        const dataList = await this.repository.getDataList();
+        const dataList = await this.baseRepository.getDataList('idDepartment');
         return this.apiResponse.Ok(
           response,
           200,
@@ -54,7 +54,9 @@ export class DepartmentController {
     next: NextFunction,
   ): Promise<Response<IDepartmentResponse>> {
     try {
-      const data = await this.repository.getDataByField(this.keyId, request.body[this.keyId]);
+      const data = await this.baseRepository.getDataByField({
+        [this.keyId]: request.body[this.keyId],
+      });
       return this.apiResponse.Ok(
         response,
         200,
@@ -73,7 +75,7 @@ export class DepartmentController {
     next: NextFunction,
   ): Promise<Response<IDepartmentResponse>> {
     try {
-      const savedData = await this.repository.save(request.body);
+      const savedData = await this.baseRepository.save(request.body);
       return this.apiResponse.Ok(
         response,
         200,
@@ -102,11 +104,10 @@ export class DepartmentController {
     next: NextFunction,
   ): Promise<Response<IDefaultResponse>> {
     try {
-      const data = await this.repository.getDataByField(
-        this.keyId,
-        Number(request.params[this.keyId]),
-      );
-      await this.repository.delete(data[this.keyId] as number);
+      const data = await this.baseRepository.getDataByField({
+        [this.keyId]: Number(request.params[this.keyId]),
+      });
+      await this.baseRepository.delete(data[this.keyId] as number);
       return this.apiResponse.Ok(
         response,
         200,

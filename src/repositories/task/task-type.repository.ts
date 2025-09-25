@@ -10,26 +10,26 @@ export class TaskTypeRepository {
     this.taskTypeRepository = this.dataSource.getRepository(TaskType);
   }
 
-  async getDataList(idDepartment: number): Promise<TaskType[]> {
-    return this.taskTypeRepository.find({
-      where: { department: { idDepartment: idDepartment } },
-      order: { idTaskType: 'DESC' },
-    });
-  }
+  // async getDataList(idDepartment: number): Promise<TaskType[]> {
+  //   return this.taskTypeRepository.find({
+  //     where: { department: { idDepartment: idDepartment } },
+  //     order: { idTaskType: 'DESC' },
+  //   });
+  // }
 
-  async getData(idTask: number): Promise<TaskType> {
-    return await this.taskTypeRepository.findOne({
-      where: {
-        idTaskType: idTask,
-      },
-    });
-  }
+  // async getData(idTask: number): Promise<TaskType> {
+  //   return await this.taskTypeRepository.findOne({
+  //     where: {
+  //       idTaskType: idTask,
+  //     },
+  //   });
+  // }
 
-  async save(data: TaskType): Promise<TaskType> {
-    return this.taskTypeRepository.save(data);
-  }
+  // async save(data: TaskType): Promise<TaskType> {
+  //   return this.taskTypeRepository.save(data);
+  // }
 
-  async delete(id: number): Promise<void> {
-    await this.taskTypeRepository.delete(id);
-  }
+  // async delete(id: number): Promise<void> {
+  //   await this.taskTypeRepository.delete(id);
+  // }
 }

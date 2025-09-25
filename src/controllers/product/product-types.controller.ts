@@ -3,15 +3,16 @@ import { ApiResponse } from '@utils/api-response';
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import { IDefaultResponse } from '@core/interfaces/base.interface';
-import { ProductTypeRepository } from '@repositories/product/product-type.repository';
 import { IProductTypeResponse } from '@core/interfaces/product.interface';
 import { ProductType } from '@models/product/product-type.model';
 import { TOKENS } from '@containers/symbol';
+import { BaseRepository } from '@repositories/base/base.repository';
 
 @injectable()
 export class ProductTypeController {
   constructor(
-    @inject(TOKENS.ProductTypeRepository) private repository: ProductTypeRepository,
+    @inject(TOKENS.ProductTypeBaseRepository)
+    private baseRepository: BaseRepository<ProductType>,
     @inject(TOKENS.ApiResponse)
     private apiResponse: ApiResponse,
   ) {}
@@ -27,7 +28,7 @@ export class ProductTypeController {
     next: NextFunction,
   ): Promise<Response<IProductTypeResponse>> {
     try {
-      const dataList = await this.repository.getDataList();
+      const dataList = await this.baseRepository.getDataList('idProductType');
       return this.apiResponse.Ok(
         response,
         200,
@@ -47,10 +48,9 @@ export class ProductTypeController {
     next: NextFunction,
   ): Promise<Response<IProductTypeResponse>> {
     try {
-      const data = await this.repository.getDataByField(
-        this.keyId as keyof ProductType,
-        request.body[this.keyId],
-      );
+      const data = await this.baseRepository.getDataByField({
+        [this.keyId]: request.body[this.keyId],
+      });
       return this.apiResponse.Ok(
         response,
         200,
@@ -70,7 +70,7 @@ export class ProductTypeController {
     next: NextFunction,
   ): Promise<Response<IProductTypeResponse>> {
     try {
-      const savedData = await this.repository.save(request.body);
+      const savedData = await this.baseRepository.save(request.body);
       return this.apiResponse.Ok(
         response,
         200,
@@ -100,11 +100,10 @@ export class ProductTypeController {
     next: NextFunction,
   ): Promise<Response<IDefaultResponse>> {
     try {
-      const data = await this.repository.getDataByField(
-        this.keyId as keyof ProductType,
-        Number(request.params[this.keyId]),
-      );
-      await this.repository.delete(data[this.keyId]);
+      const data = await this.baseRepository.getDataByField({
+        [this.keyId]: Number(request.params[this.keyId]),
+      });
+      await this.baseRepository.delete(data[this.keyId]);
       return this.apiResponse.Ok(
         response,
         200,

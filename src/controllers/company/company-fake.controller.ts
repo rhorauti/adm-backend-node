@@ -4,11 +4,14 @@ import { ApiResponse } from '@utils/api-response';
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import { TOKENS } from '@containers/symbol';
+import { BaseRepository } from '@repositories/base/base.repository';
+import { Company } from '@models/company/company.model';
 
 @injectable()
 export class CompanyFakeController {
   constructor(
     @inject(TOKENS.CompanyRepository) private companyRepository: CompanyRepository,
+    @inject(TOKENS.CompanyBaseRepository) private baseRepository: BaseRepository<Company>,
     @inject(TOKENS.ApiResponse) private apiResponse: ApiResponse,
   ) {}
 
@@ -154,9 +157,9 @@ export class CompanyFakeController {
     next: NextFunction,
   ): Promise<Response> {
     try {
-      const companies = await this.companyRepository.getCompanies();
+      const companies = await this.baseRepository.getDataList('idCompany');
       companies.forEach(async company => {
-        await this.companyRepository.deleteCompany(company.idCompany);
+        await this.baseRepository.delete(company.idCompany);
       });
       return response.json({
         message: `Todas as ${companies.length} empresas excluidas com sucesso.`,

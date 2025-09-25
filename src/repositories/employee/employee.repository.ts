@@ -12,14 +12,14 @@ export class EmployeeRepository {
     this.employeeRepository = this.dataSource.getRepository(Employee);
   }
 
-  keyId = 'idEmployee';
-  relatedKeyId = 'idCompany';
+  // keyId = 'idEmployee';
+  // relatedKeyId = 'idCompany';
 
-  async getDataList(): Promise<Employee[]> {
-    return this.employeeRepository.find({
-      order: { [this.keyId]: 'DESC' },
-    });
-  }
+  // async getDataList(): Promise<Employee[]> {
+  //   return this.employeeRepository.find({
+  //     order: { [this.keyId]: 'DESC' },
+  //   });
+  // }
 
   async getCompleteDataList(): Promise<IEmployeeDTO[]> {
     const query = await this.employeeRepository
@@ -41,40 +41,40 @@ export class EmployeeRepository {
     })) as IEmployeeDTO[];
   }
 
-  async getDataByField<K extends keyof Employee>(key: K, value: Employee[K]): Promise<Employee> {
-    return await this.employeeRepository.findOne({
-      where: {
-        [key]: value,
-      },
-    });
-  }
+  // async getDataByField<K extends keyof Employee>(key: K, value: Employee[K]): Promise<Employee> {
+  //   return await this.employeeRepository.findOne({
+  //     where: {
+  //       [key]: value,
+  //     },
+  //   });
+  // }
 
-  async getDataListByField(object: FindOptionsWhere<Employee>): Promise<Employee[]> {
-    return await this.employeeRepository.find({
-      where: object,
-    });
-  }
+  // async getDataListByField(object: FindOptionsWhere<Employee>): Promise<Employee[]> {
+  //   return await this.employeeRepository.find({
+  //     where: object,
+  //   });
+  // }
 
-  async getData(object: FindOptionsWhere<Employee>): Promise<Employee> {
-    return await this.employeeRepository.findOne({
-      where: object,
-    });
-  }
+  // async getData(object: FindOptionsWhere<Employee>): Promise<Employee> {
+  //   return await this.employeeRepository.findOne({
+  //     where: object,
+  //   });
+  // }
 
-  async updateField<K extends keyof Employee>(
-    idEmployee: Employee['idEmployee'],
-    key: K,
-    value: Employee[K],
-  ) {
-    this.employeeRepository.update(idEmployee, { [key]: value });
-  }
+  // async updateField<K extends keyof Employee>(
+  //   idEmployee: Employee['idEmployee'],
+  //   key: K,
+  //   value: Employee[K],
+  // ) {
+  //   this.employeeRepository.update(idEmployee, { [key]: value });
+  // }
 
-  async save(employeeData: Employee): Promise<Employee> {
-    emptyStringToNull(employeeData);
-    return this.employeeRepository.save(employeeData);
-  }
+  // async save(employeeData: Employee): Promise<Employee> {
+  //   emptyStringToNull(employeeData);
+  //   return this.employeeRepository.save(employeeData);
+  // }
 
-  async delete(idEmployee: number): Promise<void> {
-    await this.employeeRepository.delete(idEmployee);
-  }
+  // async delete(idEmployee: number): Promise<void> {
+  //   await this.employeeRepository.delete(idEmployee);
+  // }
 }

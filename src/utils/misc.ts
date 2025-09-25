@@ -15,6 +15,22 @@ export const emptyStringToNull = (obj: Record<string, any>): void => {
   }
 };
 
+export const emptyToNullRecursive = (obj: Record<string, any>): void => {
+  for (const key in obj) {
+    if (!Object.prototype.hasOwnProperty.call(obj, key)) continue;
+    const value = obj[key];
+    if (typeof value == 'object' && value != null) {
+      emptyToNullRecursive(value);
+    }
+    if (
+      (typeof value == 'string' && value.trim() == '') ||
+      (typeof value == 'number' && value == 0)
+    ) {
+      obj[key] = null;
+    }
+  }
+};
+
 type DateFormat = 'short' | 'long' | 'medium' | 'full';
 
 const countrySetup = 'pt-BR';

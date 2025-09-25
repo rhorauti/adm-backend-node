@@ -9,14 +9,18 @@ import { EmployeeVacation } from '@models/employee/employee-vacation.model';
 import { Employee } from '@models/employee/employee.model';
 import { Invoice } from '@models/invoice/invoice.model';
 import { Kpi } from '@models/kpi/kpi.model';
+import { ProductType } from '@models/product/product-type.model';
 import { Product } from '@models/product/product.model';
+import { ProductionLine } from '@models/production-line/production-line.model';
 import { ProjectEvent } from '@models/project/project-event.model';
 import { Project } from '@models/project/project.model';
 import { TaskType } from '@models/task/task-type.model';
 import { Task } from '@models/task/task.model';
+import { Unit } from '@models/unit/unit.model';
 
 export type BaseType =
   | Company
+  | User
   | Address
   | Employee
   | EmployeeContract
@@ -24,11 +28,14 @@ export type BaseType =
   | EmployeePosition
   | Department
   | User
+  | Unit
   | Kpi
   | Product
+  | ProductType
   | Project
   | ProjectEvent
   | Task
+  | ProductionLine
   | Invoice
   | TaskType;
 

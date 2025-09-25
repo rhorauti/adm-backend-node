@@ -1,6 +1,15 @@
+import { RelatedEntityProps } from '@core/types/base.type';
 import { emptyStringToNull } from '@utils/misc';
 import { inject, injectable } from 'tsyringe';
-import { DataSource, EntityTarget, FindOptionsOrder, FindOptionsWhere, Repository } from 'typeorm';
+import {
+  DataSource,
+  DeepPartial,
+  EntityTarget,
+  FindOptionsOrder,
+  FindOptionsWhere,
+  Repository,
+} from 'typeorm';
+import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity.js';
 
 @injectable()
 export class BaseRepository<T> {
@@ -13,30 +22,57 @@ export class BaseRepository<T> {
     this.repository = this.dataSource.getRepository(entity);
   }
 
-  getDataList = async (key: keyof T, sortMethod = 'DESC'): Promise<T[]> => {
+  getDataList = async (
+    sortKey: keyof T,
+    sortMethod = 'DESC',
+    relations: RelatedEntityProps[] = [],
+  ): Promise<T[]> => {
     return this.repository.find({
-      order: { [key]: sortMethod } as FindOptionsOrder<T>,
+      order: { [sortKey]: sortMethod } as FindOptionsOrder<T>,
+      relations: relations,
     });
   };
 
-  async getDataListByField(object: FindOptionsWhere<T>): Promise<T[]> {
+  getDataListByField = async (
+    objectWhere: FindOptionsWhere<T>,
+    sortKey: keyof T,
+    sortMethod = 'DESC',
+    relations: RelatedEntityProps[] = [],
+  ): Promise<T[]> => {
     return await this.repository.find({
-      where: object,
+      where: objectWhere,
+      order: { [sortKey]: sortMethod } as FindOptionsOrder<T>,
+      relations: relations,
     });
-  }
+  };
 
-  async getDataByField(object: FindOptionsWhere<T>): Promise<T> {
+  getDataByField = async (
+    objectWhere: FindOptionsWhere<T>,
+    relations: RelatedEntityProps[] = [],
+  ): Promise<T> => {
     return await this.repository.findOne({
-      where: object,
+      where: objectWhere,
+      relations: relations,
     });
-  }
+  };
 
-  async save(data: T): Promise<T> {
+  create = async (objectToBeCreated: DeepPartial<T>): Promise<T> => {
+    return this.repository.create(objectToBeCreated);
+  };
+
+  updateField = async (
+    objectWhere: FindOptionsWhere<T>,
+    objectToBeUpdated: QueryDeepPartialEntity<T>,
+  ): Promise<void> => {
+    this.repository.update(objectWhere, objectToBeUpdated);
+  };
+
+  save = async (data: T): Promise<T> => {
     emptyStringToNull(data);
     return this.repository.save(data);
-  }
+  };
 
-  async delete(id: number): Promise<void> {
+  delete = async (id: number): Promise<void> => {
     await this.repository.delete(id);
-  }
+  };
 }

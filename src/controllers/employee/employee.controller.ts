@@ -7,21 +7,21 @@ import { inject, injectable } from 'tsyringe';
 import { IDefaultResponse } from '@core/interfaces/base.interface';
 import { Employee } from '@models/employee/employee.model';
 import { CloudStorage } from 'GCP/cloud-storage.gcp';
-import { CompanyRepository } from '@repositories/company/company.respository';
 import { GetSignedUrlResponse } from '@google-cloud/storage';
 import { TOKENS } from '@containers/symbol';
-import { DepartmentRepository } from '@repositories/department/department.repository';
 import { EmployeePosition } from '@models/employee/employee-position.model';
 import { BaseRepository } from '@repositories/base/base.repository';
+import { Department } from '@models/department/department.model';
 
 @injectable()
 export class EmployeeController {
   constructor(
     @inject(TOKENS.EmployeeRepository) private employeeRepository: EmployeeRepository,
-    @inject(TOKENS.DepartmentRepository) private departmentRepository: DepartmentRepository,
+    @inject(TOKENS.EmployeeBaseRepository) private employeeBaseRepository: BaseRepository<Employee>,
+    @inject(TOKENS.DepartmentBaseRepository)
+    private departmentBaseRepository: BaseRepository<Department>,
     @inject(TOKENS.EmployeePositionBaseRepository)
     private employeePositionBaseRepository: BaseRepository<EmployeePosition>,
-    @inject(TOKENS.CompanyRepository) private companyRepository: CompanyRepository,
     @inject(TOKENS.ApiResponse)
     private apiResponse: ApiResponse,
     @inject(TOKENS.CloudStorage) private cloudStorage: CloudStorage,
@@ -68,10 +68,9 @@ export class EmployeeController {
     next: NextFunction,
   ): Promise<Response<IEmployeeResponse>> {
     try {
-      const data = await this.employeeRepository.getDataByField(
-        this.keyId as keyof Employee,
-        Number(request.params[this.keyId]),
-      );
+      const data = await this.employeeBaseRepository.getDataByField({
+        [this.keyId]: Number(request.params[this.keyId]),
+      });
       let signedPhotoUrl: GetSignedUrlResponse = null;
       if (data.photoUrl) {
         signedPhotoUrl = await this.cloudStorage.getReadSignedUrl(data.photoUrl);
@@ -114,36 +113,38 @@ export class EmployeeController {
       if (idCompany == 0) {
         this.apiResponse.Error(response, 400, 'Erro ao receber o idCompany');
       } else {
-        const company = await this.companyRepository.findCompanyByField({ idCompany: idCompany });
+        const company = await this.employeeBaseRepository.getDataByField({
+          company: { idCompany: idCompany },
+        });
         employeeData.company = company;
         if (company) {
-          const justSavedEmployee = await this.employeeRepository.save(employeeData);
-          const updatedData = await this.employeeRepository.getDataByField(
-            'idEmployee',
-            justSavedEmployee.idEmployee,
-          );
+          const justSavedEmployee = await this.employeeBaseRepository.save(employeeData);
+          const updatedData = await this.employeeBaseRepository.getDataByField({
+            idEmployee: justSavedEmployee.idEmployee,
+          });
           if (employeeData.isRemovedPhoto && updatedData.photoUrl) {
             await this.cloudStorage.deleteFile(updatedData.photoUrl);
-            const department = await this.departmentRepository.getDataByField(
-              'idDepartment',
-              employeeData.department.idDepartment,
-            );
+            const department = await this.departmentBaseRepository.getDataByField({
+              idDepartment: employeeData.department.idDepartment,
+            });
             const employeePosition = await this.employeePositionBaseRepository.getDataByField({
               idEmployeePosition: employeeData.employeePosition.idEmployeePosition,
             });
             employeeData.department = department;
             employeeData.employeePosition = employeePosition;
-            await this.employeeRepository.updateField(updatedData.idEmployee, 'photoUrl', null);
+            await this.employeeBaseRepository.updateField(
+              { idEmployee: updatedData.idEmployee },
+              { photoUrl: null },
+            );
           }
           let signedPhotoUrl: GetSignedUrlResponse = null;
           if (request.file) {
             const key = `${this.bucketFolder}${updatedData.idEmployee}.jpeg`;
             const objectKey = await this.cloudStorage.saveFile(request, response, key);
             if (objectKey) {
-              await this.employeeRepository.updateField(
-                updatedData.idEmployee,
-                'photoUrl',
-                objectKey,
+              await this.employeeBaseRepository.updateField(
+                { idEmployee: updatedData.idEmployee },
+                { photoUrl: objectKey },
               );
               signedPhotoUrl = await this.cloudStorage.getReadSignedUrl(objectKey);
             }
@@ -194,12 +195,13 @@ export class EmployeeController {
     next: NextFunction,
   ): Promise<Response<IDefaultResponse>> {
     try {
-      const data = await this.employeeRepository.getDataByField(
-        this.keyId as keyof Employee,
-        Number(request.params[this.keyId]),
-      );
-      const employee = await this.employeeRepository.getDataByField('idEmployee', data[this.keyId]);
-      if (employee) await this.employeeRepository.delete(data[this.keyId]);
+      const data = await this.employeeBaseRepository.getDataByField({
+        [this.keyId]: Number(request.params[this.keyId]),
+      });
+      const employee = await this.employeeBaseRepository.getDataByField({
+        idEmployee: data[this.keyId],
+      });
+      if (employee) await this.employeeBaseRepository.delete(data[this.keyId]);
       if (employee.photoUrl) await this.cloudStorage.deleteFile(employee.photoUrl);
 
       return this.apiResponse.Ok(
