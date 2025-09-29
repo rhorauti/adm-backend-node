@@ -8,10 +8,10 @@ import { Employee } from '@models/employee/employee.model';
 @Entity('task')
 export class Task {
   @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_task' })
-  idTask: number;
+  idTask?: number;
 
   @Column({ type: 'varchar', nullable: true })
-  name: string;
+  name?: string;
 
   @Column({ type: 'int', nullable: true })
   status?: number;
@@ -25,12 +25,10 @@ export class Task {
   @Column('text', { array: true, nullable: true })
   photoUrls?: string[];
 
-  @Column({ type: 'bool' })
-  isSparePartsChanged: boolean;
-
   @Column('jsonb', { nullable: true })
   usedSpareParts?: {
     idProduct: number;
+    internalPartNumber: string;
     name: string;
     qty: number;
   }[];

@@ -4,6 +4,7 @@ import { body } from 'express-validator';
 import { raiseMiddlewareError } from '@utils/misc';
 import { Task } from '@models/task/task.model';
 import { TaskController } from '@controllers/task/task.controller';
+import { CloudStorage } from 'GCP/cloud-storage.gcp';
 
 const taskRoute = Router();
 
@@ -11,11 +12,12 @@ const baseRouteName = 'tasks';
 const deptName = 'department';
 export const keyId: keyof Task = 'idTask';
 
+const cloudStorage = container.resolve(CloudStorage);
 const controller = container.resolve(TaskController);
 
-const bodyValidationMiddleware = () => {
-  return [body('name').notEmpty().withMessage('O campo de Atividade não pode estar vazio!')];
-};
+// const bodyValidationMiddleware = () => {
+//   return [body('name').notEmpty().withMessage('O campo de Atividade não pode estar vazio!')];
+// };
 
 taskRoute.get(
   `/:${deptName}/${baseRouteName}`,
@@ -33,7 +35,8 @@ taskRoute.get(
 
 taskRoute.post(
   `/:${deptName}/${baseRouteName}`,
-  bodyValidationMiddleware(),
+  // bodyValidationMiddleware(),
+  cloudStorage.upload.array('files'),
   (request: Request, response: Response, next: NextFunction) => {
     raiseMiddlewareError(request, response, next);
   },

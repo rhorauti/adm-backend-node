@@ -4,6 +4,7 @@ import { Task } from '@models/task/task.model';
 import { Employee } from '@models/employee/employee.model';
 import { ProductionLine } from '@models/production-line/production-line.model';
 import { Product } from '@models/product/product.model';
+import { Timestamp } from 'typeorm';
 
 export interface ITaskTypeResponse extends IDefaultResponse {
   data: TaskType | TaskType[];
@@ -22,21 +23,21 @@ export type PartialProductionLine = Pick<
 export type PartialProduct = Pick<Product, 'idProduct' | 'internalPartNumber' | 'name'>;
 export interface UsedSpareParts {
   idProduct: number;
+  internalPartNumber: string;
   name: string;
   qty: number;
 }
 
 export interface ITask {
-  idTask: number;
-  startDate?: Date | null;
-  finishDate?: Date | null;
+  idTask?: number;
+  startDate?: string | null;
+  finishDate?: string | null;
   name?: string;
   status?: number;
   comment?: string;
   imgPreviewList?: string[];
-  productList?: PartialProduct[];
+  toolingList?: PartialProduct[];
   product?: PartialProduct;
-  isSparePartsChanged?: boolean;
   usedSpareParts?: UsedSpareParts[];
   productionLineList?: PartialProductionLine[];
   productionLine?: PartialProductionLine;

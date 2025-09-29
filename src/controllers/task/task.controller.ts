@@ -84,7 +84,7 @@ export class TaskController {
   ): Promise<Response<ITaskResponse>> {
     try {
       await this.checkExistingDept(request, response, next);
-      const data = await this.taskRepository.getTaskInfo(request.body[this.keyId]);
+      const data = await this.taskRepository.getTaskInfo(request);
       return this.apiResponse.Ok(
         response,
         200,
@@ -105,7 +105,8 @@ export class TaskController {
   ): Promise<Response<ITaskResponse>> {
     try {
       await this.checkExistingDept(request, response, next);
-      const savedData = await this.taskRepository.saveTask(request.body);
+      const pasedData = JSON.parse(request.body.data);
+      const savedData = await this.taskRepository.saveTask(pasedData);
       if (savedData) {
         return this.apiResponse.Ok(
           response,
