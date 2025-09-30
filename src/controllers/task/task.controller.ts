@@ -11,6 +11,10 @@ import { Task } from '@models/task/task.model';
 import { TOKENS } from '@containers/symbol';
 import { BaseRepository } from '@repositories/base/base.repository';
 import { TaskRepository } from '@repositories/task/task.repository';
+import { GetSignedUrlResponse } from '@google-cloud/storage';
+import { CloudStorage } from 'GCP/cloud-storage.gcp';
+import { sign } from 'crypto';
+import { RedisQueryResultCache } from 'typeorm/cache/RedisQueryResultCache.js';
 
 @injectable()
 export class TaskController {
@@ -19,8 +23,8 @@ export class TaskController {
     @inject(TOKENS.TaskBaseRepository) private taskBaseRepository: BaseRepository<Task>,
     @inject(TOKENS.DepartmentBaseRepository)
     private departmentBaseRepository: BaseRepository<Department>,
-    // @inject(TOKENS.ProductionLineBaseRepository)
-    // @inject(TOKENS.TaskTypeBaseRepository)
+    @inject(TOKENS.CloudStorage)
+    private cloudStorage: CloudStorage,
     @inject(TOKENS.ApiResponse)
     private apiResponse: ApiResponse,
   ) {}
@@ -98,6 +102,8 @@ export class TaskController {
     }
   }
 
+  bucketFolder = 'product-img';
+
   async save(
     request: Request,
     response: Response,
@@ -105,15 +111,58 @@ export class TaskController {
   ): Promise<Response<ITaskResponse>> {
     try {
       await this.checkExistingDept(request, response, next);
-      const pasedData = JSON.parse(request.body.data);
-      const savedData = await this.taskRepository.saveTask(pasedData);
-      if (savedData) {
-        return this.apiResponse.Ok(
-          response,
-          200,
-          `${this.routeNameTranslatedSingular} ${savedData.name} salvo(a) com sucesso.`,
-          savedData,
-        );
+      const taskData = JSON.parse(request.body.data);
+      const justSavedData = await this.taskRepository.saveTask(taskData);
+      if (justSavedData) {
+        const updatedData = await this.taskBaseRepository.getDataByField({
+          idTask: justSavedData.idTask,
+        });
+        if (taskData.isRemovedPhoto && updatedData.photoUrls?.length > 0) {
+          await Promise.all([
+            updatedData.photoUrls.forEach(photo => {
+              this.cloudStorage.deleteFile(photo);
+            }),
+          ]);
+          await this.taskBaseRepository.updateField(
+            { idTask: updatedData.idTask },
+            { photoUrls: null },
+          );
+        }
+        const signedPhotoUrlList: string[] | null = null;
+        const files = request.files as Express.Multer.File[];
+        if (files) {
+          const photoSignedUrls: GetSignedUrlResponse[] = [];
+          const photoPathDatabase: string[] = [];
+          await Promise.all([
+            files.forEach(async (file, index) => {
+              const key = `${this.bucketFolder}/${updatedData.idTask < 10 ? '0' + updatedData.idTask : updatedData.idTask}-${index < 10 ? '0' + index : index}.jpeg`;
+              const photoPath = await this.cloudStorage.saveFile(response, file, key);
+              if (photoPath) {
+                photoPathDatabase.push(photoPath);
+                const signedPhotoUrlResponse = await this.cloudStorage.getReadSignedUrl(photoPath);
+                signedPhotoUrlList.push(signedPhotoUrlResponse[0]);
+              }
+            }),
+          ]);
+          if (!signedPhotoUrlList && updatedData.photoUrls) {
+            await Promise.all([
+              updatedData.photoUrls.forEach(async photoUrl => {
+                const signedPhotoUrlPath = await this.cloudStorage.getReadSignedUrl(photoUrl);
+                photoSignedUrls.push(signedPhotoUrlPath);
+              }),
+            ]);
+          }
+          await this.taskBaseRepository.updateField(
+            { idTask: updatedData.idTask },
+            { photoUrls: photoPathDatabase },
+          );
+          return this.apiResponse.Ok(
+            response,
+            200,
+            `${this.routeNameTranslatedSingular} ${updatedData.name} salvo(a) com sucesso.`,
+            updatedData,
+          );
+        }
       }
     } catch (error) {
       const customError = error as CustomError;
@@ -121,7 +170,7 @@ export class TaskController {
         customError.statusCode = 409;
         customError.message = 'Registro duplicado.';
         this.apiResponse.Error(response, customError.statusCode, customError.message);
-      } else if (customError.step.length > 0) {
+      } else if (customError.step && customError.step.length > 0) {
         customError.message = `Erro no step: ${customError.step}`;
       } else {
         customError.message = `Erro ao salvar o registro: ${error.message}.`;

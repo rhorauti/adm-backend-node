@@ -140,7 +140,7 @@ export class EmployeeController {
           let signedPhotoUrl: GetSignedUrlResponse = null;
           if (request.file) {
             const key = `${this.bucketFolder}${updatedData.idEmployee}.jpeg`;
-            const objectKey = await this.cloudStorage.saveFile(request, response, key);
+            const objectKey = await this.cloudStorage.saveFile(response, request.file, key);
             if (objectKey) {
               await this.employeeBaseRepository.updateField(
                 { idEmployee: updatedData.idEmployee },

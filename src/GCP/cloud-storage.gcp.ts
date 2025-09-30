@@ -1,4 +1,5 @@
 import { TOKENS } from '@containers/symbol';
+import { GetSignedUrlResponse } from '@google-cloud/storage';
 import { Storage } from '@google-cloud/storage';
 import { ApiResponse } from '@utils/api-response';
 import { NextFunction, Request, Response } from 'express';
@@ -31,19 +32,19 @@ export class CloudStorage {
     });
 
   async saveFile(
-    request: Request,
     response: Response,
+    file: Express.Multer.File,
     key: string,
     extras?: { title?: string; projectId?: string },
   ): Promise<string> {
     if (!process.env.GCS_BUCKET)
       this.apiResponse.Error(response, 400, 'Environment variable GCS_BUCKET is not set');
-    if (!request.file) this.apiResponse.Error(response, 400, 'No file provided');
+    if (!file) this.apiResponse.Error(response, 400, 'No file provided');
 
     const gcsFile = this.bucket.file(key);
 
-    await gcsFile.save(request.file.buffer, {
-      contentType: request.file.mimetype,
+    await gcsFile.save(file.buffer, {
+      contentType: file.mimetype,
       metadata: {
         metadata: {
           title: extras?.title || '',
@@ -55,11 +56,36 @@ export class CloudStorage {
     return key;
   }
 
+  // async saveFile(
+  //   request: Request,
+  //   response: Response,
+  //   key: string,
+  //   extras?: { title?: string; projectId?: string },
+  // ): Promise<string> {
+  //   if (!process.env.GCS_BUCKET)
+  //     this.apiResponse.Error(response, 400, 'Environment variable GCS_BUCKET is not set');
+  //   if (!request.file) this.apiResponse.Error(response, 400, 'No file provided');
+
+  //   const gcsFile = this.bucket.file(key);
+
+  //   await gcsFile.save(request.file.buffer, {
+  //     contentType: request.file.mimetype,
+  //     metadata: {
+  //       metadata: {
+  //         title: extras?.title || '',
+  //         projectid: extras?.projectId || '',
+  //       },
+  //     },
+  //   });
+
+  //   return key;
+  // }
+
   async deleteFile(key: string): Promise<void> {
     await this.bucket.file(key).delete();
   }
 
-  async getReadSignedUrl(key: string, ttlMs = 300 * 60 * 1000): Promise<[string]> {
+  async getReadSignedUrl(key: string, ttlMs = 300 * 60 * 1000): Promise<GetSignedUrlResponse> {
     return await this.bucket.file(key).getSignedUrl({
       version: 'v4',
       action: 'read',

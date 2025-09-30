@@ -1,5 +1,4 @@
 import { Department } from '@models/department/department.model';
-import { emptyStringToNull } from '@utils/misc';
 import { inject, injectable } from 'tsyringe';
 import { DataSource, Repository } from 'typeorm';
 

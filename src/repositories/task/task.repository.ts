@@ -2,7 +2,7 @@ import { inject, injectable } from 'tsyringe';
 import { DataSource, Repository } from 'typeorm';
 import { Task } from '@models/task/task.model';
 import { QueryRunner } from 'typeorm/browser';
-import { dateAndHourFormatted, emptyToNullRecursive, translateDeptName } from '@utils/misc';
+import { emptyToNullRecursive, translateDeptName } from '@utils/misc';
 import { Employee } from '@models/employee/employee.model';
 import { TaskType } from '@models/task/task-type.model';
 import { ProductionLine } from '@models/production-line/production-line.model';
@@ -11,12 +11,17 @@ import { CustomError } from '@middlewares/error.middleware';
 import { ITask } from '@core/interfaces/task.interface';
 import { Request } from 'express';
 import { TASK_NUMBER_STATUS } from '@core/enum/status.enum';
+import { BaseRepository } from '@repositories/base/base.repository';
+import { TOKENS } from '@containers/symbol';
 
 @injectable()
 export class TaskRepository {
   private taskRepository: Repository<Task>;
 
-  constructor(@inject('DataSource') private dataSource: DataSource) {
+  constructor(
+    @inject('DataSource') private dataSource: DataSource,
+    @inject(TOKENS.TaskBaseRepository) private taskBaseRepository: BaseRepository<Task>,
+  ) {
     this.taskRepository = this.dataSource.getRepository(Task);
   }
 
@@ -99,8 +104,8 @@ export class TaskRepository {
 
         return {
           idTask: task.idTask,
-          startDate: task.startDate != null ? dateAndHourFormatted(task.startDate) : null,
-          finishDate: task.startDate != null ? dateAndHourFormatted(task.finishDate) : null,
+          startDate: task.startDate != null ? task.startDate.toISOString() : null,
+          finishDate: task.finishDate != null ? task.finishDate.toISOString() : null,
           name: task.name,
           status: task.status,
           usedSpareParts: task.usedSpareParts,
@@ -183,17 +188,37 @@ export class TaskRepository {
         taskData.product = tooling;
       }
 
+      if (taskData.status == null) taskData.status = 0;
+      taskData.startDate = taskData.startDate ? new Date(taskData.startDate) : null;
+      taskData.finishDate = taskData.finishDate ? new Date(taskData.finishDate) : null;
+
+      currentStep = 'set-status';
+      if (taskData.status == TASK_NUMBER_STATUS.NOT_STARTED && taskData.startDate == null) {
+        taskData.startDate = new Date();
+        taskData.status = TASK_NUMBER_STATUS.UNDER_PROGRESS;
+      } else if (taskData.status == TASK_NUMBER_STATUS.UNDER_PROGRESS) {
+        const tasks = await this.taskBaseRepository.getDataListByField(
+          { employee: { idEmployee: taskData.employee.idEmployee } },
+          'idTask',
+        );
+        tasks.forEach(async task => {
+          if (task.status != TASK_NUMBER_STATUS.UNDER_PROGRESS) {
+            await this.taskBaseRepository.updateField(
+              { idTask: task.idTask },
+              { status: TASK_NUMBER_STATUS.PAUSED },
+            );
+          }
+        });
+      } else if (taskData.status == TASK_NUMBER_STATUS.FINISHED) {
+        taskData.finishDate = new Date();
+      } else {
+        taskData.status = TASK_NUMBER_STATUS.NOT_STARTED;
+      }
+
       currentStep = 'create-task';
       const task = this.taskRepository.create({
         ...taskData,
       });
-
-      if (taskData.status == TASK_NUMBER_STATUS.NOT_STARTED) {
-        taskData.startDate = new Date();
-        taskData.status = TASK_NUMBER_STATUS.UNDER_PROGRESS;
-      } else if (taskData.status == TASK_NUMBER_STATUS.FINISHED) {
-        taskData.finishDate = new Date();
-      }
 
       currentStep = 'save-task';
       const savedTask = await queryRunner.manager.save(task);
