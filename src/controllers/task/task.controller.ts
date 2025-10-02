@@ -11,10 +11,8 @@ import { Task } from '@models/task/task.model';
 import { TOKENS } from '@containers/symbol';
 import { BaseRepository } from '@repositories/base/base.repository';
 import { TaskRepository } from '@repositories/task/task.repository';
-import { GetSignedUrlResponse } from '@google-cloud/storage';
 import { CloudStorage } from 'GCP/cloud-storage.gcp';
-import { sign } from 'crypto';
-import { RedisQueryResultCache } from 'typeorm/cache/RedisQueryResultCache.js';
+import { IDetailedPhoto } from '@core/interfaces/photo.interface';
 
 @injectable()
 export class TaskController {
@@ -88,12 +86,20 @@ export class TaskController {
   ): Promise<Response<ITaskResponse>> {
     try {
       await this.checkExistingDept(request, response, next);
-      const data = await this.taskRepository.getTaskInfo(request);
+      const taskData = await this.taskRepository.getTaskInfo(request);
+      if (taskData.imgPreviewList) {
+        const photoUrlPromises = taskData.imgPreviewList.map(async img => {
+          const [url] = await this.cloudStorage.getReadSignedUrl(img.objectKey);
+          return { idPhoto: img.idPhoto, previewUrl: url, file: null };
+        });
+        const signedUrlList = (await Promise.all(photoUrlPromises)).filter(Boolean);
+        taskData.imgPreviewList = signedUrlList;
+      }
       return this.apiResponse.Ok(
         response,
         200,
         `${this.routeNameTranslatedSingular} enviado com sucesso.`,
-        data,
+        taskData,
       );
     } catch (error) {
       const customError = error as CustomError;
@@ -102,67 +108,74 @@ export class TaskController {
     }
   }
 
-  bucketFolder = 'product-img';
+  bucketFolder = 'task-img';
 
   async save(
     request: Request,
     response: Response,
     next: NextFunction,
   ): Promise<Response<ITaskResponse>> {
+    let currentStep = '';
+    let retrivedData: Task | null = null;
     try {
+      currentStep = 'check-dept';
       await this.checkExistingDept(request, response, next);
       const taskData = JSON.parse(request.body.data);
-      const justSavedData = await this.taskRepository.saveTask(taskData);
-      if (justSavedData) {
-        const updatedData = await this.taskBaseRepository.getDataByField({
-          idTask: justSavedData.idTask,
-        });
-        if (taskData.isRemovedPhoto && updatedData.photoUrls?.length > 0) {
-          await Promise.all([
-            updatedData.photoUrls.forEach(photo => {
-              this.cloudStorage.deleteFile(photo);
-            }),
-          ]);
-          await this.taskBaseRepository.updateField(
-            { idTask: updatedData.idTask },
-            { photoUrls: null },
-          );
+      currentStep = 'save-task';
+      if (taskData.imgPreviewList) delete taskData.imgPreviewList;
+      const savedData = await this.taskRepository.saveTask(taskData);
+      retrivedData = await this.taskBaseRepository.getDataByField({
+        idTask: savedData.idTask,
+      });
+      if (retrivedData) {
+        let photoListToBeSaved: IDetailedPhoto[] = [];
+        const photoList = request.files as Express.Multer.File[];
+        const photoIdList: string[] =
+          typeof request.body.files == 'string' ? [request.body.files] : request.body.files;
+        if (retrivedData.photoPath) {
+          currentStep = 'delete-photo';
+          photoListToBeSaved = retrivedData.photoPath;
+          const deletePromises = retrivedData.photoPath.map((photo, index) => {
+            if (!photoIdList.some(photoId => photoId == photo.idPhoto)) {
+              photoListToBeSaved.splice(index, 1);
+              return this.cloudStorage.deleteFile(photo.objectKey);
+            } else {
+              return;
+            }
+          });
+          if (deletePromises) await Promise.all(deletePromises);
         }
-        const signedPhotoUrlList: string[] | null = null;
-        const files = request.files as Express.Multer.File[];
-        if (files) {
-          const photoSignedUrls: GetSignedUrlResponse[] = [];
-          const photoPathDatabase: string[] = [];
-          await Promise.all([
-            files.forEach(async (file, index) => {
-              const key = `${this.bucketFolder}/${updatedData.idTask < 10 ? '0' + updatedData.idTask : updatedData.idTask}-${index < 10 ? '0' + index : index}.jpeg`;
-              const photoPath = await this.cloudStorage.saveFile(response, file, key);
-              if (photoPath) {
-                photoPathDatabase.push(photoPath);
-                const signedPhotoUrlResponse = await this.cloudStorage.getReadSignedUrl(photoPath);
-                signedPhotoUrlList.push(signedPhotoUrlResponse[0]);
-              }
-            }),
-          ]);
-          if (!signedPhotoUrlList && updatedData.photoUrls) {
-            await Promise.all([
-              updatedData.photoUrls.forEach(async photoUrl => {
-                const signedPhotoUrlPath = await this.cloudStorage.getReadSignedUrl(photoUrl);
-                photoSignedUrls.push(signedPhotoUrlPath);
-              }),
-            ]);
-          }
-          await this.taskBaseRepository.updateField(
-            { idTask: updatedData.idTask },
-            { photoUrls: photoPathDatabase },
-          );
-          return this.apiResponse.Ok(
-            response,
-            200,
-            `${this.routeNameTranslatedSingular} ${updatedData.name} salvo(a) com sucesso.`,
-            updatedData,
-          );
+        if (photoList && photoList.length > 0) {
+          currentStep = 'save-photos';
+          const keyPromises: Promise<IDetailedPhoto>[] = photoList.map(async file => {
+            const uniqueId = crypto.randomUUID();
+            const photoId = `${String(retrivedData.idTask).padStart(5, '0')}-${uniqueId}`;
+            const key = `${this.bucketFolder}/${photoId}.jpeg`;
+            const savedKey = await this.cloudStorage.saveFile(response, file, key);
+            return {
+              idPhoto: photoId,
+              userId: 0,
+              objectKey: savedKey,
+              contentType: file.mimetype,
+              size: file.size,
+              createdAt: new Date(),
+            };
+          });
+          const detailedPhotoList = (await Promise.all(keyPromises)).filter(Boolean);
+          detailedPhotoList.forEach(photo => {
+            photoListToBeSaved.push(photo);
+          });
         }
+        await this.taskBaseRepository.updateField(
+          { idTask: retrivedData.idTask },
+          { photoPath: photoListToBeSaved },
+        );
+        return this.apiResponse.Ok(
+          response,
+          200,
+          `${this.routeNameTranslatedSingular} ${retrivedData.name} salvo(a) com sucesso.`,
+          retrivedData,
+        );
       }
     } catch (error) {
       const customError = error as CustomError;
@@ -174,8 +187,21 @@ export class TaskController {
         customError.message = `Erro no step: ${customError.step}`;
       } else {
         customError.message = `Erro ao salvar o registro: ${error.message}.`;
-        this.apiResponse.Error(response, 500, customError.message);
       }
+      if (
+        currentStep == 'save-photos' &&
+        retrivedData &&
+        (retrivedData.idTask == null ||
+          retrivedData.idTask == 0 ||
+          retrivedData.idTask == undefined)
+      ) {
+        await this.taskBaseRepository.delete(retrivedData.idTask);
+      }
+      this.apiResponse.Error(
+        response,
+        500,
+        `current step: ${currentStep} : ${customError.message}`,
+      );
     }
   }
 
@@ -189,7 +215,11 @@ export class TaskController {
       const data = await this.taskBaseRepository.getDataByField({
         idTask: Number(request.params[this.keyId]),
       });
-      await this.taskBaseRepository.delete(data[this.keyId]);
+      if (data) await this.taskBaseRepository.delete(data[this.keyId]);
+      const deletePromises = data.photoPath.map(photo =>
+        this.cloudStorage.deleteFile(photo.objectKey),
+      );
+      if (deletePromises) Promise.all(deletePromises);
       return this.apiResponse.Ok(
         response,
         200,

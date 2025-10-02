@@ -5,6 +5,7 @@ import { Employee } from '@models/employee/employee.model';
 import { ProductionLine } from '@models/production-line/production-line.model';
 import { Product } from '@models/product/product.model';
 import { Timestamp } from 'typeorm';
+import { IPhoto } from './photo.interface';
 
 export interface ITaskTypeResponse extends IDefaultResponse {
   data: TaskType | TaskType[];
@@ -20,8 +21,11 @@ export type PartialProductionLine = Pick<
   ProductionLine,
   'idProductionLine' | 'lineCode' | 'toolingList'
 >;
-export type PartialProduct = Pick<Product, 'idProduct' | 'internalPartNumber' | 'name'>;
-export interface UsedSpareParts {
+export type PartialProduct = Pick<
+  Product,
+  'idProduct' | 'internalPartNumber' | 'name' | 'productType'
+>;
+export interface IUsedSpareParts {
   idProduct: number;
   internalPartNumber: string;
   name: string;
@@ -35,10 +39,10 @@ export interface ITask {
   name?: string;
   status?: number;
   comment?: string;
-  imgPreviewList?: string[];
-  toolingList?: PartialProduct[];
+  imgPreviewList?: IPhoto[];
+  productList?: PartialProduct[];
   product?: PartialProduct;
-  usedSpareParts?: UsedSpareParts[];
+  usedSpareParts?: IUsedSpareParts[];
   productionLineList?: PartialProductionLine[];
   productionLine?: PartialProductionLine;
   taskTypeList?: PartialTaskType[];

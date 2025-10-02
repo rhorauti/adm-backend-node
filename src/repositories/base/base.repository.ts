@@ -64,7 +64,7 @@ export class BaseRepository<T> {
     objectWhere: FindOptionsWhere<T>,
     objectToBeUpdated: QueryDeepPartialEntity<T>,
   ): Promise<void> => {
-    this.repository.update(objectWhere, objectToBeUpdated);
+    await this.repository.update(objectWhere, objectToBeUpdated);
   };
 
   save = async (data: T): Promise<T> => {

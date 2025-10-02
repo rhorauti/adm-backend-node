@@ -4,6 +4,8 @@ import { Product } from '@models/product/product.model';
 import { ProductionLine } from '@models/production-line/production-line.model';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Employee } from '@models/employee/employee.model';
+import { IDetailedPhoto } from '@core/interfaces/photo.interface';
+import { IUsedSpareParts } from '@core/interfaces/task.interface';
 
 @Entity('task')
 export class Task {
@@ -22,16 +24,11 @@ export class Task {
   @Column({ type: 'timestamp', nullable: true })
   finishDate?: Date;
 
-  @Column('text', { array: true, nullable: true })
-  photoUrls?: string[];
+  @Column('jsonb', { nullable: true })
+  photoPath?: IDetailedPhoto[];
 
   @Column('jsonb', { nullable: true })
-  usedSpareParts?: {
-    idProduct: number;
-    internalPartNumber: string;
-    name: string;
-    qty: number;
-  }[];
+  usedSpareParts?: IUsedSpareParts[];
 
   @Column({ type: 'varchar', nullable: true })
   comment?: string;

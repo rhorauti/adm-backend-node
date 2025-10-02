@@ -1,5 +1,5 @@
 import { inject, injectable } from 'tsyringe';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { Task } from '@models/task/task.model';
 import { QueryRunner } from 'typeorm/browser';
 import { emptyToNullRecursive, translateDeptName } from '@utils/misc';
@@ -62,9 +62,15 @@ export class TaskRepository {
       });
 
       currentStep = 'get-product-list';
-      const toolingList = await productRepository.find({
-        select: { idProduct: true, internalPartNumber: true, name: true },
-        where: { productType: { name: 'Ativo' } },
+      const productList = await productRepository.find({
+        relations: { productType: true },
+        select: {
+          idProduct: true,
+          internalPartNumber: true,
+          name: true,
+          productType: { idProductType: true, name: true },
+        },
+        where: { productType: { name: In(['Ativo', 'Despesa']) } },
       });
 
       if (idTask != 0) {
@@ -77,6 +83,7 @@ export class TaskRepository {
         if (task.employee && task.employee != null) {
           currentStep = 'get-employee';
           employee = await employeeRepository.findOne({
+            select: { idEmployee: true, name: true },
             where: { idEmployee: task.employee.idEmployee },
           });
         }
@@ -84,6 +91,7 @@ export class TaskRepository {
         if (task.taskType && task.taskType != null) {
           currentStep = 'get-task-type';
           taskType = await taskTypeRepository.findOne({
+            select: { idTaskType: true, name: true },
             where: { idTaskType: task.taskType.idTaskType },
           });
         }
@@ -91,6 +99,7 @@ export class TaskRepository {
         if (task.productionLine && task.productionLine != null) {
           currentStep = 'get-production-line';
           productionLine = await productionLineRepository.findOne({
+            select: { idProductionLine: true, lineCode: true },
             where: { idProductionLine: task.productionLine.idProductionLine },
           });
         }
@@ -98,6 +107,12 @@ export class TaskRepository {
         if (task.product && task.product != null) {
           currentStep = 'get-product';
           product = await productRepository.findOne({
+            select: {
+              idProduct: true,
+              internalPartNumber: true,
+              name: true,
+              productType: { idProductType: true, name: true },
+            },
             where: { idProduct: task.product.idProduct },
           });
         }
@@ -108,9 +123,10 @@ export class TaskRepository {
           finishDate: task.finishDate != null ? task.finishDate.toISOString() : null,
           name: task.name,
           status: task.status,
+          imgPreviewList: task.photoPath,
           usedSpareParts: task.usedSpareParts,
           comment: task.comment,
-          toolingList: toolingList,
+          productList: productList,
           product: product,
           productionLineList: productionLineList,
           productionLine: productionLine,
@@ -129,7 +145,7 @@ export class TaskRepository {
         status: 0,
         usedSpareParts: [],
         comment: '',
-        toolingList: toolingList,
+        productList: productList,
         product: product,
         productionLineList: productionLineList,
         productionLine: productionLine,
@@ -209,11 +225,17 @@ export class TaskRepository {
             );
           }
         });
+      } else if (taskData.status == TASK_NUMBER_STATUS.PAUSED) {
+        taskData.status = TASK_NUMBER_STATUS.PAUSED;
       } else if (taskData.status == TASK_NUMBER_STATUS.FINISHED) {
+        taskData.status = TASK_NUMBER_STATUS.FINISHED;
         taskData.finishDate = new Date();
       } else {
         taskData.status = TASK_NUMBER_STATUS.NOT_STARTED;
       }
+
+      if (taskData.usedSpareParts && taskData.usedSpareParts.length == 0)
+        taskData.usedSpareParts = null;
 
       currentStep = 'create-task';
       const task = this.taskRepository.create({
