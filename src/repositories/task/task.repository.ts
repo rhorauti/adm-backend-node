@@ -180,7 +180,7 @@ export class TaskRepository {
       });
       taskData.employee = employee;
 
-      if (taskData.taskType && taskData.taskType != null) {
+      if (taskData.taskType && taskData.taskType.idTaskType != null) {
         currentStep = 'get-task-type';
         const taskType = await taskTypeRepository.findOne({
           where: { idTaskType: taskData.taskType.idTaskType },
@@ -188,7 +188,7 @@ export class TaskRepository {
         taskData.taskType = taskType;
       }
 
-      if (taskData.productionLine && taskData.productionLine != null) {
+      if (taskData.productionLine && taskData.productionLine.idProductionLine != null) {
         currentStep = 'get-production-line';
         const productionLine = await productionLineRepository.findOne({
           where: { idProductionLine: taskData.productionLine.idProductionLine },
@@ -196,7 +196,7 @@ export class TaskRepository {
         taskData.productionLine = productionLine;
       }
 
-      if (taskData.product && taskData.product != null) {
+      if (taskData.product && taskData.product.idProduct != null) {
         currentStep = 'get-tooling';
         const tooling = await productRepository.findOne({
           where: { idProduct: taskData.product.idProduct },
@@ -212,26 +212,31 @@ export class TaskRepository {
       if (taskData.status == TASK_NUMBER_STATUS.NOT_STARTED && taskData.startDate == null) {
         taskData.startDate = new Date();
         taskData.status = TASK_NUMBER_STATUS.UNDER_PROGRESS;
-      } else if (taskData.status == TASK_NUMBER_STATUS.UNDER_PROGRESS) {
+      } else if (
+        taskData.status == TASK_NUMBER_STATUS.UNDER_PROGRESS &&
+        taskData.finishDate == null
+      ) {
         const tasks = await this.taskBaseRepository.getDataListByField(
           { employee: { idEmployee: taskData.employee.idEmployee } },
           'idTask',
         );
         tasks.forEach(async task => {
-          if (task.status != TASK_NUMBER_STATUS.UNDER_PROGRESS) {
+          if (task.status == TASK_NUMBER_STATUS.UNDER_PROGRESS) {
             await this.taskBaseRepository.updateField(
               { idTask: task.idTask },
               { status: TASK_NUMBER_STATUS.PAUSED },
             );
           }
         });
-      } else if (taskData.status == TASK_NUMBER_STATUS.PAUSED) {
-        taskData.status = TASK_NUMBER_STATUS.PAUSED;
-      } else if (taskData.status == TASK_NUMBER_STATUS.FINISHED) {
-        taskData.status = TASK_NUMBER_STATUS.FINISHED;
+      } else if (
+        taskData.status == TASK_NUMBER_STATUS.UNDER_PROGRESS &&
+        taskData.finishDate != null
+      ) {
+        taskData.finishDate = null;
+      } else if (taskData.status == TASK_NUMBER_STATUS.PAUSED && taskData.finishDate != null) {
+        taskData.finishDate = null;
+      } else if (taskData.status == TASK_NUMBER_STATUS.FINISHED && taskData.finishDate == null) {
         taskData.finishDate = new Date();
-      } else {
-        taskData.status = TASK_NUMBER_STATUS.NOT_STARTED;
       }
 
       if (taskData.usedSpareParts && taskData.usedSpareParts.length == 0)
