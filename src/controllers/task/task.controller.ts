@@ -60,14 +60,14 @@ export class TaskController {
     next: NextFunction,
   ): Promise<Response<ITaskResponse>> {
     try {
-      await this.checkExistingDept(request, response, next);
-      const task = await this.taskBaseRepository.getDataList('idTask');
-      if (task) {
+      // await this.checkExistingDept(request, response, next);
+      const tasks = await this.taskRepository.getDataList(request);
+      if (tasks) {
         return this.apiResponse.Ok(
           response,
           200,
           `${this.routeNameTranslated} enviados com sucesso.`,
-          task,
+          tasks,
         );
       } else {
         return this.apiResponse.Ok(response, 200, 'Nenhum registro encontrado.');

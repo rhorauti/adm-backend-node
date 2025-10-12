@@ -8,7 +8,7 @@ import { TaskType } from '@models/task/task-type.model';
 import { ProductionLine } from '@models/production-line/production-line.model';
 import { Product } from '@models/product/product.model';
 import { CustomError } from '@middlewares/error.middleware';
-import { ITask } from '@core/interfaces/task.interface';
+import { ITaskForm, ITaskHome } from '@core/interfaces/task.interface';
 import { Request } from 'express';
 import { TASK_NUMBER_STATUS } from '@core/enum/status.enum';
 import { BaseRepository } from '@repositories/base/base.repository';
@@ -25,7 +25,44 @@ export class TaskRepository {
     this.taskRepository = this.dataSource.getRepository(Task);
   }
 
-  getTaskInfo = async (request: Request): Promise<ITask> => {
+  getDataList = async (request: Request): Promise<ITaskHome[]> => {
+    const deptName = translateDeptName(request.params['department']);
+    const queryRunner: QueryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    let currentStep = 'initial';
+    let tasks: Task[] | null = null;
+
+    try {
+      currentStep = 'get-tasks';
+      tasks = await this.taskRepository.find({
+        where: { employee: { department: { name: deptName } } },
+        order: { idTask: 'DESC' },
+        relations: ['employee', 'taskType', 'productionLine', 'product'],
+      });
+
+      return tasks.map(task => ({
+        idTask: task.idTask,
+        name: task.name,
+        startDate: task.startDate != null ? task.startDate.toISOString() : null,
+        finishDate: task.finishDate != null ? task.finishDate.toISOString() : null,
+        status: task.status,
+        employee: task.employee?.name != null ? task.employee.name : null,
+        product: task.product?.name != null ? task.product.name : null,
+        productionLine: task.productionLine?.lineCode != null ? task.productionLine.lineCode : null,
+        taskType: task.taskType?.name != null ? task.taskType.name : null,
+      }));
+    } catch (error) {
+      const customError = error as CustomError;
+      customError.step = currentStep;
+      throw customError;
+    } finally {
+      await queryRunner.release();
+    }
+  };
+
+  getTaskInfo = async (request: Request): Promise<ITaskForm> => {
     const idTask = Number(request.params['idTask']);
     const deptName = translateDeptName(request.params['department']);
     const queryRunner: QueryRunner = this.dataSource.createQueryRunner();
@@ -158,6 +195,8 @@ export class TaskRepository {
       const customError = error as CustomError;
       customError.step = currentStep;
       throw customError;
+    } finally {
+      await queryRunner.release();
     }
   };
 

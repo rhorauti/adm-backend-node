@@ -32,7 +32,19 @@ export interface IUsedSpareParts {
   qty: number;
 }
 
-export interface ITask {
+export interface ITaskHome {
+  idTask?: number;
+  employee?: string;
+  startDate?: string;
+  finishDate?: string;
+  name?: string;
+  status?: number;
+  taskType?: string;
+  product?: string;
+  productionLine?: string;
+}
+
+export interface ITaskForm {
   idTask?: number;
   startDate?: string | null;
   finishDate?: string | null;

@@ -22,6 +22,7 @@ const controller = container.resolve(TaskController);
 taskRoute.get(
   `/:${deptName}/${baseRouteName}`,
   (request: Request, response: Response, next: NextFunction) => {
+    console.log('entrando no task getdataList...');
     controller.getDataList(request, response, next);
   },
 );
@@ -29,6 +30,7 @@ taskRoute.get(
 taskRoute.get(
   `/:${deptName}/${baseRouteName}/:${String(keyId)}`,
   (request: Request, response: Response, next: NextFunction) => {
+    console.log('entrando no task getdATA...');
     controller.getData(request, response, next);
   },
 );
