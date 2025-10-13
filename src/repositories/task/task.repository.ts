@@ -27,9 +27,6 @@ export class TaskRepository {
 
   getDataList = async (request: Request): Promise<ITaskHome[]> => {
     const deptName = translateDeptName(request.params['department']);
-    const queryRunner: QueryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
 
     let currentStep = 'initial';
     let tasks: Task[] | null = null;
@@ -57,8 +54,6 @@ export class TaskRepository {
       const customError = error as CustomError;
       customError.step = currentStep;
       throw customError;
-    } finally {
-      await queryRunner.release();
     }
   };
 
