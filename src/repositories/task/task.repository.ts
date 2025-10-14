@@ -2,7 +2,7 @@ import { inject, injectable } from 'tsyringe';
 import { DataSource, In, Repository } from 'typeorm';
 import { Task } from '@models/task/task.model';
 import { QueryRunner } from 'typeorm/browser';
-import { emptyToNullRecursive, translateDeptName } from '@utils/misc';
+import { emptyToNullRecursive } from '@utils/misc';
 import { Employee } from '@models/employee/employee.model';
 import { TaskType } from '@models/task/task-type.model';
 import { ProductionLine } from '@models/production-line/production-line.model';
@@ -13,6 +13,11 @@ import { Request } from 'express';
 import { TASK_NUMBER_STATUS } from '@core/enum/status.enum';
 import { BaseRepository } from '@repositories/base/base.repository';
 import { TOKENS } from '@containers/symbol';
+import {
+  DEPT_NAMES_ENGLISH,
+  DEPT_NAMES_LOCAL_LANGUAGE,
+  translateDeptNameToLocalLanguage,
+} from '@core/enum/departments.enum';
 
 @injectable()
 export class TaskRepository {
@@ -26,7 +31,9 @@ export class TaskRepository {
   }
 
   getDataList = async (request: Request): Promise<ITaskHome[]> => {
-    const deptName = translateDeptName(request.params['department']);
+    const deptName = translateDeptNameToLocalLanguage(
+      request.params['department'] as DEPT_NAMES_ENGLISH,
+    );
 
     let currentStep = 'initial';
     let tasks: Task[] | null = null;
@@ -36,6 +43,7 @@ export class TaskRepository {
       tasks = await this.taskRepository.find({
         where: { employee: { department: { name: deptName } } },
         order: { idTask: 'DESC' },
+        take: 10000,
         relations: ['employee', 'taskType', 'productionLine', 'product'],
       });
 
@@ -59,7 +67,9 @@ export class TaskRepository {
 
   getTaskInfo = async (request: Request): Promise<ITaskForm> => {
     const idTask = Number(request.params['idTask']);
-    const deptName = translateDeptName(request.params['department']);
+    const deptName = translateDeptNameToLocalLanguage(
+      request.params['department'] as DEPT_NAMES_ENGLISH,
+    );
     const queryRunner: QueryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();

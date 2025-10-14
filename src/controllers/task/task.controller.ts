@@ -3,7 +3,6 @@ import { ApiResponse } from '@utils/api-response';
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import { IDefaultResponse } from '@core/interfaces/base.interface';
-import { translateDeptName } from '@utils/misc';
 import { Department } from '@models/department/department.model';
 import { CustomErrorHandler } from '@core/error/error.core';
 import { ITaskResponse } from '@core/interfaces/task.interface';
@@ -13,6 +12,11 @@ import { BaseRepository } from '@repositories/base/base.repository';
 import { TaskRepository } from '@repositories/task/task.repository';
 import { CloudStorage } from 'GCP/cloud-storage.gcp';
 import { IDetailedPhoto } from '@core/interfaces/photo.interface';
+import {
+  DEPT_NAMES_ENGLISH,
+  DEPT_NAMES_LOCAL_LANGUAGE,
+  translateDeptNameToLocalLanguage,
+} from '@core/enum/departments.enum';
 
 @injectable()
 export class TaskController {
@@ -32,23 +36,25 @@ export class TaskController {
   routeNameTranslatedSingular = this.routeNameTranslated.slice(0, -1);
 
   selectedDept: Department = null;
-  paramDeptName: string = null;
+  paramDeptNameLocalLanguage: DEPT_NAMES_LOCAL_LANGUAGE | null = null;
 
   checkExistingDept = async (
     request: Request,
     response: Response,
     next: NextFunction,
   ): Promise<Response> => {
-    this.paramDeptName = translateDeptName(request.params['department']);
+    this.paramDeptNameLocalLanguage = translateDeptNameToLocalLanguage(
+      request.params['department'] as DEPT_NAMES_ENGLISH,
+    );
     const selectedDept = await this.departmentBaseRepository.getDataByField({
-      name: this.paramDeptName,
+      name: this.paramDeptNameLocalLanguage,
     });
     if (selectedDept) {
       this.selectedDept = selectedDept;
       return;
     } else {
       throw new CustomErrorHandler(
-        `Departamento ${translateDeptName(this.paramDeptName)} não encontrado.`,
+        `Departamento ${this.paramDeptNameLocalLanguage} não encontrado.`,
         404,
       );
     }
