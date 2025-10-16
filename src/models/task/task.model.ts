@@ -18,10 +18,10 @@ export class Task {
   @Column({ type: 'int', nullable: true })
   status?: number;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamptz', nullable: true })
   startDate?: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamptz', nullable: true })
   finishDate?: Date;
 
   @Column('jsonb', { nullable: true })

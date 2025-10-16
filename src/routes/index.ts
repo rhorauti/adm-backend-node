@@ -12,6 +12,7 @@ import { taskRoute } from './task/task.route';
 import { productTypeRoute } from './product/product-type.route';
 import { productRoute } from './product/product.route';
 import { unitRoute } from './unit/unit.route';
+import { taskFakeRoute } from './task/task-fake.route';
 
 const router = Router();
 router.use(authRoute);
@@ -21,6 +22,7 @@ router.use(addressRoute);
 router.use(employeeRoute);
 router.use(employeePositionRoute);
 router.use(taskRoute);
+router.use(taskFakeRoute);
 router.use(taskTypeRoute);
 router.use(departmentRoute);
 router.use(productionLineRoute);

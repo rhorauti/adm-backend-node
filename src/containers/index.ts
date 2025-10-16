@@ -42,6 +42,7 @@ import { ProductType } from '@models/product/product-type.model';
 import { Product } from '@models/product/product.model';
 import { User } from '@models/auth/user.model.';
 import { Company } from '@models/company/company.model';
+import { TaskFakeController } from '@controllers/task/task-fale.controllert';
 
 container.registerSingleton(TOKENS.ApiResponse, ApiResponse);
 container.registerSingleton(TOKENS.JwtHandler, JwtHandler);
@@ -143,6 +144,7 @@ container.registerSingleton(TOKENS.EmployeeRepository, EmployeeRepository);
 container.registerSingleton(TOKENS.EmployeePositionController, EmployeePositionController);
 container.registerSingleton(TOKENS.TaskRepository, TaskRepository);
 container.registerSingleton(TOKENS.TaskController, TaskController);
+container.registerSingleton(TOKENS.TaskFakeController, TaskFakeController);
 container.registerSingleton(TOKENS.TaskTypeController, TaskTypeController);
 container.registerSingleton(TOKENS.DepartmentController, DepartmentController);
 container.registerSingleton(TOKENS.ProductionLineController, ProductionLineController);

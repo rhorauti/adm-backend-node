@@ -13,11 +13,7 @@ import { Request } from 'express';
 import { TASK_NUMBER_STATUS } from '@core/enum/status.enum';
 import { BaseRepository } from '@repositories/base/base.repository';
 import { TOKENS } from '@containers/symbol';
-import {
-  DEPT_NAMES_ENGLISH,
-  DEPT_NAMES_LOCAL_LANGUAGE,
-  translateDeptNameToLocalLanguage,
-} from '@core/enum/departments.enum';
+import { DEPT_NAMES_ENGLISH, translateDeptNameToLocalLanguage } from '@core/enum/departments.enum';
 
 @injectable()
 export class TaskRepository {

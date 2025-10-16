@@ -20,6 +20,7 @@ export const TOKENS = {
   TaskRepository: Symbol.for('TaskRepository'),
   TaskBaseRepository: Symbol.for('TaskBaseRepository'),
   TaskController: Symbol.for('TaskController'),
+  TaskFakeController: Symbol.for('TaskFakeController'),
   // TaskTypeRepository: Symbol.for('TaskTypeRepository'),
   TaskTypeBaseRepository: Symbol.for('TaskTypeBaseRepository'),
   TaskTypeController: Symbol.for('TaskTypeController'),

@@ -20,7 +20,7 @@ export class User {
   @Exclude()
   photoUrl?: string;
 
-  @CreateDateColumn({ type: 'timestamp', nullable: true })
+  @CreateDateColumn({ type: 'timestamptz', nullable: true })
   @Exclude()
   createdAt?: Timestamp;
 

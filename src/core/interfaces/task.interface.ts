@@ -4,7 +4,6 @@ import { Task } from '@models/task/task.model';
 import { Employee } from '@models/employee/employee.model';
 import { ProductionLine } from '@models/production-line/production-line.model';
 import { Product } from '@models/product/product.model';
-import { Timestamp } from 'typeorm';
 import { IPhoto } from './photo.interface';
 
 export interface ITaskTypeResponse extends IDefaultResponse {
