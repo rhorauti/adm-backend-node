@@ -1,5 +1,9 @@
 import { EmployeeRepository } from '@repositories/employee/employee.repository';
-import { IEmployeeResponse } from '@core/interfaces/employee.interface';
+import {
+  IEmployeeForm,
+  IEmployeeFormResponse,
+  IEmployeeResponse,
+} from '@core/interfaces/employee.interface';
 import { CustomError } from '@middlewares/error.middleware';
 import { ApiResponse } from '@utils/api-response';
 import { NextFunction, Request, Response } from 'express';
@@ -12,12 +16,15 @@ import { TOKENS } from '@containers/symbol';
 import { EmployeePosition } from '@models/employee/employee-position.model';
 import { BaseRepository } from '@repositories/base/base.repository';
 import { Department } from '@models/department/department.model';
+import { Company } from '@models/company/company.model';
 
 @injectable()
 export class EmployeeController {
   constructor(
     @inject(TOKENS.EmployeeRepository) private employeeRepository: EmployeeRepository,
     @inject(TOKENS.EmployeeBaseRepository) private employeeBaseRepository: BaseRepository<Employee>,
+    @inject(TOKENS.CompanyBaseRepository)
+    private companyBaseRepository: BaseRepository<Company>,
     @inject(TOKENS.DepartmentBaseRepository)
     private departmentBaseRepository: BaseRepository<Department>,
     @inject(TOKENS.EmployeePositionBaseRepository)
@@ -66,33 +73,89 @@ export class EmployeeController {
     request: Request,
     response: Response,
     next: NextFunction,
-  ): Promise<Response<IEmployeeResponse>> {
+  ): Promise<Response<IEmployeeFormResponse>> {
     try {
-      const data = await this.employeeBaseRepository.getDataByField({
-        [this.keyId]: Number(request.params[this.keyId]),
-      });
-      let signedPhotoUrl: GetSignedUrlResponse = null;
-      if (data.photoUrl) {
-        signedPhotoUrl = await this.cloudStorage.getReadSignedUrl(data.photoUrl);
+      const idCompany = Number(request.params.idCompany) ?? 0;
+      const employeeFormData: IEmployeeForm = {
+        idEmployee: null,
+        isDefault: false,
+        name: '',
+        cpf: '',
+        email: '',
+        deskphone: '',
+        cellphone: '',
+        photoUrl: '',
+        company: { idCompany: null, name: '' },
+        departmentList: [],
+        department: { idDepartment: null, name: '' },
+        employeePositionList: [],
+        employeePosition: { idEmployeePosition: null, name: '' },
+      };
+      const employee = await this.employeeBaseRepository.getDataByField(
+        {
+          [this.keyId]: Number(request.params[this.keyId]),
+        },
+        ['department', 'employeePosition'],
+      );
+      if (employee && employee != null) {
+        employeeFormData.idEmployee = employee.idEmployee;
+        employeeFormData.isDefault = employee.isDefault;
+        employeeFormData.name = employee.name ?? '';
+        employeeFormData.cpf = employee.cpf ?? '';
+        employeeFormData.email = employee.email ?? '';
+        employeeFormData.deskphone = employee.deskphone ?? '';
+        employeeFormData.cellphone = employee.cellphone ?? '';
+        if (employeeFormData.department) {
+          employeeFormData.department = {
+            idDepartment: employee.department.idDepartment,
+            name: employee.department.name ?? '',
+          };
+        }
+        if (employeeFormData.employeePosition) {
+          employeeFormData.employeePosition = {
+            idEmployeePosition: employee.employeePosition.idEmployeePosition,
+            name: employee.employeePosition.name ?? '',
+          };
+        }
       }
-      const responseData = {
-        idEmployee: data.idEmployee,
-        isDefault: data.isDefault,
-        name: data.name,
-        email: data.email,
-        deskphone: data.deskphone,
-        cellphone: data.cellphone,
-        photoUrl: signedPhotoUrl[0] ?? '',
-        department: data.department,
-        employeePosition: data.employeePosition,
-      } as Employee;
+      const employeePositionList =
+        await this.employeePositionBaseRepository.getDataList('idEmployeePosition');
+      if (Array.isArray(employeePositionList)) {
+        employeeFormData.employeePositionList = employeePositionList.map(pos => ({
+          idEmployeePosition: pos.idEmployeePosition,
+          name: pos.name,
+        }));
+      }
+
+      const departmentList = await this.departmentBaseRepository.getDataList('idDepartment');
+      if (Array.isArray(departmentList)) {
+        employeeFormData.departmentList = departmentList.map(dept => ({
+          idDepartment: dept.idDepartment,
+          name: dept.name,
+        }));
+      }
+
+      const company = await this.companyBaseRepository.getDataByField({
+        idCompany: Number(idCompany),
+      });
+      if (company && company != null) {
+        employeeFormData.company = { idCompany: company.idCompany, name: company.name };
+      }
+
+      let signedPhotoUrl: GetSignedUrlResponse = null;
+      if (employee?.photoUrl) {
+        signedPhotoUrl = await this.cloudStorage.getReadSignedUrl(employee.photoUrl);
+        employeeFormData.photoUrl = signedPhotoUrl[0];
+      }
+
       return this.apiResponse.Ok(
         response,
         200,
         `Dados ${this.routeNameTranslatedSingular} enviado com sucesso.`,
-        responseData,
+        employeeFormData,
       );
     } catch (error: unknown) {
+      console.log('employeeError', error);
       const customError = error as CustomError;
       customError.message = `Erro ao consultar ${this.routeNameTranslatedSingular}.`;
       this.apiResponse.Error(response, 500, customError.message);
@@ -113,8 +176,8 @@ export class EmployeeController {
       if (idCompany == 0) {
         this.apiResponse.Error(response, 400, 'Erro ao receber o idCompany');
       } else {
-        const company = await this.employeeBaseRepository.getDataByField({
-          company: { idCompany: idCompany },
+        const company = await this.companyBaseRepository.getDataByField({
+          idCompany: idCompany,
         });
         employeeData.company = company;
         if (company) {

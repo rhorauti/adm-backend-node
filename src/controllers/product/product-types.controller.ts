@@ -49,7 +49,7 @@ export class ProductTypeController {
   ): Promise<Response<IProductTypeResponse>> {
     try {
       const data = await this.baseRepository.getDataByField({
-        [this.keyId]: request.body[this.keyId],
+        [this.keyId]: Number(request.params[this.keyId]),
       });
       return this.apiResponse.Ok(
         response,

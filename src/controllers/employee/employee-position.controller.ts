@@ -49,7 +49,7 @@ export class EmployeePositionController {
   ): Promise<Response<IEmployeePositionResponse>> {
     try {
       const data = await this.baseRepository.getDataByField({
-        idEmployeePosition: request.body[this.keyId],
+        idEmployeePosition: Number(request.params[this.keyId]),
       });
       return this.apiResponse.Ok(
         response,

@@ -55,7 +55,7 @@ export class DepartmentController {
   ): Promise<Response<IDepartmentResponse>> {
     try {
       const data = await this.baseRepository.getDataByField({
-        [this.keyId]: request.body[this.keyId],
+        [this.keyId]: Number(request.params[this.keyId]),
       });
       return this.apiResponse.Ok(
         response,

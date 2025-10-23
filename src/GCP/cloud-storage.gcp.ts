@@ -56,31 +56,6 @@ export class CloudStorage {
     return key;
   }
 
-  // async saveFile(
-  //   request: Request,
-  //   response: Response,
-  //   key: string,
-  //   extras?: { title?: string; projectId?: string },
-  // ): Promise<string> {
-  //   if (!process.env.GCS_BUCKET)
-  //     this.apiResponse.Error(response, 400, 'Environment variable GCS_BUCKET is not set');
-  //   if (!request.file) this.apiResponse.Error(response, 400, 'No file provided');
-
-  //   const gcsFile = this.bucket.file(key);
-
-  //   await gcsFile.save(request.file.buffer, {
-  //     contentType: request.file.mimetype,
-  //     metadata: {
-  //       metadata: {
-  //         title: extras?.title || '',
-  //         projectid: extras?.projectId || '',
-  //       },
-  //     },
-  //   });
-
-  //   return key;
-  // }
-
   async deleteFile(key: string): Promise<void> {
     await this.bucket.file(key).delete();
   }

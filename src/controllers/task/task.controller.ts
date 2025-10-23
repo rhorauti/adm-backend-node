@@ -29,8 +29,8 @@ export class TaskController {
     private cloudStorage: CloudStorage,
     @inject(TOKENS.ApiResponse)
     private apiResponse: ApiResponse,
-  ) {}
-
+  ) { }
+  
   routeNameTranslated = 'Atividades';
   keyId = 'idTask';
   routeNameTranslatedSingular = this.routeNameTranslated.slice(0, -1);
@@ -222,10 +222,12 @@ export class TaskController {
         idTask: Number(request.params[this.keyId]),
       });
       if (data) await this.taskBaseRepository.delete(data[this.keyId]);
-      const deletePromises = data.photoPath.map(photo =>
-        this.cloudStorage.deleteFile(photo.objectKey),
-      );
-      if (deletePromises) Promise.all(deletePromises);
+      if (data && data.photoPath != null) {
+        const deletePromises = data.photoPath.map(photo =>
+          this.cloudStorage.deleteFile(photo.objectKey),
+        );
+        if (deletePromises) Promise.all(deletePromises);
+      }
       return this.apiResponse.Ok(
         response,
         200,

@@ -92,7 +92,7 @@ export class TaskTypeController {
     try {
       await this.checkExistingDept(request, response, next);
       const data = await this.taskTypeBaseRepository.getDataByField({
-        idTaskType: request.body[this.keyId],
+        idTaskType: Number(request.params[this.keyId]),
       });
       return this.apiResponse.Ok(
         response,

@@ -12,3 +12,5 @@ export interface ICompanyDetail {
 export interface ICompanyResponse extends IDefaultResponse {
   data?: ICompanyDetail;
 }
+
+export type PartialCompany = Pick<Company, 'idCompany' | 'name'>;
