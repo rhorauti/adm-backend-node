@@ -4,13 +4,14 @@ import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import { IDefaultResponse } from '@core/interfaces/base.interface';
 import { ProductRepository } from '@repositories/product/product.repository';
-import { IProductResponse } from '@core/interfaces/product.interface';
+import { IProductForm, IProductHome, IProductResponse } from '@core/interfaces/product.interface';
 import { Product } from '@models/product/product.model';
 import { CloudStorage } from 'GCP/cloud-storage.gcp';
 import { GetSignedUrlResponse } from '@google-cloud/storage';
 import { ProductType } from '@models/product/product-type.model';
 import { TOKENS } from '@containers/symbol';
 import { BaseRepository } from '@repositories/base/base.repository';
+import { Unit } from '@models/unit/unit.model';
 
 @injectable()
 export class ProductController {
@@ -19,6 +20,8 @@ export class ProductController {
     @inject(TOKENS.ProductBaseRepository) private productBaseRepository: BaseRepository<Product>,
     @inject(TOKENS.ProductTypeBaseRepository)
     private productTypeBaseRepository: BaseRepository<ProductType>,
+    @inject(TOKENS.UnitBaseRepository)
+    private unitBaseRepository: BaseRepository<Unit>,
     @inject(TOKENS.ApiResponse) private apiResponse: ApiResponse,
     @inject(TOKENS.CloudStorage) private cloudStorage: CloudStorage,
   ) {}
@@ -35,40 +38,25 @@ export class ProductController {
     next: NextFunction,
   ): Promise<Response<IProductResponse>> {
     try {
-      let dataList: Partial<Product>[] | Product[] | null = null;
-      const params = request.query as Partial<ProductType>;
-      if (params.name) {
-        const productTypeAsset = await this.productTypeBaseRepository.getDataByField({
-          name: params.name,
-        });
-        const filteredData = await this.productBaseRepository.getDataListByField(
-          { productType: { idProductType: productTypeAsset.idProductType } },
-          'idProduct',
-        );
-        dataList = filteredData.map(data => ({
-          idProduct: data.idProduct,
-          internalPartNumber: data.internalPartNumber,
-          name: data.name,
+      let productHome: IProductHome[] = [];
+      const productList = await this.productBaseRepository.getDataList('idProduct', ['unit']);
+      if (productList) {
+        productHome = productList.map(product => ({
+          idProduct: product.idProduct,
+          internalPartNumber: product.internalPartNumber,
+          customerPartNumber: product.customerPartNumber,
+          name: product.name,
+          nameTranslated: product.nameTranslated,
+          origin: product.origin,
+          stock: product.stock,
+          unit: product.unit.name,
         }));
-      } else {
-        const responseData = await this.productBaseRepository.getDataList('idProduct');
-        if (responseData) {
-          dataList = await Promise.all(
-            responseData.map(async (e: Product) => {
-              if (e.photoUrl) {
-                const [url] = await this.cloudStorage.getReadSignedUrl(e.photoUrl);
-                return { ...e, photoUrl: url };
-              }
-              return e;
-            }),
-          );
-        }
       }
       return this.apiResponse.Ok(
         response,
         200,
         `Dados de ${this.routeNameTranslated} enviados com sucesso.`,
-        dataList,
+        productHome,
       );
     } catch (error) {
       const customError = error as CustomError;
@@ -83,18 +71,47 @@ export class ProductController {
     next: NextFunction,
   ): Promise<Response<IProductResponse>> {
     try {
-      const data = await this.productBaseRepository.getDataByField({
-        [this.keyId]: Number(request.params[this.keyId]),
-      });
-      const responseData = {
-        ...data,
-        photoUrl: data.photoUrl ? (await this.cloudStorage.getReadSignedUrl(data.photoUrl))[0] : '',
-      } as Product;
+      let productFormData: IProductForm = null;
+      const product = await this.productBaseRepository.getDataByField(
+        {
+          [this.keyId]: Number(request.params[this.keyId]),
+        },
+        ['productType', 'unit'],
+      );
+      let productTypeList = await this.productTypeBaseRepository.getDataList('idProductType');
+      if (productTypeList) {
+        productTypeList = productTypeList.map(product => ({
+          idProductType: product.idProductType,
+          name: product.name,
+        }));
+      }
+      let unitList = await this.unitBaseRepository.getDataList('idUnit');
+      if (unitList) {
+        unitList = unitList.map(unit => ({ idUnit: unit.idUnit, name: unit.name }));
+      }
+      if (product) {
+        const formObj = productFormData ?? ({} as IProductForm);
+        productFormData = {
+          ...formObj,
+          ...product,
+          unit: product.unit ? { idUnit: product.unit.idUnit, name: product.unit.name } : null,
+          productType: product.productType
+            ? { idProductType: product.productType.idProductType, name: product.productType.name }
+            : null,
+          unitList: unitList,
+          productTypeList: productTypeList,
+        };
+        if (product.photoUrl != null) {
+          const urls = await this.cloudStorage.getReadSignedUrl(product.photoUrl);
+          const url = (urls && urls[0]) ?? '';
+          productFormData.photoUrl = url;
+        }
+      }
       return this.apiResponse.Ok(
         response,
         200,
         `Dados ${this.routeNameTranslatedSingular} enviado com sucesso.`,
-        responseData,
+        productFormData,
       );
     } catch (error: unknown) {
       const customError = error as CustomError;

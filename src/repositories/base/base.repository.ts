@@ -24,8 +24,8 @@ export class BaseRepository<T> {
 
   getDataList = async (
     sortKey: keyof T,
-    sortMethod = 'DESC',
     relations: RelatedEntityProps[] = [],
+    sortMethod = 'DESC',
   ): Promise<T[]> => {
     return this.repository.find({
       order: { [sortKey]: sortMethod } as FindOptionsOrder<T>,
@@ -36,8 +36,8 @@ export class BaseRepository<T> {
   getDataListByField = async (
     objectWhere: FindOptionsWhere<T>,
     sortKey: keyof T,
-    sortMethod = 'DESC',
     relations: RelatedEntityProps[] = [],
+    sortMethod = 'DESC',
   ): Promise<T[]> => {
     return await this.repository.find({
       where: objectWhere,
