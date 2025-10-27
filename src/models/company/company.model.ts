@@ -10,7 +10,7 @@ import { PurchasingOrder } from '@models/purchasing-order/purchasing-order.model
 @Unique('UQ_company_im', ['im'])
 @Entity('company')
 export class Company {
-  @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_company' })
+  @PrimaryGeneratedColumn({ name: 'id_company', primaryKeyConstraintName: 'PK_company' })
   idCompany: number;
 
   @Column({ type: 'varchar', length: 50, nullable: true })
@@ -28,7 +28,7 @@ export class Company {
   @Column({ type: 'varchar', length: 50, nullable: true })
   im?: string;
 
-  @OneToOne(() => Address, address => address.company, { nullable: true })
+  @OneToOne(() => Address, address => address.company, { nullable: true, cascade: true })
   address?: Address;
 
   @OneToMany(() => Employee, employee => employee.company, { nullable: true, cascade: true })

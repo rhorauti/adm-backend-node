@@ -29,8 +29,8 @@ export class TaskController {
     private cloudStorage: CloudStorage,
     @inject(TOKENS.ApiResponse)
     private apiResponse: ApiResponse,
-  ) { }
-  
+  ) {}
+
   routeNameTranslated = 'Atividades';
   keyId = 'idTask';
   routeNameTranslatedSingular = this.routeNameTranslated.slice(0, -1);
@@ -46,8 +46,10 @@ export class TaskController {
     this.paramDeptNameLocalLanguage = translateDeptNameToLocalLanguage(
       request.params['department'] as DEPT_NAMES_ENGLISH,
     );
-    const selectedDept = await this.departmentBaseRepository.getDataByField({
-      name: this.paramDeptNameLocalLanguage,
+    const selectedDept = await this.departmentBaseRepository.getData({
+      where: {
+        name: this.paramDeptNameLocalLanguage,
+      },
     });
     if (selectedDept) {
       this.selectedDept = selectedDept;
@@ -66,8 +68,11 @@ export class TaskController {
     next: NextFunction,
   ): Promise<Response<ITaskResponse>> {
     try {
-      // await this.checkExistingDept(request, response, next);
-      const tasks = await this.taskRepository.getDataList(request);
+      await this.checkExistingDept(request, response, next);
+      // const tasks = await this.taskRepository.getDataList(request);
+      console.log('deptName', this.selectedDept);
+      const tasks = await this.taskRepository.getDataList(this.selectedDept.name);
+      console.log('tasks', tasks);
       if (tasks) {
         return this.apiResponse.Ok(
           response,
@@ -92,6 +97,10 @@ export class TaskController {
   ): Promise<Response<ITaskResponse>> {
     try {
       await this.checkExistingDept(request, response, next);
+      const idTask = Number(request.params['idTask']);
+      const deptName = translateDeptNameToLocalLanguage(
+        request.params['department'] as DEPT_NAMES_ENGLISH,
+      );
       const taskData = await this.taskRepository.getTaskInfo(request);
       if (taskData.imgPreviewList) {
         const photoUrlPromises = taskData.imgPreviewList.map(async img => {
@@ -130,8 +139,10 @@ export class TaskController {
       currentStep = 'save-task';
       if (taskData.imgPreviewList) delete taskData.imgPreviewList;
       const savedData = await this.taskRepository.saveTask(taskData);
-      retrivedData = await this.taskBaseRepository.getDataByField({
-        idTask: savedData.idTask,
+      retrivedData = await this.taskBaseRepository.getData({
+        where: {
+          idTask: savedData.idTask,
+        },
       });
       if (retrivedData) {
         let photoListToBeSaved: IDetailedPhoto[] = [];
@@ -218,8 +229,10 @@ export class TaskController {
   ): Promise<Response<IDefaultResponse>> {
     try {
       await this.checkExistingDept(request, response, next);
-      const data = await this.taskBaseRepository.getDataByField({
-        idTask: Number(request.params[this.keyId]),
+      const data = await this.taskBaseRepository.getData({
+        where: {
+          idTask: Number(request.params[this.keyId]),
+        },
       });
       if (data) await this.taskBaseRepository.delete(data[this.keyId]);
       if (data && data.photoPath != null) {

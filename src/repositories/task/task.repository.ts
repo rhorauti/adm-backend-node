@@ -26,40 +26,81 @@ export class TaskRepository {
     this.taskRepository = this.dataSource.getRepository(Task);
   }
 
-  getDataList = async (request: Request): Promise<ITaskHome[]> => {
-    const deptName = translateDeptNameToLocalLanguage(
-      request.params['department'] as DEPT_NAMES_ENGLISH,
-    );
+  // idTask?: number;
+  // employee?: string;
+  // startDate?: string;
+  // finishDate?: string;
+  // name?: string;
+  // status?: number;
+  // taskType?: string;
+  // product?: string;
+  // productionLine?: string;
 
-    let currentStep = 'initial';
-    let tasks: Task[] | null = null;
+  getDataList = async (deptName: string): Promise<ITaskHome[]> => {
+    const tasks = await this.taskRepository
+      .createQueryBuilder('task')
 
-    try {
-      currentStep = 'get-tasks';
-      tasks = await this.taskRepository.find({
-        where: { employee: { department: { name: deptName } } },
-        order: { idTask: 'DESC' },
-        take: 10000,
-        relations: ['employee', 'taskType', 'productionLine', 'product'],
-      });
+      .select([
+        'task.idTask AS "idTask"',
+        'task.startDate AS "startDate"',
+        'task.finishDate AS "finishDate"',
+        'task.name AS "name"',
+        'task.status AS "status"',
+      ])
+      .leftJoin('task.employee', 'employee')
+      .leftJoin('employee.department', 'department')
+      .leftJoin('task.taskType', 'taskType')
+      .leftJoin('task.product', 'product')
+      .leftJoin('task.productionLine', 'productionLine')
 
-      return tasks.map(task => ({
-        idTask: task.idTask,
-        name: task.name,
-        startDate: task.startDate != null ? task.startDate.toISOString() : null,
-        finishDate: task.finishDate != null ? task.finishDate.toISOString() : null,
-        status: task.status,
-        employee: task.employee?.name != null ? task.employee.name : null,
-        product: task.product?.name != null ? task.product.name : null,
-        productionLine: task.productionLine?.lineCode != null ? task.productionLine.lineCode : null,
-        taskType: task.taskType?.name != null ? task.taskType.name : null,
-      }));
-    } catch (error) {
-      const customError = error as CustomError;
-      customError.step = currentStep;
-      throw customError;
-    }
+      .addSelect([
+        'employee.name AS "employee"',
+        'taskType.name AS "taskType"',
+        'product.name AS "product"',
+        'productionLine.lineCode AS "productionLine"',
+      ])
+      .where('department.name = :name', { name: deptName })
+      .orderBy('task.idTask', 'DESC')
+
+      .getRawMany();
+
+    return tasks as ITaskHome[];
   };
+
+  // getDataList = async (request: Request): Promise<ITaskHome[]> => {
+  //   const deptName = translateDeptNameToLocalLanguage(
+  //     request.params['department'] as DEPT_NAMES_ENGLISH,
+  //   );
+
+  //   let currentStep = 'initial';
+  //   let tasks: Task[] | null = null;
+
+  //   try {
+  //     currentStep = 'get-tasks';
+  //     tasks = await this.taskRepository.find({
+  //       where: { employee: { department: { name: deptName } } },
+  //       order: { idTask: 'DESC' },
+  //       take: 10000,
+  //       relations: ['employee', 'taskType', 'productionLine', 'product'],
+  //     });
+
+  //     return tasks.map(task => ({
+  //       idTask: task.idTask,
+  //       name: task.name,
+  //       startDate: task.startDate != null ? task.startDate.toISOString() : null,
+  //       finishDate: task.finishDate != null ? task.finishDate.toISOString() : null,
+  //       status: task.status,
+  //       employee: task.employee?.name != null ? task.employee.name : null,
+  //       product: task.product?.name != null ? task.product.name : null,
+  //       productionLine: task.productionLine?.lineCode != null ? task.productionLine.lineCode : null,
+  //       taskType: task.taskType?.name != null ? task.taskType.name : null,
+  //     }));
+  //   } catch (error) {
+  //     const customError = error as CustomError;
+  //     customError.step = currentStep;
+  //     throw customError;
+  //   }
+  // };
 
   getTaskInfo = async (request: Request): Promise<ITaskForm> => {
     const idTask = Number(request.params['idTask']);
@@ -256,10 +297,10 @@ export class TaskRepository {
         taskData.status == TASK_NUMBER_STATUS.UNDER_PROGRESS &&
         taskData.finishDate == null
       ) {
-        const tasks = await this.taskBaseRepository.getDataListByField(
-          { employee: { idEmployee: taskData.employee.idEmployee } },
-          'idTask',
-        );
+        const tasks = await this.taskBaseRepository.getDataList({
+          where: { employee: { idEmployee: taskData.employee.idEmployee } },
+          order: { idTask: 'DESC' },
+        });
         tasks.forEach(async task => {
           if (task.status == TASK_NUMBER_STATUS.UNDER_PROGRESS) {
             await this.taskBaseRepository.updateField(

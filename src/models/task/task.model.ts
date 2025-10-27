@@ -9,7 +9,7 @@ import { IUsedSpareParts } from '@core/interfaces/task.interface';
 
 @Entity('task')
 export class Task {
-  @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_task' })
+  @PrimaryGeneratedColumn({ name: 'id_task', primaryKeyConstraintName: 'PK_task' })
   idTask?: number;
 
   @Column({ type: 'varchar', nullable: true })

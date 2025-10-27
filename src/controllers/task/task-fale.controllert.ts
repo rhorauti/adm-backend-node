@@ -6,8 +6,7 @@ import {
 } from '@core/enum/departments.enum';
 import { CustomErrorHandler } from '@core/error/error.core';
 import { IDefaultResponse } from '@core/interfaces/base.interface';
-import { IDetailedPhoto } from '@core/interfaces/photo.interface';
-import { ITaskHome, ITaskResponse } from '@core/interfaces/task.interface';
+import { ITaskResponse } from '@core/interfaces/task.interface';
 import { CustomError } from '@middlewares/error.middleware';
 import { Department } from '@models/department/department.model';
 import { Employee } from '@models/employee/employee.model';
@@ -48,8 +47,10 @@ export class TaskFakeController {
     this.paramDeptNameLocalLanguage = translateDeptNameToLocalLanguage(
       request.params['department'] as DEPT_NAMES_ENGLISH,
     );
-    const selectedDept = await this.departmentBaseRepository.getDataByField({
-      name: this.paramDeptNameLocalLanguage,
+    const selectedDept = await this.departmentBaseRepository.getData({
+      where: {
+        name: this.paramDeptNameLocalLanguage,
+      },
     });
     if (selectedDept) {
       this.selectedDept = selectedDept;
@@ -68,8 +69,8 @@ export class TaskFakeController {
     next: NextFunction,
   ): Promise<Response<ITaskResponse>> {
     try {
-      // await this.checkExistingDept(request, response, next);
-      const tasks = await this.taskRepository.getDataList(request);
+      await this.checkExistingDept(request, response, next);
+      const tasks = await this.taskRepository.getDataList(this.selectedDept.name);
       if (tasks) {
         return this.apiResponse.Ok(
           response,
@@ -224,8 +225,10 @@ export class TaskFakeController {
     try {
       const registersNumber = 20;
       this.checkExistingDept(request, response, next);
-      const emplooyee = await this.employeeBaseRepository.getDataByField({
-        idEmployee: this.idEmployee,
+      const emplooyee = await this.employeeBaseRepository.getData({
+        where: {
+          idEmployee: this.idEmployee,
+        },
       });
       const baseTimestamp = Date.now();
       for (let i = 0; i < registersNumber; i++) {
@@ -261,7 +264,7 @@ export class TaskFakeController {
     next: NextFunction,
   ): Promise<Response<IDefaultResponse>> {
     try {
-      const tasks = await this.taskBaseRepository.getDataList('idTask');
+      const tasks = await this.taskBaseRepository.getDataList({ order: { idTask: 'DESC' } });
       tasks.forEach(async task => {
         await this.taskBaseRepository.delete(task.idTask);
       });

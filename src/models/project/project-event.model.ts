@@ -3,7 +3,10 @@ import { Project } from './project.model';
 
 @Entity('project_event')
 export class ProjectEvent {
-  @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_project_event' })
+  @PrimaryGeneratedColumn({
+    name: 'id_project_event',
+    primaryKeyConstraintName: 'PK_project_event',
+  })
   idProjectEvent: number;
 
   @Column({ type: 'varchar', length: 20 })

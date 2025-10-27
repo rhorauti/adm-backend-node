@@ -3,7 +3,10 @@ import { Employee } from './employee.model';
 
 @Entity('employee_vacation')
 export class EmployeeVacation {
-  @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_employee_vacation' })
+  @PrimaryGeneratedColumn({
+    name: 'id_employee_vacation',
+    primaryKeyConstraintName: 'PK_employee_vacation',
+  })
   idEmployeeVacation: number;
 
   @Column({ type: 'boolean' })

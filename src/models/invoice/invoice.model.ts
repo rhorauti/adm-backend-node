@@ -3,7 +3,7 @@ import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Timestam
 
 @Entity('invoice')
 export class Invoice {
-  @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_invoice' })
+  @PrimaryGeneratedColumn({ name: 'id_invoice', primaryKeyConstraintName: 'PK_invoice' })
   idInvoice: number;
 
   @Column({ type: 'timestamp' })

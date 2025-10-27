@@ -28,7 +28,7 @@ export class ProductTypeController {
     next: NextFunction,
   ): Promise<Response<IProductTypeResponse>> {
     try {
-      const dataList = await this.baseRepository.getDataList('idProductType');
+      const dataList = await this.baseRepository.getDataList({ order: { idProductType: 'DESC' } });
       return this.apiResponse.Ok(
         response,
         200,
@@ -48,8 +48,10 @@ export class ProductTypeController {
     next: NextFunction,
   ): Promise<Response<IProductTypeResponse>> {
     try {
-      const data = await this.baseRepository.getDataByField({
-        [this.keyId]: Number(request.params[this.keyId]),
+      const data = await this.baseRepository.getData({
+        where: {
+          [this.keyId]: Number(request.params[this.keyId]),
+        },
       });
       return this.apiResponse.Ok(
         response,
@@ -100,8 +102,10 @@ export class ProductTypeController {
     next: NextFunction,
   ): Promise<Response<IDefaultResponse>> {
     try {
-      const data = await this.baseRepository.getDataByField({
-        [this.keyId]: Number(request.params[this.keyId]),
+      const data = await this.baseRepository.getData({
+        where: {
+          [this.keyId]: Number(request.params[this.keyId]),
+        },
       });
       await this.baseRepository.delete(data[this.keyId]);
       return this.apiResponse.Ok(

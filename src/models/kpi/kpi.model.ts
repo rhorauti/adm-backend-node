@@ -4,7 +4,7 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColum
 
 @Entity('kpi')
 export class Kpi {
-  @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_kpi' })
+  @PrimaryGeneratedColumn({ name: 'id_kpi', primaryKeyConstraintName: 'PK_kpi' })
   idKpi: number;
 
   @Column({ type: 'timestamp', nullable: true })

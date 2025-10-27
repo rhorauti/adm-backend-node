@@ -1,15 +1,25 @@
 import { RelatedEntityProps } from '@core/types/base.type';
-import { emptyStringToNull } from '@utils/misc';
+import { emptyToNullRecursive } from '@utils/misc';
 import { inject, injectable } from 'tsyringe';
 import {
   DataSource,
   DeepPartial,
   EntityTarget,
   FindOptionsOrder,
+  FindOptionsRelationByString,
+  FindOptionsRelations,
+  FindOptionsSelect,
   FindOptionsWhere,
   Repository,
 } from 'typeorm';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity.js';
+
+interface GetDataParams<T> {
+  select?: FindOptionsSelect<T>;
+  where?: FindOptionsWhere<T>;
+  relations?: FindOptionsRelationByString | FindOptionsRelations<T>;
+  order?: FindOptionsOrder<T>;
+}
 
 @injectable()
 export class BaseRepository<T> {
@@ -22,36 +32,48 @@ export class BaseRepository<T> {
     this.repository = this.dataSource.getRepository(entity);
   }
 
-  getDataList = async (
-    sortKey: keyof T,
-    relations: RelatedEntityProps[] = [],
-    sortMethod = 'DESC',
-  ): Promise<T[]> => {
-    return this.repository.find({
-      order: { [sortKey]: sortMethod } as FindOptionsOrder<T>,
-      relations: relations,
-    });
-  };
+  // getDataList = async (
+  //   sortKey: keyof T,
+  //   relations: RelatedEntityProps[] = [],
+  //   select: FindOptionsSelect<T> = {},
+  //   sortMethod = 'DESC',
+  // ): Promise<T[]> => {
+  //   return this.repository.find({
+  //     select: select,
+  //     order: { [sortKey]: sortMethod } as FindOptionsOrder<T>,
+  //     relations: relations,
+  //   });
+  // };
 
-  getDataListByField = async (
-    objectWhere: FindOptionsWhere<T>,
-    sortKey: keyof T,
-    relations: RelatedEntityProps[] = [],
-    sortMethod = 'DESC',
-  ): Promise<T[]> => {
+  // getDataListByField = async (
+  //   objectWhere: FindOptionsWhere<T>,
+  //   sortKey: keyof T,
+  //   relations: RelatedEntityProps[] = [],
+  //   sortMethod = 'DESC',
+  // ): Promise<T[]> => {
+  //   return await this.repository.find({
+  //     where: objectWhere,
+  //     order: { [sortKey]: sortMethod } as FindOptionsOrder<T>,
+  //     relations: relations,
+  //   });
+  // };
+
+  getDataList = async (params: GetDataParams<T> = {}): Promise<T[]> => {
+    const { select = {}, where = {}, relations = [], order = {} } = params;
     return await this.repository.find({
-      where: objectWhere,
-      order: { [sortKey]: sortMethod } as FindOptionsOrder<T>,
+      select: select,
+      where: where,
+      order: order,
       relations: relations,
     });
   };
 
-  getDataByField = async (
-    objectWhere: FindOptionsWhere<T>,
-    relations: RelatedEntityProps[] = [],
-  ): Promise<T> => {
+  getData = async (params: GetDataParams<T> = {}): Promise<T> => {
+    const { select = {}, where = {}, relations = [], order = {} } = params;
     return await this.repository.findOne({
-      where: objectWhere,
+      select: select,
+      where: where,
+      order: order,
       relations: relations,
     });
   };
@@ -61,14 +83,14 @@ export class BaseRepository<T> {
   };
 
   updateField = async (
-    objectWhere: FindOptionsWhere<T>,
-    objectToBeUpdated: QueryDeepPartialEntity<T>,
+    where: FindOptionsWhere<T>,
+    valueToBeUpdated: QueryDeepPartialEntity<T>,
   ): Promise<void> => {
-    await this.repository.update(objectWhere, objectToBeUpdated);
+    await this.repository.update(where, valueToBeUpdated);
   };
 
   save = async (data: T): Promise<T> => {
-    emptyStringToNull(data);
+    emptyToNullRecursive(data);
     return this.repository.save(data);
   };
 

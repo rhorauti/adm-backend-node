@@ -46,21 +46,22 @@ export class EmployeeController {
     next: NextFunction,
   ): Promise<Response<IEmployeeResponse>> {
     try {
-      const dataList = await this.employeeRepository.getCompleteDataList();
-      const withSigned = await Promise.all(
-        dataList.map(async (e: Employee) => {
-          if (e.photoUrl) {
-            const [url] = await this.cloudStorage.getReadSignedUrl(e.photoUrl);
-            return { ...e, photoUrl: url };
-          }
-          return e;
-        }),
-      );
+      const idCompany = Number(request.params.idCompany);
+      const dataList = await this.employeeRepository.getEmployeeList(idCompany);
+      // const withSigned = await Promise.all(
+      //   dataList.map(async (e: Employee) => {
+      //     if (e.photoUrl) {
+      //       const [url] = await this.cloudStorage.getReadSignedUrl(e.photoUrl);
+      //       return { ...e, photoUrl: url };
+      //     }
+      //     return e;
+      //   }),
+      // );
       return this.apiResponse.Ok(
         response,
         200,
         `Dados de ${this.routeNameTranslated} enviados com sucesso.`,
-        withSigned,
+        dataList,
       );
     } catch (error) {
       const customError = error as CustomError;
@@ -91,12 +92,31 @@ export class EmployeeController {
         employeePositionList: [],
         employeePosition: { idEmployeePosition: null, name: '' },
       };
-      const employee = await this.employeeBaseRepository.getDataByField(
-        {
+      const employeePositionList = await this.employeePositionBaseRepository.getDataList({
+        order: { idEmployeePosition: 'DESC' },
+      });
+      if (Array.isArray(employeePositionList)) {
+        employeeFormData.employeePositionList = employeePositionList.map(pos => ({
+          idEmployeePosition: pos.idEmployeePosition,
+          name: pos.name,
+        }));
+      }
+
+      const departmentList = await this.departmentBaseRepository.getDataList({
+        order: { idDepartment: 'DESC' },
+      });
+      if (Array.isArray(departmentList)) {
+        employeeFormData.departmentList = departmentList.map(dept => ({
+          idDepartment: dept.idDepartment,
+          name: dept.name,
+        }));
+      }
+      const employee = await this.employeeBaseRepository.getData({
+        where: {
           [this.keyId]: Number(request.params[this.keyId]),
         },
-        ['department', 'employeePosition'],
-      );
+        relations: ['department', 'employeePosition'],
+      });
       if (employee && employee != null) {
         employeeFormData.idEmployee = employee.idEmployee;
         employeeFormData.isDefault = employee.isDefault;
@@ -118,25 +138,11 @@ export class EmployeeController {
           };
         }
       }
-      const employeePositionList =
-        await this.employeePositionBaseRepository.getDataList('idEmployeePosition');
-      if (Array.isArray(employeePositionList)) {
-        employeeFormData.employeePositionList = employeePositionList.map(pos => ({
-          idEmployeePosition: pos.idEmployeePosition,
-          name: pos.name,
-        }));
-      }
 
-      const departmentList = await this.departmentBaseRepository.getDataList('idDepartment');
-      if (Array.isArray(departmentList)) {
-        employeeFormData.departmentList = departmentList.map(dept => ({
-          idDepartment: dept.idDepartment,
-          name: dept.name,
-        }));
-      }
-
-      const company = await this.companyBaseRepository.getDataByField({
-        idCompany: Number(idCompany),
+      const company = await this.companyBaseRepository.getData({
+        where: {
+          idCompany: Number(idCompany),
+        },
       });
       if (company && company != null) {
         employeeFormData.company = { idCompany: company.idCompany, name: company.name };
@@ -155,7 +161,6 @@ export class EmployeeController {
         employeeFormData,
       );
     } catch (error: unknown) {
-      console.log('employeeError', error);
       const customError = error as CustomError;
       customError.message = `Erro ao consultar ${this.routeNameTranslatedSingular}.`;
       this.apiResponse.Error(response, 500, customError.message);
@@ -176,22 +181,30 @@ export class EmployeeController {
       if (idCompany == 0) {
         this.apiResponse.Error(response, 400, 'Erro ao receber o idCompany');
       } else {
-        const company = await this.companyBaseRepository.getDataByField({
-          idCompany: idCompany,
+        const company = await this.companyBaseRepository.getData({
+          where: {
+            idCompany: idCompany,
+          },
         });
         employeeData.company = company;
         if (company) {
           const justSavedEmployee = await this.employeeBaseRepository.save(employeeData);
-          const updatedData = await this.employeeBaseRepository.getDataByField({
-            idEmployee: justSavedEmployee.idEmployee,
+          const updatedData = await this.employeeBaseRepository.getData({
+            where: {
+              idEmployee: justSavedEmployee.idEmployee,
+            },
           });
           if (employeeData.isRemovedPhoto && updatedData.photoUrl) {
             await this.cloudStorage.deleteFile(updatedData.photoUrl);
-            const department = await this.departmentBaseRepository.getDataByField({
-              idDepartment: employeeData.department.idDepartment,
+            const department = await this.departmentBaseRepository.getData({
+              where: {
+                idDepartment: employeeData.department.idDepartment,
+              },
             });
-            const employeePosition = await this.employeePositionBaseRepository.getDataByField({
-              idEmployeePosition: employeeData.employeePosition.idEmployeePosition,
+            const employeePosition = await this.employeePositionBaseRepository.getData({
+              where: {
+                idEmployeePosition: employeeData.employeePosition.idEmployeePosition,
+              },
             });
             employeeData.department = department;
             employeeData.employeePosition = employeePosition;
@@ -258,11 +271,15 @@ export class EmployeeController {
     next: NextFunction,
   ): Promise<Response<IDefaultResponse>> {
     try {
-      const data = await this.employeeBaseRepository.getDataByField({
-        [this.keyId]: Number(request.params[this.keyId]),
+      const data = await this.employeeBaseRepository.getData({
+        where: {
+          [this.keyId]: Number(request.params[this.keyId]),
+        },
       });
-      const employee = await this.employeeBaseRepository.getDataByField({
-        idEmployee: data[this.keyId],
+      const employee = await this.employeeBaseRepository.getData({
+        where: {
+          idEmployee: data[this.keyId],
+        },
       });
       if (employee) await this.employeeBaseRepository.delete(data[this.keyId]);
       if (employee.photoUrl) await this.cloudStorage.deleteFile(employee.photoUrl);

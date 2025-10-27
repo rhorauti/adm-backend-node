@@ -39,7 +39,10 @@ export class ProductController {
   ): Promise<Response<IProductResponse>> {
     try {
       let productHome: IProductHome[] = [];
-      const productList = await this.productBaseRepository.getDataList('idProduct', ['unit']);
+      const productList = await this.productBaseRepository.getDataList({
+        order: { idProduct: 'DESC' },
+        relations: ['unit', 'productType'],
+      });
       if (productList) {
         productHome = productList.map(product => ({
           idProduct: product.idProduct,
@@ -72,20 +75,23 @@ export class ProductController {
   ): Promise<Response<IProductResponse>> {
     try {
       let productFormData: IProductForm = null;
-      const product = await this.productBaseRepository.getDataByField(
-        {
+      const product = await this.productBaseRepository.getData({
+        where: {
           [this.keyId]: Number(request.params[this.keyId]),
         },
-        ['productType', 'unit'],
-      );
-      let productTypeList = await this.productTypeBaseRepository.getDataList('idProductType');
+        relations: ['unit'],
+        order: { idProduct: 'DESC' },
+      });
+      let productTypeList = await this.productTypeBaseRepository.getDataList({
+        order: { idProductType: 'DESC' },
+      });
       if (productTypeList) {
         productTypeList = productTypeList.map(product => ({
           idProductType: product.idProductType,
           name: product.name,
         }));
       }
-      let unitList = await this.unitBaseRepository.getDataList('idUnit');
+      let unitList = await this.unitBaseRepository.getDataList({ order: { idUnit: 'DESC' } });
       if (unitList) {
         unitList = unitList.map(unit => ({ idUnit: unit.idUnit, name: unit.name }));
       }
@@ -131,8 +137,10 @@ export class ProductController {
       const productData = JSON.parse(request.body.data);
       if (productData.photoUrl) delete productData.photoUrl;
       const savedProduct = await this.productRepository.saveProduct(productData);
-      const updatedData = await this.productBaseRepository.getDataByField({
-        idProduct: savedProduct.idProduct,
+      const updatedData = await this.productBaseRepository.getData({
+        where: {
+          idProduct: savedProduct.idProduct,
+        },
       });
       if (productData.isRemovedPhoto && updatedData.photoUrl) {
         await this.cloudStorage.deleteFile(updatedData.photoUrl);
@@ -156,12 +164,12 @@ export class ProductController {
       if (!signedPhotoUrl && updatedData.photoUrl) {
         signedPhotoUrl = await this.cloudStorage.getReadSignedUrl(updatedData.photoUrl);
       }
-      const finalData = await this.productBaseRepository.getDataByField(
-        {
+      const finalData = await this.productBaseRepository.getData({
+        where: {
           idProduct: savedProduct.idProduct,
         },
-        ['productType', 'unit'],
-      );
+        relations: ['unit', 'productType'],
+      });
       const responseData = {
         ...finalData,
         photoUrl: signedPhotoUrl?.[0] ?? '',
@@ -197,7 +205,7 @@ export class ProductController {
     next: NextFunction,
   ): Promise<Response<IDefaultResponse>> {
     try {
-      const data = await this.productBaseRepository.getDataByField({
+      const data = await this.productBaseRepository.getData({
         [this.keyId]: Number(request.params[this.keyId]),
       });
       if (data) await this.productBaseRepository.delete(data[this.keyId]);

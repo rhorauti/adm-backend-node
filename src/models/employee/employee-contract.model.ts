@@ -3,7 +3,10 @@ import { Employee } from './employee.model';
 
 @Entity('employee_contract')
 export class EmployeeContract {
-  @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_employee_contract' })
+  @PrimaryGeneratedColumn({
+    name: 'id_employee_contract',
+    primaryKeyConstraintName: 'PK_employee_contract',
+  })
   idEmployeeContract: number;
 
   // CLT or PJ

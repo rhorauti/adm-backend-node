@@ -3,7 +3,7 @@ import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, Timestamp } f
 
 @Entity('user')
 export class User {
-  @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_user' })
+  @PrimaryGeneratedColumn({ name: 'id_user', primaryKeyConstraintName: 'PK_user' })
   idUser: number;
 
   @Column({ type: 'varchar', length: 100, nullable: true })

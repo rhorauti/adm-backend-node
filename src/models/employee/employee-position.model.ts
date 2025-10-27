@@ -4,7 +4,10 @@ import { Employee } from './employee.model';
 @Unique('UQ_employee_name', ['name'])
 @Entity('employee_position')
 export class EmployeePosition {
-  @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_employee_position' })
+  @PrimaryGeneratedColumn({
+    name: 'id_employee_position',
+    primaryKeyConstraintName: 'PK_employee_position',
+  })
   idEmployeePosition: number;
 
   @Column({ type: 'varchar' })

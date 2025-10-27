@@ -1,11 +1,11 @@
 import { CompanyRepository } from '@repositories/company/company.respository';
-import { ICompanyDetail } from '@core/interfaces/company.interface';
 import { ApiResponse } from '@utils/api-response';
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import { TOKENS } from '@containers/symbol';
 import { BaseRepository } from '@repositories/base/base.repository';
 import { Company } from '@models/company/company.model';
+import { ICompanyForm } from '@core/interfaces/company.interface';
 
 @injectable()
 export class CompanyFakeController {
@@ -95,15 +95,13 @@ export class CompanyFakeController {
     return cnpj;
   }
 
-  randomCompany: ICompanyDetail = {
-    company: {
-      idCompany: null,
-      nickname: '',
-      name: '',
-      cnpj: '',
-      ie: '',
-      im: '',
-    },
+  randomCompany: ICompanyForm = {
+    idCompany: null,
+    nickname: '',
+    name: '',
+    cnpj: '',
+    ie: '',
+    im: '',
     address: {
       idAddress: null,
       postalCode: '',
@@ -114,15 +112,16 @@ export class CompanyFakeController {
       city: '',
       state: '',
     },
-    employee: {
-      idEmployee: null,
-      isDefault: false,
-      name: '',
-      cpf: '',
-      email: '',
-      deskphone: '',
-      cellphone: '',
-    },
+    employee: [
+      {
+        idEmployee: null,
+        isDefault: false,
+        name: '',
+        email: '',
+        deskphone: '',
+        cellphone: '',
+      },
+    ],
   };
 
   async addRandomRegisters(
@@ -135,13 +134,13 @@ export class CompanyFakeController {
       const baseTimestamp = Date.now();
       for (let i = 0; i < registersNumber; i++) {
         const uniqueId = `${baseTimestamp}${i}`;
-        this.randomCompany.company.idCompany = 0;
-        this.randomCompany.company.name = this.setRandomNameAndNickName() + uniqueId;
-        this.randomCompany.company.nickname = this.setRandomNameAndNickName() + uniqueId;
-        this.randomCompany.company.cnpj = this.setRandomCnpjOrIeOrIm();
-        this.randomCompany.company.ie = this.setRandomCnpjOrIeOrIm(8);
-        this.randomCompany.company.im = this.setRandomCnpjOrIeOrIm(10);
-        await this.companyRepository.addCompany(this.randomCompany);
+        this.randomCompany.idCompany = 0;
+        this.randomCompany.name = this.setRandomNameAndNickName() + uniqueId;
+        this.randomCompany.nickname = this.setRandomNameAndNickName() + uniqueId;
+        this.randomCompany.cnpj = this.setRandomCnpjOrIeOrIm();
+        this.randomCompany.ie = this.setRandomCnpjOrIeOrIm(8);
+        this.randomCompany.im = this.setRandomCnpjOrIeOrIm(10);
+        await this.baseRepository.save(this.randomCompany);
       }
       return response.json({
         message: `${registersNumber} registros de teste inseridos com sucesso!`,
@@ -157,7 +156,9 @@ export class CompanyFakeController {
     next: NextFunction,
   ): Promise<Response> {
     try {
-      const companies = await this.baseRepository.getDataList('idCompany');
+      const companies = await this.baseRepository.getDataList({
+        order: { idCompany: 'DESC' },
+      });
       companies.forEach(async company => {
         await this.baseRepository.delete(company.idCompany);
       });

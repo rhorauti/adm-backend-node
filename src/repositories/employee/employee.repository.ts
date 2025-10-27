@@ -1,8 +1,8 @@
-import { IEmployeeDTO } from '@core/interfaces/employee.interface';
+import { IEmployeeCompany } from '@core/interfaces/company.interface';
+import { IEmployeeDTO, IEmployeeForm } from '@core/interfaces/employee.interface';
 import { Employee } from '@models/employee/employee.model';
-import { emptyStringToNull } from '@utils/misc';
 import { inject, injectable } from 'tsyringe';
-import { DataSource, FindOptionsWhere, Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 
 @injectable()
 export class EmployeeRepository {
@@ -12,69 +12,49 @@ export class EmployeeRepository {
     this.employeeRepository = this.dataSource.getRepository(Employee);
   }
 
-  // keyId = 'idEmployee';
-  // relatedKeyId = 'idCompany';
-
-  // async getDataList(): Promise<Employee[]> {
-  //   return this.employeeRepository.find({
-  //     order: { [this.keyId]: 'DESC' },
-  //   });
-  // }
-
-  async getCompleteDataList(): Promise<IEmployeeDTO[]> {
+  async getEmployeeList(idCompany: number): Promise<IEmployeeCompany[]> {
     const query = await this.employeeRepository
       .createQueryBuilder('employee')
       .leftJoinAndSelect('employee.department', 'department')
-      .leftJoinAndSelect('employee.employeePosition', 'position')
+      .leftJoinAndSelect('employee.employeePosition', 'employeePosition')
+      .leftJoin('employee.company', 'company')
+      .where('company.idCompany = :idCompany', { idCompany })
       .orderBy('employee.idEmployee', 'DESC')
       .getRawMany();
     return query.map(row => ({
-      idEmployee: row.employee_idEmployee,
+      idEmployee: row.employee_id_employee,
       isDefault: row.employee_isDefault,
       name: row.employee_name,
       email: row.employee_email,
       deskphone: row.employee_deskphone,
-      photoUrl: row.employee_photoUrl,
       cellphone: row.employee_cellphone,
       department: row.department_name,
-      position: row.position_name,
-    })) as IEmployeeDTO[];
+      employeePosition: row.employeePosition_name,
+    }));
   }
 
-  // async getDataByField<K extends keyof Employee>(key: K, value: Employee[K]): Promise<Employee> {
-  //   return await this.employeeRepository.findOne({
-  //     where: {
-  //       [key]: value,
-  //     },
-  //   });
-  // }
-
-  // async getDataListByField(object: FindOptionsWhere<Employee>): Promise<Employee[]> {
-  //   return await this.employeeRepository.find({
-  //     where: object,
-  //   });
-  // }
-
-  // async getData(object: FindOptionsWhere<Employee>): Promise<Employee> {
-  //   return await this.employeeRepository.findOne({
-  //     where: object,
-  //   });
-  // }
-
-  // async updateField<K extends keyof Employee>(
-  //   idEmployee: Employee['idEmployee'],
-  //   key: K,
-  //   value: Employee[K],
-  // ) {
-  //   this.employeeRepository.update(idEmployee, { [key]: value });
-  // }
-
-  // async save(employeeData: Employee): Promise<Employee> {
-  //   emptyStringToNull(employeeData);
-  //   return this.employeeRepository.save(employeeData);
-  // }
-
-  // async delete(idEmployee: number): Promise<void> {
-  //   await this.employeeRepository.delete(idEmployee);
-  // }
+  async getEmployeeData(idCompany: number): Promise<IEmployeeCompany> {
+    return await this.employeeRepository
+      .createQueryBuilder('employee')
+      .leftJoinAndSelect('employee.department', 'department')
+      .leftJoinAndSelect('employee.employeePosition', 'position')
+      .leftJoin('employee.company', 'company')
+      .where('company.idCompany = :idCompany', { idCompany })
+      .andWhere('employee.isDefault = true')
+      .getOne();
+    // return query.map(row => ({
+    //   idEmployee: row.employee_idEmployee,
+    //   isDefault: row.employee_isDefault,
+    //   name: row.employee_name,
+    //   email: row.employee_email,
+    //   deskphone: row.employee_deskphone,
+    //   photoUrl: row.employee_photoUrl,
+    //   cellphone: row.employee_cellphone,
+    //   department: { idDepartment: row.department_idDepartment, name: row.department_name },
+    //   employeePosition: {
+    //     idEmployeePosition: row.employeePosition_idEmployeePosition,
+    //     name: row.employeePosition_name,
+    //   },
+    // }));
+  }
 }

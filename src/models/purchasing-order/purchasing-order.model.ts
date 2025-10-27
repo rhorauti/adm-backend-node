@@ -4,7 +4,10 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColum
 
 @Entity('purchasing_order')
 export class PurchasingOrder {
-  @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_purchasing_order' })
+  @PrimaryGeneratedColumn({
+    name: 'id_purchasing_order',
+    primaryKeyConstraintName: 'PK_purchasing_order',
+  })
   idPurchasingOrder: number;
 
   @Column({ type: 'float', nullable: true })

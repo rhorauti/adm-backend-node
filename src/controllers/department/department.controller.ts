@@ -21,20 +21,20 @@ export class DepartmentController {
   routeNameTranslatedSingular = this.routeNameTranslated.slice(0, -1);
   uniqueConstraint = 'UQ_department_name';
 
-  async getData(request: Request, response: Response, next: NextFunction): Promise<Response> {
+  async getDataList(request: Request, response: Response, next: NextFunction): Promise<Response> {
     try {
       const body = request.query as Partial<Department>;
       const entries = Object.entries(body);
       if (entries && entries.length > 0) {
         const [key, value] = entries[0];
-        const dept = await this.baseRepository.getDataByField({ [key]: value });
+        const dept = await this.baseRepository.getData({ where: { [key]: value } });
         if (!dept || dept == null) {
           return this.apiResponse.Error(response, 400, 'Departamento não encontrado.');
         } else {
           return this.apiResponse.Ok(response, 200, 'Departamento enviado com sucesso.', dept);
         }
       } else {
-        const dataList = await this.baseRepository.getDataList('idDepartment');
+        const dataList = await this.baseRepository.getDataList({ order: { idDepartment: 'DESC' } });
         return this.apiResponse.Ok(
           response,
           200,
@@ -54,8 +54,10 @@ export class DepartmentController {
     next: NextFunction,
   ): Promise<Response<IDepartmentResponse>> {
     try {
-      const data = await this.baseRepository.getDataByField({
-        [this.keyId]: Number(request.params[this.keyId]),
+      const data = await this.baseRepository.getData({
+        where: {
+          [this.keyId]: Number(request.params[this.keyId]),
+        },
       });
       return this.apiResponse.Ok(
         response,
@@ -104,8 +106,10 @@ export class DepartmentController {
     next: NextFunction,
   ): Promise<Response<IDefaultResponse>> {
     try {
-      const data = await this.baseRepository.getDataByField({
-        [this.keyId]: Number(request.params[this.keyId]),
+      const data = await this.baseRepository.getData({
+        where: {
+          [this.keyId]: Number(request.params[this.keyId]),
+        },
       });
       await this.baseRepository.delete(data[this.keyId] as number);
       return this.apiResponse.Ok(

@@ -4,7 +4,7 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColum
 
 @Entity('task_type')
 export class TaskType {
-  @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_task_type' })
+  @PrimaryGeneratedColumn({ name: 'id_task_type', primaryKeyConstraintName: 'PK_task_type' })
   idTaskType: number;
 
   @Column({ type: 'varchar' })

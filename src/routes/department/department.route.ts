@@ -26,7 +26,7 @@ departmentRoute.get(
 departmentRoute.get(
   `/${baseRouteName}`,
   (request: Request, response: Response, next: NextFunction) => {
-    controller.getData(request, response, next);
+    controller.getDataList(request, response, next);
   },
 );
 

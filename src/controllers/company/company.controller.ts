@@ -1,5 +1,5 @@
 import { CompanyRepository } from '@repositories/company/company.respository';
-import { ICompanyDetail, ICompanyResponse } from '@core/interfaces/company.interface';
+import { ICompanyForm, IResponseCompanyForm } from '@core/interfaces/company.interface';
 import { Company } from '@models/company/company.model';
 import { ApiResponse } from '@utils/api-response';
 import { NextFunction, Request, Response } from 'express';
@@ -7,12 +7,21 @@ import { inject, injectable } from 'tsyringe';
 import { CustomError } from '@middlewares/error.middleware';
 import { TOKENS } from '@containers/symbol';
 import { BaseRepository } from '@repositories/base/base.repository';
+import { EmployeePosition } from '@models/employee/employee-position.model';
+import { Department } from '@models/department/department.model';
+import { Employee } from '@models/employee/employee.model';
+import { emptyToNullRecursive } from '@utils/misc';
 
 @injectable()
 export class CompanyController {
   constructor(
     @inject(TOKENS.CompanyRepository) private companyRepository: CompanyRepository,
-    @inject(TOKENS.CompanyBaseRepository) private baseRepository: BaseRepository<Company>,
+    @inject(TOKENS.CompanyBaseRepository) private companyBaseRepository: BaseRepository<Company>,
+    @inject(TOKENS.EmployeeBaseRepository) private employeeBaseRepository: BaseRepository<Employee>,
+    @inject(TOKENS.DepartmentBaseRepository)
+    private departmentBaseRepository: BaseRepository<Department>,
+    @inject(TOKENS.EmployeePositionBaseRepository)
+    private employeePositionBaseRepository: BaseRepository<EmployeePosition>,
     @inject(TOKENS.ApiResponse) private apiResponse: ApiResponse,
   ) {}
 
@@ -20,91 +29,15 @@ export class CompanyController {
   keyId = 'idCompany';
   routeNameTranslatedSingular = 'da ' + this.routeNameTranslated.slice(0, -1);
 
-  async getCompanyInfo(
+  async getDataList(
     request: Request,
     response: Response,
     next: NextFunction,
-  ): Promise<Response> {
-    const id = Number(request.params[this.keyId]);
+  ): Promise<Response<IResponseCompanyForm>> {
     try {
-      const data = await this.baseRepository.getDataByField({ [this.keyId]: id });
-      if (data) {
-        return this.apiResponse.Ok<Company>(
-          response,
-          200,
-          `Detalhes ${this.routeNameTranslatedSingular} recebida com sucesso!`,
-          data,
-        );
-      } else {
-        return this.apiResponse.Error(
-          response,
-          500,
-          `Falha interna ao pegar as informações ${this.routeNameTranslatedSingular}.`,
-        );
-      }
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async getCompanyCompleteInfo(
-    request: Request,
-    response: Response,
-    next: NextFunction,
-  ): Promise<Response> {
-    try {
-      const id = Number(request.params[this.keyId]);
-      const data = await this.companyRepository.getCompanyCompleteInfo(id);
-      if (data) {
-        return this.apiResponse.Ok<ICompanyDetail>(
-          response,
-          200,
-          `Detalhes ${this.routeNameTranslatedSingular} recebida com sucesso!`,
-          data,
-        );
-      } else {
-        return this.apiResponse.Error(
-          response,
-          500,
-          `Falha interna ao pegar as informações ${this.routeNameTranslatedSingular}.`,
-        );
-      }
-    } catch (error) {
-      const customError = error as CustomError;
-      const step = typeof customError.step == 'string' ? customError.step : '';
-      switch (step) {
-        case 'getting-company':
-          customError.message = `Erro interno ao procurar os dados existentes ${this.routeNameTranslatedSingular}. Tente novamente mais tarde.`;
-          break;
-        case 'getting-address':
-          customError.message = `Erro interno ao procurar os dados do endereço ${this.routeNameTranslatedSingular}. Tente novamente mais tarde.`;
-          break;
-        case 'getting-employee':
-          customError.message =
-            'Erro interno ao procurar os dados do funcionário. Tente novamente mais tarde.';
-          break;
-        case 'getting-department':
-          customError.message =
-            'Erro interno ao procurar os dados do departamento. Tente novamente mais tarde.';
-          break;
-        case 'getting-employee-position':
-          customError.message =
-            'Erro interno ao procurar os dados do cargo. Tente novamente mais tarde.';
-          break;
-        default:
-          customError.message = 'Erro interno inesperado. Tente novamente mais tarde.';
-      }
-      next(customError);
-    }
-  }
-
-  async getCompanyList(
-    request: Request,
-    response: Response,
-    next: NextFunction,
-  ): Promise<Response<ICompanyResponse>> {
-    try {
-      const companies = await this.baseRepository.getDataList('idCompany');
+      const companies = await this.companyBaseRepository.getDataList({
+        order: { idCompany: 'DESC' },
+      });
       if (companies) {
         return this.apiResponse.Ok<Company[]>(
           response,
@@ -120,105 +53,154 @@ export class CompanyController {
     }
   }
 
-  async saveCompany(
-    request: Request<unknown, unknown, ICompanyDetail>,
+  async getData(
+    request: Request,
     response: Response,
     next: NextFunction,
-  ): Promise<Response<ICompanyResponse>> {
+  ): Promise<Response<ICompanyForm>> {
     try {
-      if (
-        request.body.company[this.keyId] == 0 ||
-        request.body.company[this.keyId] == undefined ||
-        request.body.company[this.keyId] == null
-      ) {
-        const data = await this.companyRepository.addCompany(request.body);
-        return this.apiResponse.Ok<ICompanyDetail>(
+      const idCompany = Number(request.params[this.keyId] || 0);
+      let companyForm: ICompanyForm = null;
+      const departmentDataList = await this.departmentBaseRepository.getDataList({
+        select: { idDepartment: true, name: true },
+        order: { idDepartment: 'DESC' },
+      });
+      const employeePositionList = await this.employeePositionBaseRepository.getDataList({
+        select: { idEmployeePosition: true, name: true },
+        order: { idEmployeePosition: 'DESC' },
+      });
+      if (idCompany == 0) {
+        companyForm = {
+          idCompany: null,
+          name: '',
+          nickname: '',
+          cnpj: '',
+          ie: '',
+          im: '',
+          address: {
+            idAddress: null,
+            address: '',
+            city: '',
+            complement: '',
+            number: '',
+            district: '',
+            postalCode: '',
+            state: '',
+          },
+          employee: [
+            {
+              idEmployee: null,
+              isDefault: false,
+              name: '',
+              cellphone: '',
+              deskphone: '',
+              email: '',
+              employeePosition: {
+                idEmployeePosition: null,
+                name: '',
+              },
+              department: {
+                idDepartment: null,
+                name: '',
+              },
+            },
+          ],
+          departmentList: departmentDataList,
+          employeePositionList: employeePositionList,
+        };
+        return this.apiResponse.Ok(
           response,
           200,
-          `Dados do(a) ${this.routeNameTranslatedSingular} adicionada com sucesso.`,
-          data,
+          'Dados da empresa enviados com sucesso.',
+          companyForm,
         );
       } else {
-        const data = await this.companyRepository.updateCompany(request.body);
-        if (data) {
-          return this.apiResponse.Ok(
-            response,
-            200,
-            `Dados do(a) ${this.routeNameTranslatedSingular} salvos com sucesso.`,
-            data,
+        const company = await this.companyRepository.getCompanyData(idCompany);
+        companyForm = {
+          ...company,
+          departmentList: departmentDataList,
+          employeePositionList: employeePositionList,
+        };
+        return this.apiResponse.Ok(
+          response,
+          200,
+          'Dados da empresa enviados com sucesso.',
+          companyForm,
+        );
+      }
+    } catch (error) {
+      const customError = error as CustomError;
+      this.apiResponse.Error(response, customError.statusCode, customError.message);
+    }
+  }
+
+  async save(
+    request: Request,
+    response: Response,
+    next: NextFunction,
+  ): Promise<Response<ICompanyForm>> {
+    try {
+      emptyToNullRecursive(request.body);
+      const company = await this.companyBaseRepository.create(request.body);
+      if (company) {
+        const savedCompany = await this.companyBaseRepository.save(company);
+        if (savedCompany) {
+          const employeeList = await this.employeeBaseRepository.getDataList({
+            where: { company: { idCompany: savedCompany.idCompany } },
+          });
+          const promiseSetEmployeeDefaultToFalse = employeeList.map(employee =>
+            this.employeeBaseRepository.updateField(
+              { company: { idCompany: savedCompany.idCompany } },
+              { isDefault: false },
+            ),
           );
+          if (promiseSetEmployeeDefaultToFalse.length > 0) {
+            await Promise.all(promiseSetEmployeeDefaultToFalse);
+          }
+          const employee = await this.employeeBaseRepository.create({
+            ...request.body.employee[0],
+            isDefault: true,
+            company: { idCompany: savedCompany.idCompany },
+          });
+          await this.employeeBaseRepository.save(employee);
+        }
+        let companyForm: ICompanyForm | null = null;
+        companyForm = await this.companyRepository.getCompanyData(savedCompany.idCompany);
+        if (!companyForm.address) {
+          return this.apiResponse.Error(
+            response,
+            500,
+            'Erro ao salvar os dados de endereço. Tente novamente mais tarde.',
+          );
+        } else if (!companyForm.employee) {
+          return this.apiResponse.Error(
+            response,
+            500,
+            'Erro ao salvar os dados do funcionário. Tente novamente mais tarde.',
+          );
+        } else {
+          return this.apiResponse.Ok(response, 200, 'Empresa salva com sucesso.', companyForm);
         }
       }
     } catch (error) {
       const customError = error as CustomError;
-      if ((error && error.code == 'ER_DUP_ENTRY') || error?.code === '23505') {
-        customError.statusCode = 409;
-        if (error.message.includes('UQ_company_name')) {
-          customError.message = `O nome da ${this.routeNameTranslatedSingular} já existe e não pode estar duplicado.`;
-        } else if (error.message.includes('UQ_company_nickname')) {
-          customError.message = `O Nome Fantasia da ${this.routeNameTranslatedSingular} já existe e não pode estar duplicado.`;
-        } else if (error.message.includes('UQ_company_cnpj')) {
-          customError.message = `O CNPJ/CPF ${this.routeNameTranslatedSingular} já existe e não pode estar duplicado.`;
-        } else if (error.message.includes('UQ_company_ie')) {
-          customError.message = `A Inscrição Estadual ${this.routeNameTranslatedSingular} já existe e não pode estar duplicado.`;
-        } else if (error.message.includes('UQ_company_im')) {
-          customError.message = `A Inscrição Municipal ${this.routeNameTranslatedSingular} já existe e não pode estar duplicado.`;
-        }
-      } else if (error.message?.includes('UQ_employee_cpf')) {
-        customError.message = 'Já existe um funcionário com esse CPF.';
-      } else if (error.message?.includes('UQ_employee_name')) {
-        customError.message = 'Já existe um funcionário com esse nome.';
-        return this.apiResponse.Error(response, customError.statusCode, customError.message);
-      } else {
-        const step = typeof customError.step == 'string' ? customError.step : '';
-        switch (step) {
-          case 'saving-company':
-            customError.message = `Erro interno ao salvar os dados ${this.routeNameTranslatedSingular}. Tente novamente mais tarde.`;
-            break;
-          case 'getting-company':
-            customError.message = `Erro interno ao procurar os dados ${this.routeNameTranslatedSingular}. Tente novamente mais tarde.`;
-            break;
-          case 'saving-address':
-            customError.message = `Erro interno ao salvar os dados do endereço ${this.routeNameTranslatedSingular}. Tente novamente mais tarde.`;
-            break;
-          case 'getting-address':
-            customError.message =
-              'Erro interno ao procurar os dados do endereço. Tente novamente mais tarde.';
-            break;
-          case 'saving-employee':
-            customError.message =
-              'Erro interno ao salvar os dados do funcionário. Tente novamente mais tarde.';
-            break;
-          case 'getting-employee':
-            customError.message =
-              'Erro interno ao procurar os dados do funcionário. Tente novamente mais tarde.';
-            break;
-          case 'getting-department':
-            customError.message =
-              'Erro interno ao procurar os dados do departamento. Tente novamente mais tarde.';
-            break;
-          case 'getting-employee-position':
-            customError.message =
-              'Erro interno ao procurar os dados do cargo. Tente novamente mais tarde.';
-            break;
-          default:
-            customError.message = 'Erro interno inesperado. Tente novamente mais tarde.';
-        }
-      }
-      next(customError);
+      customError.message = 'Erro ao salvar a empresa';
+      this.apiResponse.Error(response, customError.statusCode, customError.message);
     }
   }
 
-  async deleteCompany(
+  async delete(
     request: Request,
     response: Response,
     next: NextFunction,
-  ): Promise<Response<ICompanyResponse>> {
+  ): Promise<Response<IResponseCompanyForm>> {
     try {
-      const data = await this.baseRepository.getDataByField({
-        [this.keyId]: Number(request.params[this.keyId]),
+      const data = await this.companyBaseRepository.getData({
+        where: {
+          [this.keyId]: Number(request.params[this.keyId]),
+        },
       });
-      await this.baseRepository.delete(data[this.keyId]);
+      await this.companyBaseRepository.delete(data[this.keyId]);
       return this.apiResponse.Ok(
         response,
         200,

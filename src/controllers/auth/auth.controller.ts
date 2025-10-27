@@ -26,7 +26,7 @@ export class AuthController {
    */
   async loginUser(request: Request, response: Response, next: NextFunction): Promise<Response> {
     try {
-      const user = await this.baseRepository.getDataByField({ email: request.body.email });
+      const user = await this.baseRepository.getData({ where: { email: request.body.email } });
       if (!user) {
         return this.apiResponse.Error(response, 401, 'Email inválido.');
       } else if (user && !user.emailConfirmed) {
@@ -63,7 +63,9 @@ export class AuthController {
    */
   async createNewUser(request: Request, response: Response, next: NextFunction): Promise<Response> {
     try {
-      const userExists = await this.baseRepository.getDataByField({ email: request.body.email });
+      const userExists = await this.baseRepository.getData({
+        where: { email: request.body.email },
+      });
       if (userExists) {
         return this.apiResponse.Error(response, 401, 'Email já cadastrado.');
       } else {
@@ -109,7 +111,7 @@ export class AuthController {
           return this.apiResponse.Error(response, 401, 'Token inválido ou expirado.');
         } else {
           const decodedEmail = decodedUser.email;
-          const user = await this.baseRepository.getDataByField({ email: decodedEmail });
+          const user = await this.baseRepository.getData({ where: { email: decodedEmail } });
           if (user.emailConfirmed) {
             return this.apiResponse.Error(response, 401, 'Usuário já validado anteriormente.');
           } else {
@@ -136,7 +138,7 @@ export class AuthController {
     next: NextFunction,
   ): Promise<Response> {
     try {
-      const user = await this.baseRepository.getDataByField({ email: request.body.email });
+      const user = await this.baseRepository.getData({ where: { email: request.body.email } });
       if (!user) {
         return this.apiResponse.Error(response, 401, 'Email não existe.');
       } else {
@@ -156,7 +158,7 @@ export class AuthController {
           return this.apiResponse.Error(response, 401, 'Token inválido ou expirado.');
         } else {
           const decodedEmail = decodedUser.email;
-          const user = await this.baseRepository.getDataByField({ email: decodedEmail });
+          const user = await this.baseRepository.getData({ where: { email: decodedEmail } });
           const isPasswordOk = await compare(request.body.password, user.password);
           if (isPasswordOk) {
             return this.apiResponse.Error(

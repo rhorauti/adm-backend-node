@@ -5,7 +5,7 @@ import { Product } from '@models/product/product.model';
 @Unique('UQ_project_code', ['code'])
 @Entity('project')
 export class Project {
-  @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_project' })
+  @PrimaryGeneratedColumn({ name: 'id_project', primaryKeyConstraintName: 'PK_project' })
   idProject: number;
 
   @Column({ type: 'varchar', length: 15, nullable: true })

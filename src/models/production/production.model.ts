@@ -2,7 +2,7 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('production')
 export class Production {
-  @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_production' })
+  @PrimaryGeneratedColumn({ name: 'id_production', primaryKeyConstraintName: 'PK_production' })
   idProduction: number;
 
   @Column({ type: 'varchar', length: 20, nullable: true })

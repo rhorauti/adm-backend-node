@@ -4,7 +4,7 @@ import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Unique } from 'typeo
 @Unique('UQ_unit_name', ['name'])
 @Entity('unit')
 export class Unit {
-  @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_unit' })
+  @PrimaryGeneratedColumn({ name: 'id_unit', primaryKeyConstraintName: 'PK_unit' })
   idUnit: number;
 
   @Column({ type: 'varchar' })

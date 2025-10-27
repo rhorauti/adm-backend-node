@@ -5,7 +5,7 @@ import { Exclude } from 'class-transformer';
 
 @Entity('address')
 export class Address {
-  @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_address' })
+  @PrimaryGeneratedColumn({ name: 'id_address', primaryKeyConstraintName: 'PK_address' })
   idAddress: number;
 
   @Column({ type: 'varchar', length: 15, nullable: true })

@@ -40,8 +40,10 @@ export class TaskTypeController {
     this.paramDeptNameLocalLanguage = translateDeptNameToLocalLanguage(
       request.params['department'] as DEPT_NAMES_ENGLISH,
     );
-    const selectedDept = await this.departmentBaseRepository.getDataByField({
-      name: this.paramDeptNameLocalLanguage,
+    const selectedDept = await this.departmentBaseRepository.getData({
+      where: {
+        name: this.paramDeptNameLocalLanguage,
+      },
     });
     if (selectedDept) {
       this.selectedDept = selectedDept;
@@ -61,12 +63,12 @@ export class TaskTypeController {
   ): Promise<Response<ITaskTypeResponse>> {
     try {
       await this.checkExistingDept(request, response, next);
-      const dataList = await this.taskTypeBaseRepository.getDataListByField(
-        {
+      const dataList = await this.taskTypeBaseRepository.getDataList({
+        where: {
           department: { idDepartment: this.selectedDept.idDepartment },
         },
-        'idTaskType',
-      );
+        order: { idTaskType: 'DESC' },
+      });
       if (dataList) {
         return this.apiResponse.Ok(
           response,
@@ -91,8 +93,10 @@ export class TaskTypeController {
   ): Promise<Response<ITaskTypeResponse>> {
     try {
       await this.checkExistingDept(request, response, next);
-      const data = await this.taskTypeBaseRepository.getDataByField({
-        idTaskType: Number(request.params[this.keyId]),
+      const data = await this.taskTypeBaseRepository.getData({
+        where: {
+          idTaskType: Number(request.params[this.keyId]),
+        },
       });
       return this.apiResponse.Ok(
         response,
@@ -144,8 +148,10 @@ export class TaskTypeController {
   ): Promise<Response<IDefaultResponse>> {
     try {
       await this.checkExistingDept(request, response, next);
-      const data = await this.taskTypeBaseRepository.getDataByField({
-        idTaskType: Number(request.params[this.keyId]),
+      const data = await this.taskTypeBaseRepository.getData({
+        where: {
+          idTaskType: Number(request.params[this.keyId]),
+        },
       });
       await this.taskTypeBaseRepository.delete(data[this.keyId]);
       return this.apiResponse.Ok(

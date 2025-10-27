@@ -19,7 +19,7 @@ import { Task } from '@models/task/task.model';
 @Unique('UQ_employee_cpf', ['cpf'])
 @Entity('employee')
 export class Employee {
-  @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_employee' })
+  @PrimaryGeneratedColumn({ name: 'id_employee', primaryKeyConstraintName: 'PK_employee' })
   idEmployee: number;
 
   @Column({ type: 'bool' })

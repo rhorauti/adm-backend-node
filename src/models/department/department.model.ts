@@ -6,7 +6,7 @@ import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Unique } from 'typeo
 @Unique('UQ_department_name', ['name'])
 @Entity('department')
 export class Department {
-  @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_department' })
+  @PrimaryGeneratedColumn({ name: 'id_department', primaryKeyConstraintName: 'PK_department' })
   idDepartment: number;
 
   @Column({ type: 'varchar', nullable: true })

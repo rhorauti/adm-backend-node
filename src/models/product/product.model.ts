@@ -16,7 +16,7 @@ import { ProductType } from './product-type.model';
 @Unique('UQ_product_customer_part_number', ['customerPartNumber'])
 @Entity('product')
 export class Product {
-  @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_product' })
+  @PrimaryGeneratedColumn({ name: 'id_product', primaryKeyConstraintName: 'PK_product' })
   idProduct: number;
 
   @Column({ type: 'varchar' })

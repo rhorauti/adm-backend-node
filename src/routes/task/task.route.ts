@@ -15,14 +15,9 @@ export const keyId: keyof Task = 'idTask';
 const cloudStorage = container.resolve(CloudStorage);
 const controller = container.resolve(TaskController);
 
-// const bodyValidationMiddleware = () => {
-//   return [body('name').notEmpty().withMessage('O campo de Atividade não pode estar vazio!')];
-// };
-
 taskRoute.get(
   `/:${deptName}/${baseRouteName}`,
   (request: Request, response: Response, next: NextFunction) => {
-    console.log('entrando no task getdataList...');
     controller.getDataList(request, response, next);
   },
 );
@@ -30,14 +25,12 @@ taskRoute.get(
 taskRoute.get(
   `/:${deptName}/${baseRouteName}/:${String(keyId)}`,
   (request: Request, response: Response, next: NextFunction) => {
-    console.log('entrando no task getdATA...');
     controller.getData(request, response, next);
   },
 );
 
 taskRoute.post(
   `/:${deptName}/${baseRouteName}`,
-  // bodyValidationMiddleware(),
   cloudStorage.upload.array('files'),
   (request: Request, response: Response, next: NextFunction) => {
     raiseMiddlewareError(request, response, next);

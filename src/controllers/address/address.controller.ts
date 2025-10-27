@@ -26,8 +26,10 @@ export class AddressController {
     next: NextFunction,
   ): Promise<Response<IAddressResponse>> {
     try {
-      const data = await this.baseRepository.getDataByField({
-        company: { idCompany: Number(request.params[this.relatedKeyId]) },
+      const data = await this.baseRepository.getData({
+        where: {
+          company: { idCompany: Number(request.params[this.relatedKeyId]) },
+        },
       });
       return this.apiResponse.Ok(
         response,

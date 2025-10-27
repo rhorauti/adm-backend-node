@@ -47,7 +47,7 @@ export class UnitController {
     next: NextFunction,
   ): Promise<Response<IUnitResponse>> {
     try {
-      const data = await this.baseRepository.getDataByField({
+      const data = await this.baseRepository.getData({
         [this.keyId]: Number(request.params[this.keyId]),
       });
       return this.apiResponse.Ok(
@@ -99,7 +99,7 @@ export class UnitController {
     next: NextFunction,
   ): Promise<Response<IDefaultResponse>> {
     try {
-      const data = await this.baseRepository.getDataByField({
+      const data = await this.baseRepository.getData({
         [this.keyId]: Number(request.params[this.keyId]),
       });
       await this.baseRepository.delete(data[this.keyId]);
