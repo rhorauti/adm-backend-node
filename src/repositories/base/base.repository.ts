@@ -1,4 +1,3 @@
-import { RelatedEntityProps } from '@core/types/base.type';
 import { emptyToNullRecursive } from '@utils/misc';
 import { inject, injectable } from 'tsyringe';
 import {

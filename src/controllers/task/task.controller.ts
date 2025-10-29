@@ -5,18 +5,18 @@ import { inject, injectable } from 'tsyringe';
 import { IDefaultResponse } from '@core/interfaces/base.interface';
 import { Department } from '@models/department/department.model';
 import { CustomErrorHandler } from '@core/error/error.core';
-import { ITaskResponse } from '@core/interfaces/task.interface';
+import { ITaskForm, ITaskResponse } from '@core/interfaces/task.interface';
 import { Task } from '@models/task/task.model';
 import { TOKENS } from '@containers/symbol';
 import { BaseRepository } from '@repositories/base/base.repository';
 import { TaskRepository } from '@repositories/task/task.repository';
 import { CloudStorage } from 'GCP/cloud-storage.gcp';
-import { IDetailedPhoto } from '@core/interfaces/photo.interface';
-import {
-  DEPT_NAMES_ENGLISH,
-  DEPT_NAMES_LOCAL_LANGUAGE,
-  translateDeptNameToLocalLanguage,
-} from '@core/enum/departments.enum';
+import { IDetailedPhoto, IPhoto } from '@core/interfaces/photo.interface';
+import { ProductionLine } from '@models/production-line/production-line.model';
+import { Employee } from '@models/employee/employee.model';
+import { ProductRepository } from '@repositories/product/product.repository';
+import { TaskType } from '@models/task/task-type.model';
+import { TASK_NUMBER_STATUS } from '@core/enum/status.enum';
 
 @injectable()
 export class TaskController {
@@ -25,6 +25,14 @@ export class TaskController {
     @inject(TOKENS.TaskBaseRepository) private taskBaseRepository: BaseRepository<Task>,
     @inject(TOKENS.DepartmentBaseRepository)
     private departmentBaseRepository: BaseRepository<Department>,
+    @inject(TOKENS.ProductRepository)
+    private productRepository: ProductRepository,
+    @inject(TOKENS.EmployeeBaseRepository)
+    private employeeBaseRepository: BaseRepository<Employee>,
+    @inject(TOKENS.ProductionLineBaseRepository)
+    private productionLineBaseRepository: BaseRepository<ProductionLine>,
+    @inject(TOKENS.TaskTypeBaseRepository)
+    private taskTypeBaseRepository: BaseRepository<TaskType>,
     @inject(TOKENS.CloudStorage)
     private cloudStorage: CloudStorage,
     @inject(TOKENS.ApiResponse)
@@ -36,30 +44,26 @@ export class TaskController {
   routeNameTranslatedSingular = this.routeNameTranslated.slice(0, -1);
 
   selectedDept: Department = null;
-  paramDeptNameLocalLanguage: DEPT_NAMES_LOCAL_LANGUAGE | null = null;
+  idDepartment: number | null = null;
 
   checkExistingDept = async (
     request: Request,
     response: Response,
     next: NextFunction,
   ): Promise<Response> => {
-    this.paramDeptNameLocalLanguage = translateDeptNameToLocalLanguage(
-      request.params['department'] as DEPT_NAMES_ENGLISH,
-    );
-    const selectedDept = await this.departmentBaseRepository.getData({
+    this.idDepartment = Number(request.params['idDepartment']);
+    this.selectedDept = await this.departmentBaseRepository.getData({
       where: {
-        name: this.paramDeptNameLocalLanguage,
+        idDepartment: this.idDepartment,
       },
     });
-    if (selectedDept) {
-      this.selectedDept = selectedDept;
-      return;
-    } else {
+    if (!this.selectedDept) {
       throw new CustomErrorHandler(
-        `Departamento ${this.paramDeptNameLocalLanguage} não encontrado.`,
+        `Departamento com id: ${this.idDepartment} não encontrado.`,
         404,
       );
     }
+    return;
   };
 
   async getDataList(
@@ -69,10 +73,7 @@ export class TaskController {
   ): Promise<Response<ITaskResponse>> {
     try {
       await this.checkExistingDept(request, response, next);
-      // const tasks = await this.taskRepository.getDataList(request);
-      console.log('deptName', this.selectedDept);
-      const tasks = await this.taskRepository.getDataList(this.selectedDept.name);
-      console.log('tasks', tasks);
+      const tasks = await this.taskRepository.getTaskList(this.idDepartment);
       if (tasks) {
         return this.apiResponse.Ok(
           response,
@@ -96,26 +97,73 @@ export class TaskController {
     next: NextFunction,
   ): Promise<Response<ITaskResponse>> {
     try {
-      await this.checkExistingDept(request, response, next);
       const idTask = Number(request.params['idTask']);
-      const deptName = translateDeptNameToLocalLanguage(
-        request.params['department'] as DEPT_NAMES_ENGLISH,
-      );
-      const taskData = await this.taskRepository.getTaskInfo(request);
-      if (taskData.imgPreviewList) {
-        const photoUrlPromises = taskData.imgPreviewList.map(async img => {
-          const [url] = await this.cloudStorage.getReadSignedUrl(img.objectKey);
-          return { idPhoto: img.idPhoto, previewUrl: url, file: null };
-        });
-        const signedUrlList = (await Promise.all(photoUrlPromises)).filter(Boolean);
-        taskData.imgPreviewList = signedUrlList;
+      await this.checkExistingDept(request, response, next);
+      let taskForm: ITaskForm | null = null;
+      const productionLineList = await this.productionLineBaseRepository.getDataList({
+        select: { idProductionLine: true, lineCode: true },
+        order: { idProductionLine: 'ASC' },
+      });
+      const employeeList = await this.employeeBaseRepository.getDataList({
+        select: { idEmployee: true, name: true },
+        order: { idEmployee: 'ASC' },
+      });
+      const taskTypeList = await this.taskTypeBaseRepository.getDataList({
+        select: { idTaskType: true, name: true },
+        order: { idTaskType: 'ASC' },
+      });
+      const productList = await this.productRepository.getProductListForTaskFormPage();
+      const taskData = await this.taskRepository.getTask(idTask);
+      if (!taskData || taskData == null) {
+        taskForm = {
+          idTask: null,
+          startDate: null,
+          finishDate: null,
+          name: null,
+          status: null,
+          comment: null,
+          imgPreviewList: null,
+          usedSpareParts: [],
+          product: null,
+          productList: productList,
+          productionLineList: productionLineList,
+          productionLine: null,
+          taskTypeList: taskTypeList,
+          taskType: null,
+          employeeList: employeeList,
+          employee: null,
+          deptName: null,
+        };
+      } else {
+        if (taskData) {
+          const imgPreviewList = await this.onGetPhotoList(taskData);
+          taskForm = {
+            idTask: taskData.idTask,
+            startDate: taskData.startDate,
+            finishDate: taskData.finishDate,
+            name: taskData.name,
+            status: taskData.status,
+            comment: taskData.comment,
+            imgPreviewList: imgPreviewList,
+            usedSpareParts: taskData.usedSpareParts,
+            product: taskData.product,
+            productionLine: taskData.productionLine,
+            taskType: taskData.taskType,
+            employee: taskData.employee,
+            productList: productList,
+            productionLineList: productionLineList,
+            taskTypeList: taskTypeList,
+            employeeList: employeeList,
+            deptName: this.selectedDept ? this.selectedDept.name : null,
+          };
+        }
+        return this.apiResponse.Ok(
+          response,
+          200,
+          `${this.routeNameTranslatedSingular} enviado com sucesso.`,
+          taskForm,
+        );
       }
-      return this.apiResponse.Ok(
-        response,
-        200,
-        `${this.routeNameTranslatedSingular} enviado com sucesso.`,
-        taskData,
-      );
     } catch (error) {
       const customError = error as CustomError;
       customError.message = `Erro na consulta de ${this.routeNameTranslatedSingular}: ${error.message}`;
@@ -131,67 +179,24 @@ export class TaskController {
     next: NextFunction,
   ): Promise<Response<ITaskResponse>> {
     let currentStep = '';
-    let retrivedData: Task | null = null;
+    let updatedData: Task | null = null;
     try {
       currentStep = 'check-dept';
       await this.checkExistingDept(request, response, next);
       const taskData = JSON.parse(request.body.data);
-      currentStep = 'save-task';
       if (taskData.imgPreviewList) delete taskData.imgPreviewList;
-      const savedData = await this.taskRepository.saveTask(taskData);
-      retrivedData = await this.taskBaseRepository.getData({
-        where: {
-          idTask: savedData.idTask,
-        },
-      });
-      if (retrivedData) {
-        let photoListToBeSaved: IDetailedPhoto[] = [];
-        const photoList = request.files as Express.Multer.File[];
-        const photoIdList: string[] =
-          typeof request.body.files == 'string' ? [request.body.files] : request.body.files;
-        if (retrivedData.photoPath) {
-          currentStep = 'delete-photo';
-          photoListToBeSaved = retrivedData.photoPath;
-          const deletePromises = retrivedData.photoPath.map((photo, index) => {
-            if (!photoIdList.some(photoId => photoId == photo.idPhoto)) {
-              photoListToBeSaved.splice(index, 1);
-              return this.cloudStorage.deleteFile(photo.objectKey);
-            } else {
-              return;
-            }
-          });
-          if (deletePromises) await Promise.all(deletePromises);
-        }
-        if (photoList && photoList.length > 0) {
-          currentStep = 'save-photos';
-          const keyPromises: Promise<IDetailedPhoto>[] = photoList.map(async file => {
-            const uniqueId = crypto.randomUUID();
-            const photoId = `${String(retrivedData.idTask).padStart(5, '0')}-${uniqueId}`;
-            const key = `${this.bucketFolder}/${photoId}.jpeg`;
-            const savedKey = await this.cloudStorage.saveFile(response, file, key);
-            return {
-              idPhoto: photoId,
-              userId: 0,
-              objectKey: savedKey,
-              contentType: file.mimetype,
-              size: file.size,
-              createdAt: new Date(),
-            };
-          });
-          const detailedPhotoList = (await Promise.all(keyPromises)).filter(Boolean);
-          detailedPhotoList.forEach(photo => {
-            photoListToBeSaved.push(photo);
-          });
-        }
-        await this.taskBaseRepository.updateField(
-          { idTask: retrivedData.idTask },
-          { photoPath: photoListToBeSaved },
-        );
+      const statusUpdatedData = await this.onCheckStatus(taskData);
+      currentStep = 'save-task';
+      const taskToBeSave = await this.taskBaseRepository.create(statusUpdatedData);
+      updatedData = await this.taskBaseRepository.save(taskToBeSave);
+      if (updatedData) {
+        await this.onSavePhoto(request, response, updatedData);
+        updatedData = await this.taskRepository.getTask(updatedData.idTask);
         return this.apiResponse.Ok(
           response,
           200,
-          `${this.routeNameTranslatedSingular} ${retrivedData.name} salvo(a) com sucesso.`,
-          retrivedData,
+          `${this.routeNameTranslatedSingular} ${updatedData.name} salvo(a) com sucesso.`,
+          updatedData,
         );
       }
     } catch (error) {
@@ -205,15 +210,6 @@ export class TaskController {
       } else {
         customError.message = `Erro ao salvar o registro: ${error.message}.`;
       }
-      if (
-        currentStep == 'save-photos' &&
-        retrivedData &&
-        (retrivedData.idTask == null ||
-          retrivedData.idTask == 0 ||
-          retrivedData.idTask == undefined)
-      ) {
-        await this.taskBaseRepository.delete(retrivedData.idTask);
-      }
       this.apiResponse.Error(
         response,
         500,
@@ -221,6 +217,103 @@ export class TaskController {
       );
     }
   }
+
+  onCheckStatus = async (taskData: Task): Promise<Task> => {
+    if (taskData.status == null) taskData.status = 1;
+    taskData.startDate = taskData.startDate ? new Date(taskData.startDate) : null;
+    taskData.finishDate = taskData.finishDate ? new Date(taskData.finishDate) : null;
+
+    if (taskData.status == TASK_NUMBER_STATUS.NOT_STARTED && taskData.startDate == null) {
+      taskData.startDate = new Date();
+      taskData.status = TASK_NUMBER_STATUS.UNDER_PROGRESS;
+    } else if (
+      taskData.status == TASK_NUMBER_STATUS.UNDER_PROGRESS &&
+      taskData.finishDate == null
+    ) {
+      const tasks = await this.taskBaseRepository.getDataList({
+        where: { employee: { idEmployee: taskData.employee.idEmployee } },
+      });
+      const taskDataIdx = tasks.findIndex(task => task.idTask == taskData.idTask);
+      tasks.forEach(async (task, index) => {
+        if (task.status == TASK_NUMBER_STATUS.UNDER_PROGRESS && taskDataIdx != index) {
+          await this.taskBaseRepository.updateField(
+            { idTask: task.idTask },
+            { status: TASK_NUMBER_STATUS.PAUSED },
+          );
+        }
+      });
+    } else if (
+      taskData.status == TASK_NUMBER_STATUS.UNDER_PROGRESS &&
+      taskData.finishDate != null
+    ) {
+      taskData.finishDate = null;
+    } else if (taskData.status == TASK_NUMBER_STATUS.PAUSED && taskData.finishDate != null) {
+      taskData.finishDate = null;
+    } else if (taskData.status == TASK_NUMBER_STATUS.FINISHED && taskData.finishDate == null) {
+      taskData.finishDate = new Date();
+    }
+    return taskData;
+  };
+
+  onGetPhotoList = async (taskData: Task): Promise<IPhoto[]> => {
+    if (taskData.photoPath) {
+      const photoUrlPromises = taskData.photoPath.map(async img => {
+        const [url] = await this.cloudStorage.getReadSignedUrl(img.objectKey);
+        return { idPhoto: img.idPhoto, previewUrl: url, file: null };
+      });
+      return (await Promise.all(photoUrlPromises)).filter(Boolean);
+    }
+  };
+
+  onSavePhoto = async (request: Request, response: Response, taskData: Task): Promise<void> => {
+    let currentPhotoPathList: IDetailedPhoto[] = [];
+    const multerFiles = request.files as Express.Multer.File[];
+    const bodyFiles = request.body.files;
+    const clientPhotoIdList: string[] = bodyFiles
+      ? typeof bodyFiles == 'string'
+        ? [bodyFiles]
+        : bodyFiles
+      : [];
+    const updatedData = await this.taskBaseRepository.getData({
+      where: { idTask: taskData.idTask },
+    });
+    currentPhotoPathList = updatedData.photoPath ? updatedData.photoPath : [];
+    if (currentPhotoPathList) {
+      const deletePromises = currentPhotoPathList.map((photo, index) => {
+        if (!clientPhotoIdList.some(photoId => photoId == photo.idPhoto)) {
+          currentPhotoPathList.splice(index, 1);
+          return this.cloudStorage.deleteFile(photo.objectKey);
+        } else {
+          return;
+        }
+      });
+      if (deletePromises) await Promise.all(deletePromises);
+    }
+    if (multerFiles && multerFiles.length > 0) {
+      const keyPromises: Promise<IDetailedPhoto>[] = multerFiles.map(async file => {
+        const uniqueId = crypto.randomUUID();
+        const photoId = `${String(updatedData.idTask).padStart(5, '0')}-${uniqueId}`;
+        const key = `${this.bucketFolder}/${photoId}.jpeg`;
+        const savedKey = await this.cloudStorage.saveFile(response, file, key);
+        return {
+          idPhoto: photoId,
+          userId: 0,
+          objectKey: savedKey,
+          contentType: file.mimetype,
+          size: file.size,
+          createdAt: new Date(),
+        };
+      });
+      const detailedPhotoList = (await Promise.all(keyPromises)).filter(Boolean);
+      detailedPhotoList.forEach(photo => {
+        currentPhotoPathList.push(photo);
+      });
+    }
+    await this.taskBaseRepository.updateField(
+      { idTask: updatedData.idTask },
+      { photoPath: currentPhotoPathList },
+    );
+  };
 
   async delete(
     request: Request,

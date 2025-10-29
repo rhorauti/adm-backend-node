@@ -1,5 +1,4 @@
 import { IEmployeeCompany } from '@core/interfaces/company.interface';
-import { IEmployeeDTO, IEmployeeForm } from '@core/interfaces/employee.interface';
 import { Employee } from '@models/employee/employee.model';
 import { inject, injectable } from 'tsyringe';
 import { DataSource, Repository } from 'typeorm';
@@ -42,19 +41,5 @@ export class EmployeeRepository {
       .where('company.idCompany = :idCompany', { idCompany })
       .andWhere('employee.isDefault = true')
       .getOne();
-    // return query.map(row => ({
-    //   idEmployee: row.employee_idEmployee,
-    //   isDefault: row.employee_isDefault,
-    //   name: row.employee_name,
-    //   email: row.employee_email,
-    //   deskphone: row.employee_deskphone,
-    //   photoUrl: row.employee_photoUrl,
-    //   cellphone: row.employee_cellphone,
-    //   department: { idDepartment: row.department_idDepartment, name: row.department_name },
-    //   employeePosition: {
-    //     idEmployeePosition: row.employeePosition_idEmployeePosition,
-    //     name: row.employeePosition_name,
-    //   },
-    // }));
   }
 }

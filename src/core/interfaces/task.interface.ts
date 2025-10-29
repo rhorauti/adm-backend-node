@@ -45,8 +45,8 @@ export interface ITaskHome {
 
 export interface ITaskForm {
   idTask?: number;
-  startDate?: string | null;
-  finishDate?: string | null;
+  startDate?: Date | null;
+  finishDate?: Date | null;
   name?: string;
   status?: number;
   comment?: string;
@@ -60,4 +60,5 @@ export interface ITaskForm {
   taskType?: PartialTaskType;
   employeeList?: PartialEmployee[];
   employee?: PartialEmployee;
+  deptName: string;
 }

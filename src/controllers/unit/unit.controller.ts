@@ -27,7 +27,7 @@ export class UnitController {
     next: NextFunction,
   ): Promise<Response<IUnitResponse>> {
     try {
-      const dataList = await this.baseRepository.getDataList('idUnit');
+      const dataList = await this.baseRepository.getDataList({ order: { idUnit: 'DESC' } });
       return this.apiResponse.Ok(
         response,
         200,
@@ -48,7 +48,9 @@ export class UnitController {
   ): Promise<Response<IUnitResponse>> {
     try {
       const data = await this.baseRepository.getData({
-        [this.keyId]: Number(request.params[this.keyId]),
+        where: {
+          [this.keyId]: Number(request.params[this.keyId]),
+        },
       });
       return this.apiResponse.Ok(
         response,
@@ -100,7 +102,9 @@ export class UnitController {
   ): Promise<Response<IDefaultResponse>> {
     try {
       const data = await this.baseRepository.getData({
-        [this.keyId]: Number(request.params[this.keyId]),
+        where: {
+          [this.keyId]: Number(request.params[this.keyId]),
+        },
       });
       await this.baseRepository.delete(data[this.keyId]);
       return this.apiResponse.Ok(

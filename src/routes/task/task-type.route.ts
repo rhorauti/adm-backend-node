@@ -8,7 +8,7 @@ import { raiseMiddlewareError } from '@utils/misc';
 const taskTypeRoute = Router();
 
 const baseRouteName = 'task-types';
-const deptName = 'department';
+const idDepartment = 'idDepartment';
 export const keyId: keyof TaskType = 'idTaskType';
 
 const controller = container.resolve(TaskTypeController);
@@ -18,21 +18,21 @@ const bodyValidationMiddleware = () => {
 };
 
 taskTypeRoute.get(
-  `/:${deptName}/${baseRouteName}`,
+  `/:${idDepartment}/${baseRouteName}`,
   (request: Request, response: Response, next: NextFunction) => {
     controller.getDataList(request, response, next);
   },
 );
 
 taskTypeRoute.get(
-  `/:${deptName}/${baseRouteName}/:${String(keyId)}`,
+  `/:${idDepartment}/${baseRouteName}/:${String(keyId)}`,
   (request: Request, response: Response, next: NextFunction) => {
     controller.getData(request, response, next);
   },
 );
 
 taskTypeRoute.post(
-  `/:${deptName}/${baseRouteName}`,
+  `/:${idDepartment}/${baseRouteName}`,
   bodyValidationMiddleware(),
   (request: Request, response: Response, next: NextFunction) => {
     raiseMiddlewareError(request, response, next);
@@ -43,7 +43,7 @@ taskTypeRoute.post(
 );
 
 taskTypeRoute.delete(
-  `/:${deptName}/${baseRouteName}/:${String(keyId)}`,
+  `/:${idDepartment}/${baseRouteName}/:${String(keyId)}`,
   (request: Request, response: Response, next: NextFunction) => {
     controller.delete(request, response, next);
   },

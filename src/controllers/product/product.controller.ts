@@ -75,43 +75,59 @@ export class ProductController {
   ): Promise<Response<IProductResponse>> {
     try {
       let productFormData: IProductForm = null;
-      const product = await this.productBaseRepository.getData({
-        where: {
-          [this.keyId]: Number(request.params[this.keyId]),
-        },
-        relations: ['unit'],
-        order: { idProduct: 'DESC' },
-      });
-      let productTypeList = await this.productTypeBaseRepository.getDataList({
+      const idProduct = Number(request.params.idProduct) || 0;
+      const productTypeList = await this.productTypeBaseRepository.getDataList({
         order: { idProductType: 'DESC' },
+        select: { idProductType: true, name: true },
       });
-      if (productTypeList) {
-        productTypeList = productTypeList.map(product => ({
-          idProductType: product.idProductType,
-          name: product.name,
-        }));
-      }
-      let unitList = await this.unitBaseRepository.getDataList({ order: { idUnit: 'DESC' } });
-      if (unitList) {
-        unitList = unitList.map(unit => ({ idUnit: unit.idUnit, name: unit.name }));
-      }
-      if (product) {
-        const formObj = productFormData ?? ({} as IProductForm);
+      const unitList = await this.unitBaseRepository.getDataList({
+        order: { idUnit: 'DESC' },
+        select: { idUnit: true, name: true },
+      });
+      const product = await this.productRepository.getProduct(idProduct);
+      if (!product || product == null) {
         productFormData = {
-          ...formObj,
-          ...product,
-          unit: product.unit ? { idUnit: product.unit.idUnit, name: product.unit.name } : null,
-          productType: product.productType
-            ? { idProductType: product.productType.idProductType, name: product.productType.name }
-            : null,
+          idProduct: null,
+          internalPartNumber: null,
+          customerPartNumber: null,
+          name: null,
+          nameTranslated: null,
+          origin: null,
+          ncm: null,
+          icms: null,
+          pis: null,
+          cofins: null,
+          ipi: null,
+          purchasingCurrency: null,
+          purchasingUnitPrice: null,
+          salesCurrency: null,
+          salesUnitPrice: null,
+          materialSpec: null,
+          width: null,
+          height: null,
+          depth: null,
+          weight: null,
+          qrcode: null,
+          photoUrl: null,
+          comment: null,
           unitList: unitList,
+          unit: null,
           productTypeList: productTypeList,
+          productType: null,
         };
+      } else {
+        let photoUrl: string | null = null;
         if (product.photoUrl != null) {
           const urls = await this.cloudStorage.getReadSignedUrl(product.photoUrl);
-          const url = (urls && urls[0]) ?? '';
-          productFormData.photoUrl = url;
+          const url = (urls && urls[0]) ?? null;
+          photoUrl = url;
         }
+        productFormData = {
+          ...product,
+          photoUrl: photoUrl,
+          productTypeList,
+          unitList,
+        };
       }
       return this.apiResponse.Ok(
         response,
@@ -136,7 +152,8 @@ export class ProductController {
     try {
       const productData = JSON.parse(request.body.data);
       if (productData.photoUrl) delete productData.photoUrl;
-      const savedProduct = await this.productRepository.saveProduct(productData);
+      const productDataToBeSaved = await this.productBaseRepository.create(productData);
+      const savedProduct = await this.productBaseRepository.save(productDataToBeSaved);
       const updatedData = await this.productBaseRepository.getData({
         where: {
           idProduct: savedProduct.idProduct,
@@ -206,7 +223,9 @@ export class ProductController {
   ): Promise<Response<IDefaultResponse>> {
     try {
       const data = await this.productBaseRepository.getData({
-        [this.keyId]: Number(request.params[this.keyId]),
+        where: {
+          [this.keyId]: Number(request.params[this.keyId]),
+        },
       });
       if (data) await this.productBaseRepository.delete(data[this.keyId]);
       if (data.photoUrl) await this.cloudStorage.deleteFile(data.photoUrl);

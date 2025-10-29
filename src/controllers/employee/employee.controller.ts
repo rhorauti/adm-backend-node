@@ -47,21 +47,12 @@ export class EmployeeController {
   ): Promise<Response<IEmployeeResponse>> {
     try {
       const idCompany = Number(request.params.idCompany);
-      const dataList = await this.employeeRepository.getEmployeeList(idCompany);
-      // const withSigned = await Promise.all(
-      //   dataList.map(async (e: Employee) => {
-      //     if (e.photoUrl) {
-      //       const [url] = await this.cloudStorage.getReadSignedUrl(e.photoUrl);
-      //       return { ...e, photoUrl: url };
-      //     }
-      //     return e;
-      //   }),
-      // );
+      const employeeList = await this.employeeRepository.getEmployeeList(idCompany);
       return this.apiResponse.Ok(
         response,
         200,
         `Dados de ${this.routeNameTranslated} enviados com sucesso.`,
-        dataList,
+        employeeList,
       );
     } catch (error) {
       const customError = error as CustomError;
@@ -93,7 +84,7 @@ export class EmployeeController {
         employeePosition: { idEmployeePosition: null, name: '' },
       };
       const employeePositionList = await this.employeePositionBaseRepository.getDataList({
-        order: { idEmployeePosition: 'DESC' },
+        order: { idEmployeePosition: 'ASC' },
       });
       if (Array.isArray(employeePositionList)) {
         employeeFormData.employeePositionList = employeePositionList.map(pos => ({
@@ -103,7 +94,7 @@ export class EmployeeController {
       }
 
       const departmentList = await this.departmentBaseRepository.getDataList({
-        order: { idDepartment: 'DESC' },
+        order: { idDepartment: 'ASC' },
       });
       if (Array.isArray(departmentList)) {
         employeeFormData.departmentList = departmentList.map(dept => ({

@@ -70,7 +70,7 @@ export class TaskFakeController {
   ): Promise<Response<ITaskResponse>> {
     try {
       await this.checkExistingDept(request, response, next);
-      const tasks = await this.taskRepository.getDataList(this.selectedDept.name);
+      const tasks = await this.taskRepository.getTaskList(this.selectedDept.name);
       if (tasks) {
         return this.apiResponse.Ok(
           response,

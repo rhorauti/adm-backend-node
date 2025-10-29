@@ -9,11 +9,6 @@ import { TaskType } from '@models/task/task-type.model';
 import { CustomErrorHandler } from '@core/error/error.core';
 import { TOKENS } from '@containers/symbol';
 import { BaseRepository } from '@repositories/base/base.repository';
-import {
-  DEPT_NAMES_ENGLISH,
-  DEPT_NAMES_LOCAL_LANGUAGE,
-  translateDeptNameToLocalLanguage,
-} from '@core/enum/departments.enum';
 
 @injectable()
 export class TaskTypeController {
@@ -30,29 +25,27 @@ export class TaskTypeController {
   routeNameTranslatedSingular = this.routeNameTranslated.slice(0, -1);
 
   selectedDept: Department = null;
-  paramDeptNameLocalLanguage: DEPT_NAMES_LOCAL_LANGUAGE | null = null;
+  // paramDeptNameLocalLanguage: DEPT_NAMES_LOCAL_LANGUAGE | null = null;
 
   checkExistingDept = async (
     request: Request,
     response: Response,
     next: NextFunction,
   ): Promise<Response> => {
-    this.paramDeptNameLocalLanguage = translateDeptNameToLocalLanguage(
-      request.params['department'] as DEPT_NAMES_ENGLISH,
-    );
+    // this.paramDeptNameLocalLanguage = translateDeptNameToLocalLanguage(
+    //   request.params['department'] as DEPT_NAMES_ENGLISH,
+    // );
+    const idDepartment = Number(request.params['idDepartment']);
     const selectedDept = await this.departmentBaseRepository.getData({
       where: {
-        name: this.paramDeptNameLocalLanguage,
+        idDepartment: idDepartment,
       },
     });
     if (selectedDept) {
       this.selectedDept = selectedDept;
       return;
     } else {
-      throw new CustomErrorHandler(
-        `Departamento ${this.paramDeptNameLocalLanguage} não encontrado.`,
-        404,
-      );
+      throw new CustomErrorHandler(`Departamento com id: ${idDepartment} não encontrado.`, 404);
     }
   };
 
